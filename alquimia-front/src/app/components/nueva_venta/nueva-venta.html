@@ -1,0 +1,159 @@
+<div class="container mx-auto p-2 lg:p-4 flex flex-col lg:flex-row gap-4 lg:gap-6 h-auto lg:h-[calc(100vh-100px)]">
+    
+    <div class="w-full lg:flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-[50vh] lg:min-h-0">
+        
+        <div class="p-3 lg:p-4 border-b border-slate-100 bg-slate-50">
+            <div class="relative">
+                <input 
+                    #inputBusqueda
+                    type="text" 
+                    [(ngModel)]="busqueda"
+                    (keyup)="buscar()"
+                    (keyup.enter)="productosEncontrados.length > 0 ? agregarAlCarrito(productosEncontrados[0]) : null"
+                    placeholder="Escanear o buscar..." 
+                    class="w-full pl-4 pr-4 py-2 lg:py-3 rounded-lg border-2 border-slate-300 focus:border-slate-500 focus:ring-0 text-base lg:text-lg shadow-inner text-slate-700"
+                    [disabled]="procesando"
+                >
+                <div *ngIf="productosEncontrados.length > 0" class="absolute top-full left-0 right-0 bg-white border border-slate-200 shadow-xl rounded-b-lg z-20 max-h-60 overflow-y-auto">
+                    <div 
+                        *ngFor="let p of productosEncontrados" 
+                        (click)="agregarAlCarrito(p)"
+                        class="p-3 hover:bg-slate-100 cursor-pointer border-b border-slate-50 flex justify-between items-center"
+                    >
+                        <div>
+                            <div class="font-bold text-slate-800">{{ p.nombre }}</div>
+                            <div class="text-xs text-slate-500">{{ p.codigo_barra }} | Stock: {{ p.stock }}</div>
+                        </div>
+                        <div class="font-mono font-bold text-slate-700">
+                            {{ (metodoPago === 'EFECTIVO' ? p.precio_efectivo : p.precio_tarjeta) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-1 lg:p-2">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-white text-slate-400 font-medium uppercase text-xs sticky top-0 z-10 shadow-sm">
+                    <tr>
+                        <th class="px-2 lg:px-4 py-2">Producto</th>
+                        <th class="px-2 lg:px-4 py-2 text-center">Cant</th>
+                        <th class="px-2 lg:px-4 py-2 text-right hidden sm:table-cell">Precio</th>
+                        <th class="px-2 lg:px-4 py-2 text-right">Subtotal</th>
+                        <th class="px-2 lg:px-4 py-2 w-8 lg:w-10"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <tr *ngFor="let item of carrito; let i = index" class="hover:bg-slate-50">
+                        <td class="px-2 lg:px-4 py-3 font-medium text-slate-800 break-words max-w-[120px] sm:max-w-none">
+                            {{ item.producto.nombre }}
+                            <div class="sm:hidden text-xs text-slate-400 font-normal mt-0.5">
+                                {{ (item.subtotal / item.cantidad) | currency:'ARS':'symbol-narrow':'1.0-0' }} x u.
+                            </div>
+                        </td>
+                        <td class="px-2 lg:px-4 py-3 text-center">
+                            <span class="font-bold bg-slate-200 px-2 py-1 rounded text-slate-700 text-xs lg:text-sm">{{ item.cantidad }}</span>
+                        </td>
+                        <td class="px-2 lg:px-4 py-3 text-right font-mono hidden sm:table-cell">
+                            {{ (item.subtotal / item.cantidad) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                        </td>
+                        <td class="px-2 lg:px-4 py-3 text-right font-bold text-slate-900 font-mono text-xs lg:text-sm">
+                            {{ item.subtotal | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                        </td>
+                        <td class="px-1 lg:px-4 py-3 text-center">
+                            <button (click)="quitarDelCarrito(i)" class="text-red-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="carrito.length === 0">
+                        <td colspan="5" class="py-10 text-center text-slate-400 px-4">
+                            <span class="block sm:inline">El carrito está vacío.</span>
+                            <span class="block sm:inline">Escanea un producto.</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="w-full lg:w-96 bg-slate-900 text-white rounded-xl shadow-lg p-4 lg:p-6 flex flex-col h-auto lg:h-full overflow-y-auto">
+        
+        <h2 class="text-lg lg:text-xl font-bold mb-4 text-slate-300 uppercase tracking-widest flex items-center gap-2">
+            <span>Configuración</span>
+            <span class="lg:hidden h-px flex-1 bg-slate-700"></span>
+        </h2>
+
+        <div class="mb-4 lg:mb-6 space-y-3 p-3 lg:p-4 bg-slate-800 rounded-lg border border-slate-700">
+            <h3 class="text-xs font-bold text-slate-400 uppercase">Datos del Cliente</h3>
+            
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Nombre / Razón Social</label>
+                <input type="text" [(ngModel)]="datosCliente.nombre" 
+                       class="w-full bg-slate-700 border-none rounded text-sm text-white focus:ring-1 focus:ring-slate-400 placeholder-slate-500"
+                       placeholder="Consumidor Final">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">CUIT / DNI</label>
+                    <input type="text" [(ngModel)]="datosCliente.cuit" 
+                           class="w-full bg-slate-700 border-none rounded text-sm text-white focus:ring-1 focus:ring-slate-400"
+                           placeholder="Opcional">
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-3 mb-6">
+            <label class="block text-sm font-medium text-slate-400">Método de Pago</label>
+            <div class="grid grid-cols-3 gap-2">
+                <button (click)="metodoPago = 'EFECTIVO'; calcularTotales()"
+                    [class]="metodoPago === 'EFECTIVO' ? 'bg-emerald-600 text-white border-transparent' : 'bg-transparent border-slate-600 text-slate-400 hover:border-slate-400'"
+                    class="border-2 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all truncate">
+                    Efectivo
+                </button>
+                <button (click)="metodoPago = 'TARJETA'; calcularTotales()"
+                    [class]="metodoPago === 'TARJETA' ? 'bg-slate-600 text-white border-transparent' : 'bg-transparent border-slate-600 text-slate-400 hover:border-slate-400'"
+                    class="border-2 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all truncate">
+                    T. Nac
+                </button>
+                <button (click)="metodoPago = 'TARJETA_LOCAL'; calcularTotales()"
+                    [class]="metodoPago === 'TARJETA_LOCAL' ? 'bg-slate-500 text-white border-transparent' : 'bg-transparent border-slate-600 text-slate-400 hover:border-slate-400'"
+                    class="border-2 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all truncate">
+                    T. Loc
+                </button>
+            </div>
+
+            <div *ngIf="metodoPago !== 'EFECTIVO'" class="mt-2 animate-fade-in">
+                <label class="block text-xs text-slate-500 mb-1">Cantidad de Cuotas</label>
+                <div class="flex items-center gap-3">
+                    <input type="range" min="1" max="12" step="1" [(ngModel)]="datosVenta.cuotas" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    <span class="text-xl font-bold text-white w-8 text-center">{{ datosVenta.cuotas }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hidden lg:block flex-1"></div>
+
+        <div class="mt-auto border-t border-slate-700 pt-4">
+            <div class="flex justify-between items-end mb-4">
+                <span class="text-xl lg:text-2xl font-light text-slate-400">Total</span>
+                <span class="text-4xl lg:text-5xl font-bold text-white tracking-tighter">
+                    {{ total | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                </span>
+            </div>
+
+            <button 
+                (click)="confirmarVenta()"
+                [disabled]="carrito.length === 0 || procesando"
+                class="w-full bg-white hover:bg-slate-200 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-slate-900 font-bold py-3 lg:py-4 rounded-xl text-lg lg:text-xl shadow-lg transition-all flex justify-center items-center gap-2"
+            >
+                <span *ngIf="!procesando">Cobrar Venta</span>
+                <span *ngIf="procesando">Procesando...</span>
+            </button>
+        </div>
+    </div>
+
+</div>

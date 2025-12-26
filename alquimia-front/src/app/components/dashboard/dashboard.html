@@ -1,0 +1,157 @@
+<div class="max-w-7xl mx-auto p-6 lg:p-8">
+    
+    <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4 animate-fade-in-up">
+        <div>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight">
+                Panel de Control
+            </h1>
+            <p class="text-slate-500 mt-2 text-lg font-medium">
+                Resumen de operaciones del <span class="text-slate-800 font-bold">{{ fechaHoy | date:'fullDate' | titlecase }}</span>
+            </p>
+        </div>
+
+    </header>
+
+    <div *ngIf="loading" class="flex flex-col items-center justify-center py-20 text-slate-400 animate-pulse">
+        <div class="h-10 w-10 border-4 border-slate-200 border-t-slate-600 rounded-full animate-spin mb-4"></div>
+        <p>Calculando métricas...</p>
+    </div>
+
+    <div *ngIf="!loading && metricas" class="space-y-8 animate-fade-in-up">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div class="md:col-span-1 bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-2xl p-8 shadow-2xl relative overflow-hidden border border-slate-700">
+                <div class="absolute -right-10 -top-10 bg-white/5 w-48 h-48 rounded-full blur-3xl"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-2 text-slate-300">
+                        <div class="p-2 bg-white/10 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xs font-bold uppercase tracking-[0.2em]">Caja Total</h3>
+                    </div>
+                    <div class="text-5xl font-bold font-mono tracking-tighter my-4">
+                        {{ metricas.total_caja | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                    </div>
+                    <div class="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-xs font-medium text-slate-200 border border-white/5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        {{ metricas.ventas_totales }} operaciones hoy
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded">Efectivo</span>
+                </div>
+                <div class="text-3xl font-bold text-slate-800 font-mono mb-2">
+                    {{ metricas.desglose.efectivo | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-4">
+                    <div class="bg-emerald-500 h-full rounded-full transition-all duration-1000" 
+                         [style.width.%]="(metricas.desglose.efectivo / (metricas.total_caja || 1)) * 100"></div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded">Digital</span>
+                </div>
+                <div class="text-3xl font-bold text-slate-800 font-mono mb-2">
+                    {{ metricas.desglose.tarjeta | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-4">
+                    <div class="bg-blue-500 h-full rounded-full transition-all duration-1000" 
+                         [style.width.%]="(metricas.desglose.tarjeta / (metricas.total_caja || 1)) * 100"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Movimientos de Hoy
+                </h3>
+                <span class="text-xs font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">
+                    Mostrando las últimas ventas
+                </span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-[11px] tracking-wider border-b border-slate-100">
+                        <tr>
+                            <th class="px-6 py-4">Hora</th>
+                            <th class="px-6 py-4">Cliente</th>
+                            <th class="px-6 py-4 text-center">Pago</th>
+                            <th class="px-6 py-4 text-right">Monto</th>
+                            <th class="px-6 py-4 text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        
+                        <tr *ngIf="!metricas.ventas || metricas.ventas.length === 0">
+                            <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                                No se han registrado ventas hoy.
+                            </td>
+                        </tr>
+
+                        <tr *ngFor="let v of metricas.ventas" class="hover:bg-slate-50/80 transition-colors group">
+                            <td class="px-6 py-4 font-mono font-medium text-slate-500">
+                                {{ v.fecha | date:'HH:mm' }}
+                            </td>
+                            <td class="px-6 py-4 font-medium text-slate-800">
+                                {{ v.cliente_nombre || 'Consumidor Final' }}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border"
+                                    [class.bg-emerald-50.text-emerald-700.border-emerald-100]="v.metodo_pago === 'EFECTIVO'"
+                                    [class.bg-blue-50.text-blue-700.border-blue-100]="v.metodo_pago.includes('TARJETA')">
+                                    {{ v.metodo_pago === 'TARJETA_LOCAL' ? 'T. Local' : v.metodo_pago }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right font-bold text-slate-800 font-mono">
+                                {{ v.total | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+    <a [routerLink]="['/ventas', v.id]" 
+       [queryParams]="{origen: 'dashboard'}" 
+       class="text-slate-400 hover:text-slate-800 hover:bg-slate-200 p-1.5 rounded-lg transition-all inline-block"
+       title="Ver Ticket">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        </svg>
+    </a>
+</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div *ngIf="metricas.ventas?.length > 0" class="bg-slate-50 p-3 text-center border-t border-slate-100">
+                <a routerLink="/ventas" class="text-xs font-bold text-slate-500 hover:text-slate-800 uppercase tracking-wide transition-colors">
+                    Ver Historial Completo →
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+</div>

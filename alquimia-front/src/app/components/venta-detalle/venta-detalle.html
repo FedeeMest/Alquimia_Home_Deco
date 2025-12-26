@@ -1,0 +1,80 @@
+<div class="container mx-auto p-4 max-w-4xl" *ngIf="venta">
+    
+    <div class="mb-6 flex justify-between items-center">
+        <a [routerLink]="volverUrl" class="text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-colors font-medium cursor-pointer">
+            ← {{ volverTexto }}
+        </a>
+        
+        <div class="text-right">
+            <h1 class="text-2xl font-bold text-slate-900">Venta #{{ venta.id }}</h1>
+            <p class="text-slate-500 text-sm">{{ venta.fecha | date:'fullDate' }} | {{ venta.fecha | date:'shortTime' }}hs</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-6">
+        
+        <div class="bg-slate-50 p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <span [class]="venta.estado === 'ACTIVA' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'" 
+                      class="px-3 py-1 rounded-full text-sm font-bold uppercase tracking-wide">
+                    {{ venta.estado }}
+                </span>
+                <span class="text-slate-400">|</span>
+                <span class="font-medium text-slate-700">{{ venta.metodo_pago }}</span>
+                <span *ngIf="venta.cuotas && venta.cuotas > 1" class="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded">
+                    {{ venta.cuotas }} cuotas
+                </span>
+            </div>
+            <div class="text-3xl font-bold text-slate-800 font-mono">
+                {{ venta.total | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </div>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-xs font-bold text-slate-400 uppercase mb-2">Cliente</h3>
+                <p class="text-lg font-medium text-slate-800">{{ venta.cliente_nombre || 'Consumidor Final' }}</p>
+                <p class="text-slate-500 text-sm" *ngIf="venta.cliente_cuit">CUIT: {{ venta.cliente_cuit }}</p>
+                <p class="text-slate-500 text-sm" *ngIf="venta.cliente_direccion">{{ venta.cliente_direccion }}</p>
+            </div>
+            <div class="md:text-right">
+                <h3 class="text-xs font-bold text-slate-400 uppercase mb-2">Detalles Internos</h3>
+                <p class="text-sm text-slate-600">Vendedor: <span class="font-medium">{{ venta.usuario_vendedor || '-' }}</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-900 px-6 py-4">
+            <h3 class="text-white font-bold">Productos Vendidos</h3>
+        </div>
+        <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-50 text-slate-900 font-semibold uppercase text-xs border-b border-slate-200">
+                <tr>
+                    <th class="px-6 py-3">Producto</th>
+                    <th class="px-6 py-3 text-center">Cant.</th>
+                    <th class="px-6 py-3 text-right">Precio Unit.</th>
+                    <th class="px-6 py-3 text-right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                <tr *ngFor="let item of venta.detalles">
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-slate-800">{{ item.producto.nombre }}</div>
+                        <div class="text-xs text-slate-400">{{ item.producto.codigo_barra }}</div>
+                    </td>
+                    <td class="px-6 py-4 text-center font-bold text-slate-700">
+                        {{ item.cantidad }}
+                    </td>
+                    <td class="px-6 py-4 text-right font-mono text-slate-500">
+                        {{ item.precio_unitario_historico | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="px-6 py-4 text-right font-bold text-slate-800 font-mono">
+                        {{ item.subtotal | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>

@@ -1,0 +1,115 @@
+<aside 
+    class="bg-white text-slate-600 w-64 h-full flex flex-col transition-transform duration-300 ease-in-out
+           fixed inset-y-0 left-0 z-30 shadow-2xl border-r border-slate-100
+           md:static md:translate-x-0"
+    [class.-translate-x-full]="!isMobileMenuOpen"
+    [class.translate-x-0]="isMobileMenuOpen">
+
+    <div class="h-60 flex flex-col items-center justify-center relative border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+        
+        <div class="relative group cursor-pointer p-2" routerLink="/">
+             <div class="absolute -inset-6 bg-slate-200/60 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition duration-1000 ease-out"></div>
+             
+             <img src="assets/images/logo_alquimia.png" 
+                  alt="Logo" 
+                  class="relative h-36 w-auto object-contain drop-shadow-sm transform transition duration-500 group-hover:scale-110">
+        </div>
+        
+        <div class="mt-3 text-center">
+            <h1 class="text-slate-700 font-bold tracking-[0.2em] text-sm">ALQUIMIA</h1>
+            <p class="text-[10px] text-slate-400 uppercase tracking-[0.3em] font-semibold mt-1">
+                Home Deco
+            </p>
+        </div>
+
+        <button (click)="closeMobileMenu()" class="md:hidden absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        
+        <div class="mb-8 px-1">
+            <a routerLink="/nueva_venta" (click)="closeMobileMenu()"
+               class="flex items-center justify-center gap-2 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-slate-300/50 transition-all transform hover:-translate-y-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                NUEVA VENTA
+            </a>
+        </div>
+
+        <div class="px-4 mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestión</div>
+
+        <a routerLink="/productos" routerLinkActive="bg-slate-100 text-slate-900 border-l-4 border-slate-800" (click)="closeMobileMenu()"
+           class="group flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-r-lg border-l-4 border-transparent hover:bg-slate-50 hover:text-slate-900 transition-all">
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            Productos
+        </a>
+
+        <a routerLink="/ventas" routerLinkActive="bg-slate-100 text-slate-900 border-l-4 border-slate-800" (click)="closeMobileMenu()"
+           class="group flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-r-lg border-l-4 border-transparent hover:bg-slate-50 hover:text-slate-900 transition-all">
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            Ventas
+        </a>
+
+        <a routerLink="/verificador" routerLinkActive="bg-slate-100 text-slate-900 border-l-4 border-slate-800" (click)="closeMobileMenu()"
+           class="group flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-r-lg border-l-4 border-transparent hover:bg-slate-50 hover:text-slate-900 transition-all">
+           <svg class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+           </svg>
+           Buscador de Precios
+        </a>
+        <a routerLink="/metricas" 
+           routerLinkActive="bg-slate-100 text-slate-900 border-l-4 border-slate-800"
+           [routerLinkActiveOptions]="{exact: true}" 
+           (click)="closeMobileMenu()"
+           class="group flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-r-lg border-l-4 border-transparent hover:bg-slate-50 hover:text-slate-900 transition-all">
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+            </svg>
+            Metricas
+        </a>
+
+        <div class="px-4 mt-8 mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sistema</div>
+
+        <a routerLink="/configuracion" routerLinkActive="bg-slate-100 text-slate-900 border-l-4 border-slate-800" (click)="closeMobileMenu()"
+           class="group flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-r-lg border-l-4 border-transparent hover:bg-slate-50 hover:text-slate-900 transition-all">
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Configuración
+        </a>
+        
+        
+    </nav>
+    
+    <div class="p-4 border-t border-slate-100 bg-slate-50">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-700 text-xs font-bold shadow-sm">
+                {{ authService.currentUser().substring(0,2).toUpperCase() }}
+            </div>
+            
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-slate-700 truncate">
+                    {{ authService.currentUser() || 'Usuario' }}
+                </p>
+                <button (click)="logout()" class="text-[10px] text-red-500 font-medium hover:text-red-700 transition-colors flex items-center gap-1">
+                    Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<div *ngIf="isMobileMenuOpen" 
+     (click)="closeMobileMenu()"
+     class="fixed inset-0 bg-slate-900/10 z-20 md:hidden backdrop-blur-sm transition-all duration-300">
+</div>

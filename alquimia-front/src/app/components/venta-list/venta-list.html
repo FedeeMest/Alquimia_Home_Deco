@@ -1,0 +1,174 @@
+<div class="container mx-auto p-4 max-w-7xl">
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-extrabold transition-colors tracking-tight"
+                [class.text-slate-800]="!verAnuladas"
+                [class.text-red-800]="verAnuladas">
+                {{ verAnuladas ? 'Ventas Anuladas' : 'Historial de Ventas' }}
+            </h1>
+            <p class="text-slate-500 font-medium mt-1">
+                {{ verAnuladas ? 'Auditoría de operaciones canceladas' : 'Gestión y consulta de operaciones' }}
+            </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button (click)="toggleVista()" 
+               class="group flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold border-2 transition-all whitespace-nowrap shadow-sm hover:shadow-md"
+               [class.bg-white]="!verAnuladas" 
+               [class.text-slate-600]="!verAnuladas"
+               [class.border-slate-200]="!verAnuladas"
+               [class.hover:border-slate-400]="!verAnuladas"
+               [class.bg-red-50]="verAnuladas" 
+               [class.text-red-700]="verAnuladas"
+               [class.border-red-100]="verAnuladas">
+                
+                <span *ngIf="!verAnuladas" class="flex items-center gap-2">
+                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-slate-400 group-hover:text-slate-600">
+                     <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                   </svg>
+                   Papelera
+                </span>
+                
+                <span *ngIf="verAnuladas" class="flex items-center gap-2">
+                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+                   </svg>
+                   Volver a Activas
+                </span>
+            </button>
+
+            <a *ngIf="!verAnuladas" routerLink="/nueva_venta" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Nueva Venta
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-5 items-end animate-fade-in-up">
+        
+        <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="group">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Fecha Desde</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    </div>
+                    <input type="date" [(ngModel)]="fechaDesde" class="pl-10 w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all outline-none">
+                </div>
+            </div>
+            
+            <div class="group">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Fecha Hasta</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    </div>
+                    <input type="date" [(ngModel)]="fechaHasta" class="pl-10 w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all outline-none">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-4 w-full md:w-auto">
+            <button (click)="buscarPorRango()" class="flex-1 md:flex-none bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+                Filtrar
+            </button>
+        </div>
+
+        <div *ngIf="totalFiltrado > 0 && !loading" class="hidden md:block ml-auto bg-slate-50 px-5 py-2 rounded-xl border border-slate-200 animate-fade-in">
+            <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-0.5">Total Periodo</span>
+            <div class="text-xl font-bold text-slate-800 font-mono">
+                {{ totalFiltrado | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden" [class.border-red-100]="verAnuladas">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase text-[11px] tracking-wider border-b border-slate-100">
+                    <tr>
+                        <th class="px-6 py-5"># ID</th>
+                        <th class="px-6 py-5">Fecha y Hora</th>
+                        <th class="px-6 py-5">Cliente</th>
+                        <th class="px-6 py-5 text-center">Método Pago</th>
+                        <th class="px-6 py-5 text-center">Estado</th>
+                        <th class="px-6 py-5 text-right">Monto Total</th>
+                        <th class="px-6 py-5 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    
+                    <tr *ngIf="loading">
+                        <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+                            <div class="flex justify-center items-center gap-3">
+                                <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                                <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-75"></div>
+                                <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-150"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr *ngIf="!loading && ventasFiltradas.length === 0">
+                        <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+                            {{ verAnuladas ? 'La papelera está vacía.' : 'No se encontraron ventas con estos filtros.' }}
+                        </td>
+                    </tr>
+
+                    <tr *ngFor="let v of ventasFiltradas" class="hover:bg-slate-50/80 transition-colors group">
+                        <td class="px-6 py-4 font-mono font-medium text-slate-400 group-hover:text-slate-600">
+                            #{{ v.id }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-slate-700">{{ v.fecha | date:'dd/MM/yyyy' }}</div>
+                            <div class="text-xs text-slate-400">{{ v.fecha | date:'HH:mm' }}hs</div>
+                        </td>
+                        <td class="px-6 py-4 font-medium text-slate-800">
+                            {{ v.cliente_nombre || 'Consumidor Final' }}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border"
+                                [class.bg-emerald-50.text-emerald-700.border-emerald-100]="v.metodo_pago === 'EFECTIVO'"
+                                [class.bg-blue-50.text-blue-700.border-blue-100]="v.metodo_pago.includes('TARJETA')">
+                                {{ v.metodo_pago === 'TARJETA_LOCAL' ? 'T. Local' : v.metodo_pago }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span [class]="v.estado === 'ACTIVA' ? 'text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded' : 'text-red-600 bg-red-50 px-2 py-0.5 rounded'" class="text-[10px] font-bold uppercase tracking-wider">
+                                {{ v.estado }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right font-bold text-slate-800 font-mono text-base">
+                            {{ v.total | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                <a [routerLink]="['/ventas', v.id]" 
+                                   class="text-slate-500 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-200 transition-all border border-transparent hover:border-slate-300"
+                                   title="Ver Ticket">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                    </svg>                                     
+                                </a>
+
+                                <button *ngIf="!verAnuladas" 
+                                        (click)="anularVenta(v.id)"
+                                        class="text-slate-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
+                                        title="Anular Venta">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

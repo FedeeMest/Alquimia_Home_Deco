@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject, OnInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../services/producto.service';
@@ -27,6 +27,7 @@ export class NuevaVentaComponent implements OnInit {
   private ventaService = inject(VentaService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   @ViewChild('inputBusqueda') inputBusqueda!: ElementRef;
 
@@ -73,6 +74,7 @@ export class NuevaVentaComponent implements OnInit {
     const codigoLimpio = codigo.trim(); // Limpiamos espacios vacíos por si acaso
     this.busqueda = codigoLimpio;
     this.mostrarCamara = false; // Cerramos la cámara
+    this.cdr.detectChanges();
     
     // Buscamos el producto
     this.productoService.getAll(codigoLimpio).subscribe((resp: any) => {
@@ -97,6 +99,7 @@ export class NuevaVentaComponent implements OnInit {
         this.busqueda = ''; 
         this.productosEncontrados = [];
       }
+      this.cdr.detectChanges();
       
       // Devolvemos el foco al input (con un pequeño delay para asegurar que la UI se actualizó)
       setTimeout(() => {

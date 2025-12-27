@@ -70,28 +70,38 @@ export class NuevaVentaComponent implements OnInit {
   }
 
   onCodigoEscaneado(codigo: string) {
-    this.busqueda = codigo;
-    this.mostrarCamara = false; // Cerramos la cámara visualmente
+    const codigoLimpio = codigo.trim(); // Limpiamos espacios vacíos por si acaso
+    this.busqueda = codigoLimpio;
+    this.mostrarCamara = false; // Cerramos la cámara
     
-    // Buscamos el producto inmediatamente
-    this.productoService.getAll(codigo).subscribe((resp: any) => {
+    // Buscamos el producto
+    this.productoService.getAll(codigoLimpio).subscribe((resp: any) => {
       this.productosEncontrados = resp.data;
 
-      // LÓGICA DE AUTO-ENTER
+      // LÓGICA DE AUTO-ENTER MEJORADA
       if (this.autoEnter && this.productosEncontrados.length > 0) {
-        // Intentamos encontrar coincidencia exacta de código de barras
-        const exacto = this.productosEncontrados.find(p => p.codigo_barra === codigo);
+        
+        // 1. Intentamos encontrar el exacto primero (Ideal)
+        const exacto = this.productosEncontrados.find(p => String(p.codigo_barra).trim() === String(codigoLimpio).trim());
         
         if (exacto) {
           this.agregarAlCarrito(exacto);
-        } else if (this.productosEncontrados.length === 1) {
-          // Si solo hay un resultado (aunque no sea exacto, raro en código de barras), lo agregamos
-          this.agregarAlCarrito(this.productosEncontrados[0]);
+        } 
+        // 2. Si no hay exacto, pero hay resultados, agregamos el primero (Igual que presionar Enter)
+        else {
+           this.agregarAlCarrito(this.productosEncontrados[0]);
         }
+
+        // Limpiamos la búsqueda para que quede listo para el siguiente
+        // Opcional: Si prefieres ver lo que se agregó, borra la línea de abajo
+        this.busqueda = ''; 
+        this.productosEncontrados = [];
       }
       
-      // Devolvemos el foco al input por si quiere seguir escribiendo
-      setTimeout(() => this.inputBusqueda?.nativeElement.focus(), 100);
+      // Devolvemos el foco al input (con un pequeño delay para asegurar que la UI se actualizó)
+      setTimeout(() => {
+          if(this.inputBusqueda) this.inputBusqueda.nativeElement.focus();
+      }, 200);
     });
   }
 

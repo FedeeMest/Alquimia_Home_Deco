@@ -118,6 +118,40 @@
     </div>
 
     <div class="w-full lg:w-96 bg-slate-900 text-white rounded-xl shadow-lg p-4 lg:p-6 flex flex-col h-auto lg:h-full overflow-y-auto">
+
+        <h2 class="text-lg lg:text-xl font-bold mb-4 text-slate-300 uppercase tracking-widest flex items-center gap-2">
+            <span>Configuracion</span>
+            <span class="lg:hidden h-px flex-1 bg-slate-700"></span>
+        </h2>
+        <div class="mb-4 flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-slate-700 rounded-lg text-emerald-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z" />
+                    </svg>
+                </div>
+                <div>
+                    <span class="block text-sm font-bold text-slate-200">Escaneo Rápido</span>
+                    <span class="block text-xs text-slate-500">Agregar automático</span>
+                </div>
+            </div>
+            
+            <button 
+                (click)="autoEnter = !autoEnter"
+                class="relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                [class.bg-emerald-500]="autoEnter"
+                [class.bg-slate-700]="!autoEnter"
+            >
+                <span class="sr-only">Usar Auto-Enter</span>
+                <span 
+                    aria-hidden="true" 
+                    class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                    [class.translate-x-5]="autoEnter"
+                    [class.translate-x-0]="!autoEnter"
+                ></span>
+            </button>
+        </div>
         
         <h2 class="text-lg lg:text-xl font-bold mb-4 text-slate-300 uppercase tracking-widest flex items-center gap-2">
             <span>Datos de la Venta</span>

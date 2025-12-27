@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
   selector: 'app-main-layout',
   standalone: true,
   imports: [RouterOutlet, NavbarComponent, CommonModule],
-  template: `./main-layout.html`
+  templateUrl: `./main-layout.html`
 })
 export class MainLayoutComponent {
   // Recuperamos la lógica del menú móvil

@@ -20,7 +20,7 @@ app.use(helmet());
 
 // 2. SEGURIDAD: CORS (Antes del Rate Limit para permitir preflight requests)
 const allowedOrigins = [
-    'https://alquimia-sys.vercel.app', // TU DOMINIO REAL DE FRONTEND
+    'https://alquimia-home-deco.vercel.app', // TU DOMINIO REAL DE FRONTEND
     'http://localhost:4200' // Para que tú puedas seguir trabajando local
 ];
 

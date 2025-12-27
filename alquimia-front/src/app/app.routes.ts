@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { MainLayoutComponent } from './components/layout/main-layout/main-layout';
 
 export const routes: Routes = [
     // 1. LOGIN (Carga perezosa)
@@ -11,11 +12,12 @@ export const routes: Routes = [
     // 2. RUTAS PROTEGIDAS (Todas con Lazy Loading)
     { 
         path: '', 
-        canActivate: [authGuard], 
+        component: MainLayoutComponent, // <--- ¡AQUÍ ESTÁ LA CLAVE! 
+        canActivate: [authGuard],       // El guardián protege el acceso a todo este bloque
         children: [
 
-            { path: '', redirectTo: '/login', pathMatch: 'full' },
-            
+            { path: '', redirectTo: 'productos', pathMatch: 'full' },
+
             // Productos
             { 
                 path: 'productos', 

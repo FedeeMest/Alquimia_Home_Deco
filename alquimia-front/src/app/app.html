@@ -1,27 +1,3 @@
-<div *ngIf="showNavbar" class="flex h-screen bg-slate-50 overflow-hidden">
-
-    <app-navbar class="flex-shrink-0"></app-navbar>
-
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-
-        <header class="md:hidden bg-slate-900 text-white h-16 flex items-center px-4 shadow-md flex-shrink-0 z-20">
-            <button (click)="toggleMobileMenu()" class="p-2 -ml-2 hover:bg-slate-800 rounded-md">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                </svg>
-            </button>
-            <span class="ml-3 font-bold text-lg">Alquimia Home Deco</span>
-        </header>
-
-        <main class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth bg-slate-300">
-            <router-outlet></router-outlet>
-        </main>
-
-    </div>
-</div>
-
-<div *ngIf="!showNavbar" class="h-screen w-full bg-gray-100">
-    <router-outlet></router-outlet>
-</div>
+<router-outlet></router-outlet>
 
 <app-toast></app-toast>

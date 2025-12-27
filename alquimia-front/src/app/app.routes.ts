@@ -13,7 +13,8 @@ export const routes: Routes = [
         path: '', 
         canActivate: [authGuard], 
         children: [
-            { path: '', redirectTo: '/productos', pathMatch: 'full' },
+
+            { path: '', redirectTo: '/login', pathMatch: 'full' },
             
             // Productos
             { 

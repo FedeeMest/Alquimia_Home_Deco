@@ -3,9 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../services/producto.service';
 import { Producto } from '../../Interfaces/producto.interface';
+import { ZXingScannerModule } from '@zxing/ngx-scanner';
+import { BarcodeFormat } from '@zxing/library';
+
 @Component({
   selector: 'app-verificador-precio',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ZXingScannerModule],
   templateUrl: './verificador-precio.html',
   styleUrl: './verificador-precio.css',
 })
@@ -22,6 +25,14 @@ export class VerificadorPrecio implements AfterViewInit {
   buscando = false;
   error = false;
 
+  mostrarCamara = false;
+  formatosAdmitidos = [
+    BarcodeFormat.EAN_13, 
+    BarcodeFormat.EAN_8, 
+    BarcodeFormat.CODE_128, 
+    BarcodeFormat.QR_CODE
+  ];
+
   ngAfterViewInit() {
     // Al entrar a la pantalla, poner el cursor en el input
     this.enfocarInput();
@@ -30,6 +41,23 @@ export class VerificadorPrecio implements AfterViewInit {
   // Truco para que si haces clic fuera, el foco vuelva al input (ideal para kioscos)
   mantenerFoco() {
     this.enfocarInput();
+  }
+  toggleCamara() {
+    this.mostrarCamara = !this.mostrarCamara;
+    this.mensaje = this.mostrarCamara ? 'Apuntá al código...' : 'Escanea un código para ver el precio';
+    
+    // Si abrimos cámara, limpiamos el producto anterior para no confundir
+    if (this.mostrarCamara) {
+      this.producto = undefined;
+    } else {
+      // Si cerramos, volvemos a enfocar el input
+      setTimeout(() => this.enfocarInput(), 100);
+    }
+  }
+  onCodigoEscaneado(codigo: string) {
+    this.codigoLeido = codigo;
+    this.mostrarCamara = false; // Apagar cámara
+    this.buscar(); // Ejecutar búsqueda automáticamente
   }
 
   private enfocarInput() {
@@ -67,6 +95,7 @@ export class VerificadorPrecio implements AfterViewInit {
         }
         this.buscando = false;
         this.cd.detectChanges();
+        setTimeout(() => this.enfocarInput(), 100);
       },
       error: (err) => {
         console.error(err);
@@ -78,4 +107,6 @@ export class VerificadorPrecio implements AfterViewInit {
       }
     });
   }
+
+  
 }

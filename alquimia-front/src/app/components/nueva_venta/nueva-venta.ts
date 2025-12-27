@@ -6,6 +6,8 @@ import { VentaService, VentaRequest } from '../../services/venta.service';
 import { NotificationService } from '../../services/notification.service';
 import { Producto } from '../../Interfaces/producto.interface';
 import { Router } from '@angular/router';
+import { ZXingScannerModule } from '@zxing/ngx-scanner';
+import { BarcodeFormat } from '@zxing/library';
 
 // Interfaz local para mostrar en la tabla del carrito
 interface ItemCarrito {
@@ -17,7 +19,7 @@ interface ItemCarrito {
 @Component({
   selector: 'app-nueva-venta',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ZXingScannerModule],
   templateUrl: './nueva-venta.html',
 })
 export class NuevaVentaComponent implements OnInit {
@@ -36,18 +38,40 @@ export class NuevaVentaComponent implements OnInit {
   total = 0;
   procesando = false;
   datosCliente = {
-    nombre: 'Consumidor Final',
+    nombre: '',
     cuit: '',
     direccion: ''
   };
   datosVenta = {
-    vendedor: 'Cajero 1', // Podrías sacarlo del login si tuvieras
+    vendedor: 'Admin', // Podrías sacarlo del login si tuvieras
     cuotas: 1
   };
+
+  mostrarCamara = false;
+  formatosAdmitidos = [
+    BarcodeFormat.EAN_13, 
+    BarcodeFormat.EAN_8, 
+    BarcodeFormat.CODE_128, 
+    BarcodeFormat.QR_CODE
+  ];
 
   ngOnInit() {
     // Foco inicial
     setTimeout(() => this.inputBusqueda?.nativeElement.focus(), 100);
+  }
+
+  toggleCamara() {
+    this.mostrarCamara = !this.mostrarCamara;
+    // Si cerramos cámara, volvemos el foco al input
+    if (!this.mostrarCamara) {
+      setTimeout(() => this.inputBusqueda?.nativeElement.focus(), 100);
+    }
+  }
+
+  onCodigoEscaneado(codigo: string) {
+    this.busqueda = codigo;     // 1. Ponemos el código en el input
+    this.mostrarCamara = false; // 2. Cerramos la cámara
+    this.buscar();              // 3. Ejecutamos la búsqueda
   }
 
   // 1. Buscar productos mientras escribes
@@ -59,6 +83,9 @@ export class NuevaVentaComponent implements OnInit {
 
     this.productoService.getAll(this.busqueda).subscribe((resp: any) => {
       this.productosEncontrados = resp.data
+      if (this.productosEncontrados.length === 1 && this.productosEncontrados[0].codigo_barra === this.busqueda) {
+         this.agregarAlCarrito(this.productosEncontrados[0]);
+      }
     });
   }
 

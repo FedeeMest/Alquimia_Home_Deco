@@ -3,7 +3,27 @@
     <div class="w-full lg:flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-[50vh] lg:min-h-0">
         
         <div class="p-3 lg:p-4 border-b border-slate-100 bg-slate-50">
-            <div class="relative">
+            
+            <div *ngIf="mostrarCamara" class="mb-4 relative rounded-xl overflow-hidden bg-black shadow-lg border-2 border-slate-800 animate-fade-in">
+                <div class="h-48 sm:h-64 bg-black relative"> <zxing-scanner 
+                        [formats]="formatosAdmitidos"
+                        (scanSuccess)="onCodigoEscaneado($event)"
+                        class="w-full h-full object-cover"
+                    ></zxing-scanner>
+                    
+                    <button (click)="toggleCamara()" class="absolute top-2 right-2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-md z-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <div class="absolute bottom-2 left-0 right-0 text-center pointer-events-none">
+                        <span class="bg-black/60 text-white text-xs px-2 py-1 rounded-full">Apuntá al código</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative flex gap-2">
+                
                 <input 
                     #inputBusqueda
                     type="text" 
@@ -11,15 +31,33 @@
                     (keyup)="buscar()"
                     (keyup.enter)="productosEncontrados.length > 0 ? agregarAlCarrito(productosEncontrados[0]) : null"
                     placeholder="Escanear o buscar..." 
-                    class="w-full pl-4 pr-4 py-2 lg:py-3 rounded-lg border-2 border-slate-300 focus:border-slate-500 focus:ring-0 text-base lg:text-lg shadow-inner text-slate-700"
+                    class="flex-1 w-full pl-4 pr-4 py-2 lg:py-3 rounded-lg border-2 border-slate-300 focus:border-slate-500 focus:ring-0 text-base lg:text-lg shadow-inner text-slate-700"
                     [disabled]="procesando"
                 >
-                <div *ngIf="productosEncontrados.length > 0" class="absolute top-full left-0 right-0 bg-white border border-slate-200 shadow-xl rounded-b-lg z-20 max-h-60 overflow-y-auto">
-                    <div 
-                        *ngFor="let p of productosEncontrados" 
-                        (click)="agregarAlCarrito(p)"
-                        class="p-3 hover:bg-slate-100 cursor-pointer border-b border-slate-50 flex justify-between items-center"
-                    >
+
+                <button 
+                    (click)="toggleCamara()"
+                    class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 lg:px-4 rounded-lg shadow-sm active:scale-95 transition-transform flex items-center justify-center border border-slate-300"
+                    title="Abrir Cámara"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                    </svg>
+                </button>
+
+                <button 
+                    (click)="productosEncontrados.length > 0 ? agregarAlCarrito(productosEncontrados[0]) : null"
+                    class="bg-slate-800 hover:bg-slate-700 text-white px-4 lg:px-5 rounded-lg shadow-md active:scale-95 transition-transform flex items-center justify-center"
+                    title="Agregar (Enter)"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </button>
+
+                <div *ngIf="productosEncontrados.length > 0" class="absolute top-full left-0 right-0 bg-white border border-slate-200 shadow-xl rounded-b-lg z-20 max-h-60 overflow-y-auto mt-1">
+                    <div *ngFor="let p of productosEncontrados" (click)="agregarAlCarrito(p)" class="p-3 hover:bg-slate-100 cursor-pointer border-b border-slate-50 flex justify-between items-center">
                         <div>
                             <div class="font-bold text-slate-800">{{ p.nombre }}</div>
                             <div class="text-xs text-slate-500">{{ p.codigo_barra }} | Stock: {{ p.stock }}</div>
@@ -82,28 +120,50 @@
     <div class="w-full lg:w-96 bg-slate-900 text-white rounded-xl shadow-lg p-4 lg:p-6 flex flex-col h-auto lg:h-full overflow-y-auto">
         
         <h2 class="text-lg lg:text-xl font-bold mb-4 text-slate-300 uppercase tracking-widest flex items-center gap-2">
-            <span>Configuración</span>
+            <span>Datos de la Venta</span>
             <span class="lg:hidden h-px flex-1 bg-slate-700"></span>
         </h2>
 
-        <div class="mb-4 lg:mb-6 space-y-3 p-3 lg:p-4 bg-slate-800 rounded-lg border border-slate-700">
-            <h3 class="text-xs font-bold text-slate-400 uppercase">Datos del Cliente</h3>
+        <div class="mb-4 lg:mb-6 space-y-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 backdrop-blur-sm">
             
-            <div>
-                <label class="block text-xs text-slate-500 mb-1">Nombre / Razón Social</label>
-                <input type="text" [(ngModel)]="datosCliente.nombre" 
-                       class="w-full bg-slate-700 border-none rounded text-sm text-white focus:ring-1 focus:ring-slate-400 placeholder-slate-500"
-                       placeholder="Consumidor Final">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Datos del Cliente</h3>
             </div>
             
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="block text-xs text-slate-500 mb-1">CUIT / DNI</label>
-                    <input type="text" [(ngModel)]="datosCliente.cuit" 
-                           class="w-full bg-slate-700 border-none rounded text-sm text-white focus:ring-1 focus:ring-slate-400"
-                           placeholder="Opcional">
+            <div class="group">
+                <label class="block text-xs font-medium text-slate-500 mb-1.5 ml-1 transition-colors group-focus-within:text-blue-400">Nombre / Razón Social</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500 transition-colors group-focus-within:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <input 
+                        type="text" 
+                        [(ngModel)]="datosCliente.nombre" 
+                        class="block w-full pl-10 pr-3 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 shadow-inner"
+                        placeholder="Ingresar el nombre del Cliente"
+                    >
                 </div>
             </div>
+            
+            <div class="group">
+                <label class="block text-xs font-medium text-slate-500 mb-1.5 ml-1 transition-colors group-focus-within:text-blue-400">CUIT / DNI</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500 transition-colors group-focus-within:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0c0 .884-.896 1.75-2.124 1.75C9.363 8 9 8.35 9 9v3m6-3v.01M9 17h.01" />
+                        </svg>
+                    </div>
+                    <input 
+                        type="text" 
+                        [(ngModel)]="datosCliente.cuit" 
+                        class="block w-full pl-10 pr-3 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 shadow-inner"
+                        placeholder="Sin identificar"
+                    >
+                </div>
+            </div>
+
         </div>
 
         <div class="space-y-3 mb-6">
@@ -126,11 +186,44 @@
                 </button>
             </div>
 
-            <div *ngIf="metodoPago !== 'EFECTIVO'" class="mt-2 animate-fade-in">
-                <label class="block text-xs text-slate-500 mb-1">Cantidad de Cuotas</label>
-                <div class="flex items-center gap-3">
-                    <input type="range" min="1" max="12" step="1" [(ngModel)]="datosVenta.cuotas" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                    <span class="text-xl font-bold text-white w-8 text-center">{{ datosVenta.cuotas }}</span>
+            <div *ngIf="metodoPago !== 'EFECTIVO'" class="mt-4 animate-fade-in p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                
+                <label class="block text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
+                    Cantidad de Cuotas (1-12)
+                </label>
+                
+                <div class="flex items-center gap-2 bg-slate-900 p-1.5 rounded-lg border border-slate-700 shadow-inner">
+                    
+                    <button 
+                        (click)="datosVenta.cuotas = datosVenta.cuotas > 1 ? datosVenta.cuotas - 1 : 1"
+                        class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-md transition-all active:scale-90 border border-slate-600 shadow-sm"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6" />
+                        </svg>
+                    </button>
+
+                    <div class="flex-1 relative flex justify-center">
+                        <input 
+                            type="number" 
+                            [(ngModel)]="datosVenta.cuotas" 
+                            (change)="datosVenta.cuotas < 1 ? datosVenta.cuotas = 1 : (datosVenta.cuotas > 12 ? datosVenta.cuotas = 12 : null)"
+                            class="w-full bg-transparent text-center text-3xl font-bold text-white border-none focus:ring-0 p-0 appearance-none outline-none"
+                            min="1" 
+                            max="12"
+                        >
+                        
+                    </div>
+
+                    <button 
+                        (click)="datosVenta.cuotas = datosVenta.cuotas < 12 ? datosVenta.cuotas + 1 : 12"
+                        class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-md transition-all active:scale-90 border border-slate-600 shadow-sm"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
+                        </svg>
+                    </button>
+
                 </div>
             </div>
         </div>
@@ -155,5 +248,4 @@
             </button>
         </div>
     </div>
-
 </div>

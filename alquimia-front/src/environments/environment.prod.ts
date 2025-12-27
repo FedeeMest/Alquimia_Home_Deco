@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://alquimiahomedeco-production-1876.up.railway.app/api'
+  apiUrl: 'https://alquimiahomedeco-production-7ee4.up.railway.app/api'
 };

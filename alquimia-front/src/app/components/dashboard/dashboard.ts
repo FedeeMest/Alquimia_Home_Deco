@@ -36,7 +36,9 @@ export class DashboardComponent implements OnInit {
     const nuevaPagina = this.paginaActual + delta;
     if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
         this.paginaActual = nuevaPagina;
-        this.cargarMetricas(true);
+        
+        // CORRECCIÓN: Usar false para que sea una carga suave de tabla
+        this.cargarMetricas(false); 
     }
   }
 

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Venta } from '../Interfaces/venta.interface';
-import { environment } from '../../environments/environments'; // <--- Corregido (sin .prod)
+import { environment } from '../../environments/environment.prod'; // <--- Corregido (sin .prod)
 
 export interface ItemVenta {
   id_producto: number;

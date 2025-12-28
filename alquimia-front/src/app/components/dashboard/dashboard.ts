@@ -2,11 +2,12 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VentaService } from '../../services/venta.service';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './dashboard.html'
 })
 export class DashboardComponent implements OnInit {
@@ -15,14 +16,18 @@ export class DashboardComponent implements OnInit {
   
   metricas: any = null;
   loading = true;
-  fechaHoy = new Date();
+  fechaSeleccionada: string = new Date().toISOString().split('T')[0];
 
   ngOnInit() {
     this.cargarMetricas();
   }
 
+  cambiarFecha() {
+    this.cargarMetricas();
+  }
+
   cargarMetricas() {
-    this.ventaService.getMetricasDia().subscribe({
+    this.ventaService.getMetricasDia(this.fechaSeleccionada).subscribe({
       next: (data) => {
         this.metricas = data;
         this.loading = false;

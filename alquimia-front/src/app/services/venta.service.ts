@@ -2,11 +2,21 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Venta } from '../Interfaces/venta.interface';
-import { environment } from '../../environments/environment.prod'; // <--- Corregido (sin .prod)
+import { environment } from '../../environments/environments'; // <--- Corregido (sin .prod)
 
 export interface ItemVenta {
   id_producto: number;
   cantidad: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export interface VentaRequest {
@@ -18,6 +28,7 @@ export interface VentaRequest {
   usuario_vendedor?: string;
   cuotas?: number;
   monto_descuento_recargo?: number;
+  estado?: 'COBRADA' | 'PENDIENTE';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -29,8 +40,16 @@ export class VentaService {
     return this.http.post(this.apiUrl, venta);
   }
 
-  getAll(): Observable<Venta[]> {
-    return this.http.get<Venta[]>(this.apiUrl);
+  getAll(page: number = 1, limit: number = 10, estado?: string, desde?: string, hasta?: string): Observable<PaginatedResponse<Venta>> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('limit', limit);
+
+    if (estado) params = params.set('estado', estado);
+    if (desde) params = params.set('desde', desde);
+    if (hasta) params = params.set('hasta', hasta);
+
+    return this.http.get<PaginatedResponse<Venta>>(this.apiUrl, { params });
   }
 
   getOne(id: number): Observable<Venta> {
@@ -42,16 +61,17 @@ export class VentaService {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
-  // 1. Para el Buscador por Fechas
-  filtrarPorFechas(desde: string, hasta: string): Observable<any> {
-    const params = new HttpParams()
-      .set('desde', desde)
-      .set('hasta', hasta);
-    return this.http.get<any>(`${this.apiUrl}/reporte`, { params });
+  cobrar(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/cobrar`, {});
   }
 
+
   // 2. Para las Métricas (Dashboard)
-  getMetricasDia(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/dashboard`);
+  getMetricasDia(fecha?: string): Observable<any> {
+    let url = `${this.apiUrl}/dashboard`;
+    if (fecha) {
+      url += `?fecha=${fecha}`;
+    }
+    return this.http.get<any>(url);
   }
 }

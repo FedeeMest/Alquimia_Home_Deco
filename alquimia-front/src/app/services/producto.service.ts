@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Producto } from '../Interfaces/producto.interface';
-import { environment } from '../../environments/environment.prod';
+import { environment } from '../../environments/environments';
 
 export interface ProductoResponse {
   data: Producto[];

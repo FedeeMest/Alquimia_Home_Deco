@@ -61,9 +61,17 @@ export class VentaService {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
+  cobrar(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/cobrar`, {});
+  }
+
 
   // 2. Para las Métricas (Dashboard)
-  getMetricasDia(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/dashboard`);
+  getMetricasDia(fecha?: string): Observable<any> {
+    let url = `${this.apiUrl}/dashboard`;
+    if (fecha) {
+      url += `?fecha=${fecha}`;
+    }
+    return this.http.get<any>(url);
   }
 }

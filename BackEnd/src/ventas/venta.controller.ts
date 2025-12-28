@@ -55,6 +55,31 @@ async function findOne(req: Request, res: Response) {
     }
 }
 
+async function marcarPagada(req: Request, res: Response) {
+    const em = orm.em.fork();
+    try {
+        const id = parseInt(req.params.id);
+        const venta = await em.findOne(Venta, { id });
+
+        if (!venta) return res.status(404).json({ message: 'Venta no encontrada' });
+
+        if (venta.estado !== 'PENDIENTE') {
+            return res.status(400).json({ message: 'Solo se pueden cobrar ventas pendientes' });
+        }
+
+        // CAMBIO DE ESTADO
+        venta.estado = 'COBRADA';
+        
+        await em.flush();
+        
+        return res.status(200).json({ message: 'Venta marcada como COBRADA exitosamente' });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Error al actualizar venta' });
+    }
+}
+
 
 async function crearVenta(req: Request, res: Response) {
     const em = orm.em.fork();
@@ -148,9 +173,8 @@ async function obtenerVentas(req: Request, res: Response) {
 
         // Filtro por Fechas (Opcional)
         if (desde && hasta) {
-            const fechaDesde = new Date(desde);
-            const fechaHasta = new Date(hasta);
-            fechaHasta.setHours(23, 59, 59, 999); // Incluir todo el día final
+            const fechaDesde = new Date(`${desde}T00:00:00`); 
+            const fechaHasta = new Date(`${hasta}T23:59:59`);
             
             where.fecha = {
                 $gte: fechaDesde,
@@ -221,43 +245,69 @@ async function anularVenta(req: Request, res: Response) {
 async function getMetricasDelDia(req: Request, res: Response) {
     const em = orm.em.fork();
     try {
-        const hoy = new Date();
-        hoy.setHours(0,0,0,0); // Inicio del día
+        // 1. OBTENER FECHA DEL QUERY PARAM (O usar hoy por defecto)
+        const fechaQuery = req.query.fecha as string;
+        let fechaInicio: Date;
+        let fechaFin: Date;
 
-        // Traemos las ventas del día, ordenadas por las más nuevas primero
-        const ventasHoy = await em.find(Venta, {
-            fecha: { $gte: hoy },
-            estado: 'ACTIVA'
+        if (fechaQuery) {
+            // Truco para hora local: Agregar T00:00:00
+            fechaInicio = new Date(`${fechaQuery}T00:00:00`);
+            fechaFin = new Date(`${fechaQuery}T23:59:59`);
+        } else {
+            // Si no hay fecha, usamos HOY
+            fechaInicio = new Date();
+            fechaInicio.setHours(0, 0, 0, 0);
+            fechaFin = new Date();
+            fechaFin.setHours(23, 59, 59, 999);
+        }
+
+        // 2. BUSCAR VENTAS (Cobradas y Pendientes)
+        const ventasDelDia = await em.find(Venta, {
+            fecha: { 
+                $gte: fechaInicio, 
+                $lte: fechaFin 
+            },
+            estado: { $in: ['COBRADA', 'PENDIENTE'] }
         }, {
-            orderBy: { fecha: 'DESC' } 
+            orderBy: { fecha: 'DESC' }
         });
 
-        // 1. Calcular Efectivo
-        const efectivo = ventasHoy
-            .filter(v => v.metodo_pago === 'EFECTIVO')
-            .reduce((sum, v) => sum + Number(v.total), 0);
-            
-        // 2. Calcular Tarjetas (AMBAS: Nacional y Local)
-        // Usamos .includes() para que detecte 'TARJETA' y 'TARJETA_LOCAL'
-        const tarjeta = ventasHoy
-            .filter(v => v.metodo_pago.includes('TARJETA')) 
+        // 3. CALCULAR MÉTRICAS
+        
+        // Efectivo Real (Solo COBRADA)
+        const efectivo = ventasDelDia
+            .filter(v => v.estado === 'COBRADA' && v.metodo_pago === 'EFECTIVO')
             .reduce((sum, v) => sum + Number(v.total), 0);
 
-        // 3. Calcular Total Caja (Suma de TODAS las ventas encontradas)
-        // Esto es más seguro que sumar (efectivo + tarjeta) por si hay otros métodos
-        const totalCaja = ventasHoy.reduce((sum, v) => sum + Number(v.total), 0);
+        // Tarjetas Real (Solo COBRADA)
+        const tarjeta = ventasDelDia
+            .filter(v => v.estado === 'COBRADA' && v.metodo_pago.includes('TARJETA'))
+            .reduce((sum, v) => sum + Number(v.total), 0);
+
+        // Total Caja REAL (Dinero en mano)
+        const totalCaja = ventasDelDia
+            .filter(v => v.estado === 'COBRADA')
+            .reduce((sum, v) => sum + Number(v.total), 0);
+
+        // --- NUEVO DATO: Total Fiado / Pendiente ---
+        const totalFiado = ventasDelDia
+            .filter(v => v.estado === 'PENDIENTE')
+            .reduce((sum, v) => sum + Number(v.total), 0);
 
         return res.status(200).json({
-            fecha: hoy,
-            ventas_totales: ventasHoy.length,
-            total_caja: totalCaja, 
+            fecha: fechaInicio,
+            ventas_totales: ventasDelDia.length,
+            total_caja: totalCaja,
+            total_pendiente: totalFiado, // <--- Dato nuevo
             desglose: { efectivo, tarjeta },
-            ventas: ventasHoy
+            ventas: ventasDelDia
         });
 
     } catch (error) {
+        console.error(error);
         return res.status(500).json({ message: 'Error obteniendo métricas' });
     }
 }
 
-export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS };
+export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada };

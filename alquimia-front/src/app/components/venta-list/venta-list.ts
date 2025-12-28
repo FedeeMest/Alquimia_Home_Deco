@@ -33,20 +33,18 @@ export class VentaListComponent implements OnInit {
   totalItems = 0;
   limitePorPagina = 10; // Puedes cambiarlo a 20 o 50
 
-  ngOnInit() {
-    this.establecerFechasPorDefecto();
+  ngOnInit() {;
     this.cargarVentas()
 
   }
-  establecerFechasPorDefecto() {
-    const hoy = new Date();
-    // Formato YYYY-MM-DD para el input type="date"
-    this.fechaHasta = hoy.toISOString().split('T')[0];
-    
-    const haceUnMes = new Date();
-    haceUnMes.setMonth(haceUnMes.getMonth() - 1);
-    this.fechaDesde = haceUnMes.toISOString().split('T')[0];
+  limpiarFechas() {
+    this.fechaDesde = '';
+    this.fechaHasta = '';
+    this.paginaActual = 1; // Volver a la primera página
+    this.cargarVentas();   // Al no haber fechas, el backend traerá todo el historial
+    this.notif.show('Filtro de fechas eliminado', 'info');
   }
+
 
   cargarVentas() {
     this.loading = true;
@@ -121,6 +119,21 @@ export class VentaListComponent implements OnInit {
         this.cargarVentas(); 
       },
       error: (err) => console.error(err)
+    });
+  }
+
+  cobrarVenta(id: number) {
+    if (!confirm('¿Confirmas que el cliente ha pagado esta deuda? La venta pasará a estado COBRADA.')) return;
+
+    this.ventaService.cobrar(id).subscribe({
+      next: () => {
+        this.notif.show('Deuda saldada correctamente', 'success');
+        this.cargarVentas(); // Recargamos la lista para que desaparezca de "Pendientes"
+      },
+      error: (err) => {
+        console.error(err);
+        this.notif.show('Error al cobrar venta', 'error');
+      }
     });
   }
 }

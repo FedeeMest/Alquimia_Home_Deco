@@ -245,25 +245,26 @@ async function anularVenta(req: Request, res: Response) {
 async function getMetricasDelDia(req: Request, res: Response) {
     const em = orm.em.fork();
     try {
-        // 1. OBTENER FECHA DEL QUERY PARAM (O usar hoy por defecto)
+        // 1. OBTENER PARÁMETROS
         const fechaQuery = req.query.fecha as string;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 5; // Por defecto 5 en el dashboard
+
         let fechaInicio: Date;
         let fechaFin: Date;
 
         if (fechaQuery) {
-            // Truco para hora local: Agregar T00:00:00
             fechaInicio = new Date(`${fechaQuery}T00:00:00`);
             fechaFin = new Date(`${fechaQuery}T23:59:59`);
         } else {
-            // Si no hay fecha, usamos HOY
             fechaInicio = new Date();
             fechaInicio.setHours(0, 0, 0, 0);
             fechaFin = new Date();
             fechaFin.setHours(23, 59, 59, 999);
         }
 
-        // 2. BUSCAR VENTAS (Cobradas y Pendientes)
-        const ventasDelDia = await em.find(Venta, {
+        // 2. BUSCAR TODAS LAS VENTAS DEL DÍA (Para calcular los totales reales)
+        const todasLasVentas = await em.find(Venta, {
             fecha: { 
                 $gte: fechaInicio, 
                 $lte: fechaFin 
@@ -273,35 +274,45 @@ async function getMetricasDelDia(req: Request, res: Response) {
             orderBy: { fecha: 'DESC' }
         });
 
-        // 3. CALCULAR MÉTRICAS
-        
-        // Efectivo Real (Solo COBRADA)
-        const efectivo = ventasDelDia
+        // 3. CALCULAR MÉTRICAS (Usando TODAS las ventas)
+        const efectivo = todasLasVentas
             .filter(v => v.estado === 'COBRADA' && v.metodo_pago === 'EFECTIVO')
             .reduce((sum, v) => sum + Number(v.total), 0);
 
-        // Tarjetas Real (Solo COBRADA)
-        const tarjeta = ventasDelDia
+        const tarjeta = todasLasVentas
             .filter(v => v.estado === 'COBRADA' && v.metodo_pago.includes('TARJETA'))
             .reduce((sum, v) => sum + Number(v.total), 0);
 
-        // Total Caja REAL (Dinero en mano)
-        const totalCaja = ventasDelDia
+        const totalCaja = todasLasVentas
             .filter(v => v.estado === 'COBRADA')
             .reduce((sum, v) => sum + Number(v.total), 0);
 
-        // --- NUEVO DATO: Total Fiado / Pendiente ---
-        const totalFiado = ventasDelDia
+        const totalFiado = todasLasVentas
             .filter(v => v.estado === 'PENDIENTE')
             .reduce((sum, v) => sum + Number(v.total), 0);
 
+        // 4. PAGINAR LA LISTA PARA LA TABLA (Slice en memoria)
+        const inicio = (page - 1) * limit;
+        const ventasPaginadas = todasLasVentas.slice(inicio, inicio + limit);
+
         return res.status(200).json({
             fecha: fechaInicio,
-            ventas_totales: ventasDelDia.length,
+            // KPIs Generales
+            ventas_totales: todasLasVentas.length,
             total_caja: totalCaja,
-            total_pendiente: totalFiado, // <--- Dato nuevo
+            total_pendiente: totalFiado,
             desglose: { efectivo, tarjeta },
-            ventas: ventasDelDia
+            
+            // Lista Paginada
+            ventas: ventasPaginadas,
+            
+            // Metadatos de Paginación
+            meta: {
+                total: todasLasVentas.length,
+                page,
+                limit,
+                totalPages: Math.ceil(todasLasVentas.length / limit)
+            }
         });
 
     } catch (error) {

@@ -67,11 +67,15 @@ export class VentaService {
 
 
   // 2. Para las Métricas (Dashboard)
-  getMetricasDia(fecha?: string): Observable<any> {
-    let url = `${this.apiUrl}/dashboard`;
+  getMetricasDia(fecha?: string, page: number = 1, limit: number = 5): Observable<any> {
+    let params = new HttpParams()
+        .set('page', page)
+        .set('limit', limit);
+
     if (fecha) {
-      url += `?fecha=${fecha}`;
+        params = params.set('fecha', fecha);
     }
-    return this.http.get<any>(url);
+
+    return this.http.get<any>(`${this.apiUrl}/dashboard`, { params });
   }
 }

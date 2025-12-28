@@ -3,42 +3,46 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
             <h1 class="text-3xl font-extrabold transition-colors tracking-tight"
-                [class.text-slate-800]="!verAnuladas"
-                [class.text-red-800]="verAnuladas">
-                {{ verAnuladas ? 'Ventas Anuladas' : 'Historial de Ventas' }}
+                [ngClass]="{
+                    'text-slate-800': filtroEstado === 'COBRADA',
+                    'text-amber-600': filtroEstado === 'PENDIENTE',
+                    'text-red-800': filtroEstado === 'ANULADA'
+                }">
+                <ng-container [ngSwitch]="filtroEstado">
+                    <span *ngSwitchCase="'COBRADA'">Historial de Ventas</span>
+                    <span *ngSwitchCase="'PENDIENTE'">Cuentas Corrientes (Fiado)</span>
+                    <span *ngSwitchCase="'ANULADA'">Ventas Anuladas</span>
+                </ng-container>
             </h1>
             <p class="text-slate-500 font-medium mt-1">
-                {{ verAnuladas ? 'Auditoría de operaciones canceladas' : 'Gestión y consulta de operaciones' }}
+                <ng-container [ngSwitch]="filtroEstado">
+                    <span *ngSwitchCase="'COBRADA'">Gestión y consulta de operaciones</span>
+                    <span *ngSwitchCase="'PENDIENTE'">Gestión de deudores y cobros</span>
+                    <span *ngSwitchCase="'ANULADA'">Auditoría de operaciones canceladas</span>
+                </ng-container>
             </p>
         </div>
 
         <div class="flex items-center gap-3">
-            <button (click)="toggleVista()" 
-               class="group flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold border-2 transition-all whitespace-nowrap shadow-sm hover:shadow-md"
-               [class.bg-white]="!verAnuladas" 
-               [class.text-slate-600]="!verAnuladas"
-               [class.border-slate-200]="!verAnuladas"
-               [class.hover:border-slate-400]="!verAnuladas"
-               [class.bg-red-50]="verAnuladas" 
-               [class.text-red-700]="verAnuladas"
-               [class.border-red-100]="verAnuladas">
-                
-                <span *ngIf="!verAnuladas" class="flex items-center gap-2">
-                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-slate-400 group-hover:text-slate-600">
-                     <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                   </svg>
-                   Papelera
-                </span>
-                
-                <span *ngIf="verAnuladas" class="flex items-center gap-2">
-                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
-                   </svg>
-                   Volver a Activas
-                </span>
-            </button>
+            <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
+                <button (click)="cambiarFiltro('COBRADA')" 
+                    class="px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2"
+                    [ngClass]="filtroEstado === 'COBRADA' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'">
+                    Cobradas
+                </button>
+                <button (click)="cambiarFiltro('PENDIENTE')" 
+                    class="px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2"
+                    [ngClass]="filtroEstado === 'PENDIENTE' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'">
+                    Pendientes
+                </button>
+                <button (click)="cambiarFiltro('ANULADA')" 
+                    class="px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2"
+                    [ngClass]="filtroEstado === 'ANULADA' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'">
+                    Papelera
+                </button>
+            </div>
 
-            <a *ngIf="!verAnuladas" routerLink="/nueva_venta" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+            <a routerLink="/nueva_venta" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -88,17 +92,19 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden" [class.border-red-100]="verAnuladas">
+    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden flex flex-col" 
+         [ngClass]="{'border-red-100': filtroEstado === 'ANULADA', 'border-amber-100': filtroEstado === 'PENDIENTE'}">
+        
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-slate-600">
                 <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase text-[11px] tracking-wider border-b border-slate-100">
                     <tr>
                         <th class="px-6 py-5"># ID</th>
-                        <th class="px-6 py-5">Fecha y Hora</th>
+                        <th class="px-6 py-5">Fecha</th>
                         <th class="px-6 py-5">Cliente</th>
-                        <th class="px-6 py-5 text-center">Método Pago</th>
+                        <th class="px-6 py-5 text-center">Pago</th>
                         <th class="px-6 py-5 text-center">Estado</th>
-                        <th class="px-6 py-5 text-right">Monto Total</th>
+                        <th class="px-6 py-5 text-right">Total</th>
                         <th class="px-6 py-5 text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -111,16 +117,19 @@
                                 <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-75"></div>
                                 <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-150"></div>
                             </div>
+                            <span class="mt-2 block text-xs">Cargando datos...</span>
                         </td>
                     </tr>
                     
-                    <tr *ngIf="!loading && ventasFiltradas.length === 0">
+                    <tr *ngIf="!loading && ventas.length === 0">
                         <td colspan="7" class="px-6 py-12 text-center text-slate-400">
-                            {{ verAnuladas ? 'La papelera está vacía.' : 'No se encontraron ventas con estos filtros.' }}
+                            <span *ngIf="filtroEstado === 'ANULADA'">La papelera está vacía.</span>
+                            <span *ngIf="filtroEstado === 'PENDIENTE'">No hay cuentas pendientes.</span>
+                            <span *ngIf="filtroEstado === 'COBRADA'">No se encontraron ventas cobradas.</span>
                         </td>
                     </tr>
 
-                    <tr *ngFor="let v of ventasFiltradas" class="hover:bg-slate-50/80 transition-colors group">
+                    <tr *ngFor="let v of ventas" class="hover:bg-slate-50/80 transition-colors group">
                         <td class="px-6 py-4 font-mono font-medium text-slate-400 group-hover:text-slate-600">
                             #{{ v.id }}
                         </td>
@@ -132,14 +141,18 @@
                             {{ v.cliente_nombre || 'Consumidor Final' }}
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border"
-                                [class.bg-emerald-50.text-emerald-700.border-emerald-100]="v.metodo_pago === 'EFECTIVO'"
-                                [class.bg-blue-50.text-blue-700.border-blue-100]="v.metodo_pago.includes('TARJETA')">
+                            <span class="px-2 py-1 rounded border text-[10px] font-bold uppercase tracking-wide"
+                                [class.bg-emerald-50.border-emerald-100.text-emerald-700]="v.metodo_pago === 'EFECTIVO'"
+                                [class.bg-blue-50.border-blue-100.text-blue-700]="v.metodo_pago.includes('TARJETA')">
                                 {{ v.metodo_pago === 'TARJETA_LOCAL' ? 'T. Local' : v.metodo_pago }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <span [class]="v.estado === 'ACTIVA' ? 'text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded' : 'text-red-600 bg-red-50 px-2 py-0.5 rounded'" class="text-[10px] font-bold uppercase tracking-wider">
+                            <span [ngClass]="{
+                                'text-emerald-600 bg-emerald-50': v.estado === 'COBRADA',
+                                'text-amber-600 bg-amber-50': v.estado === 'PENDIENTE',
+                                'text-red-600 bg-red-50': v.estado === 'ANULADA'
+                            }" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
                                 {{ v.estado }}
                             </span>
                         </td>
@@ -156,7 +169,7 @@
                                     </svg>                                     
                                 </a>
 
-                                <button *ngIf="!verAnuladas" 
+                                <button *ngIf="filtroEstado !== 'ANULADA'" 
                                         (click)="anularVenta(v.id)"
                                         class="text-slate-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
                                         title="Anular Venta">
@@ -170,5 +183,32 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="bg-slate-50 border-t border-slate-200 p-4 flex items-center justify-between">
+            <span class="text-xs text-slate-500 font-medium">
+                Mostrando página <b>{{ paginaActual }}</b> de <b>{{ totalPaginas }}</b> 
+                (Total: {{ totalItems }} registros)
+            </span>
+
+            <div class="flex gap-2">
+                <button (click)="cambiarPagina(-1)" 
+                    [disabled]="paginaActual === 1 || loading"
+                    class="px-3 py-1.5 rounded-lg border bg-white hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-slate-600 text-sm font-bold shadow-sm transition-all flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>
+                    Anterior
+                </button>
+                <button (click)="cambiarPagina(1)" 
+                    [disabled]="paginaActual >= totalPaginas || loading"
+                    class="px-3 py-1.5 rounded-lg border bg-white hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-slate-600 text-sm font-bold shadow-sm transition-all flex items-center gap-1">
+                    Siguiente
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>

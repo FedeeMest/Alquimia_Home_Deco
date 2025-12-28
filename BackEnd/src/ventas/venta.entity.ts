@@ -1,11 +1,11 @@
-import { Entity, PrimaryKey, Property, OneToMany, Collection, Cascade } from "@mikro-orm/core";
+import { Entity, PrimaryKey, Property, OneToMany, Collection, Cascade, Index } from "@mikro-orm/core";
 import { DetalleVenta } from "../detalle_venta/detalle.entity.js"; // La crearemos abajo
 
 @Entity()
 export class Venta {
     @PrimaryKey()
     id!: number;
-
+    @Index()
     // --- AUDITORÍA Y TIEMPO ---
     @Property({ onCreate: () => new Date() })
     fecha = new Date();

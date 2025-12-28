@@ -202,6 +202,26 @@
 
         </div>
 
+        <div class="mb-6 bg-slate-800/50 p-1 rounded-xl flex border border-slate-700/50 relative">
+    <button (click)="estadoVenta = 'COBRADA'" 
+        class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all relative z-10 flex items-center justify-center gap-2"
+        [ngClass]="estadoVenta === 'COBRADA' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        Cobrar Ahora
+    </button>
+
+    <button (click)="estadoVenta = 'PENDIENTE'" 
+        class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all relative z-10 flex items-center justify-center gap-2"
+        [ngClass]="estadoVenta === 'PENDIENTE' ? 'bg-amber-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        Fiado / Pendiente
+    </button>
+</div>
+
         <div class="space-y-3 mb-6">
             <label class="block text-sm font-medium text-slate-400">Método de Pago</label>
             <div class="grid grid-cols-3 gap-2">

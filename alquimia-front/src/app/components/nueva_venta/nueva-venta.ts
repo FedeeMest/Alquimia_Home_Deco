@@ -36,6 +36,7 @@ export class NuevaVentaComponent implements OnInit {
   productosEncontrados: Producto[] = [];
   carrito: ItemCarrito[] = [];
   metodoPago: 'EFECTIVO' | 'TARJETA' | 'TARJETA_LOCAL' = 'EFECTIVO';
+  estadoVenta: 'COBRADA' | 'PENDIENTE' = 'COBRADA';
   total = 0;
   autoEnter = true;
   procesando = false;
@@ -199,6 +200,7 @@ export class NuevaVentaComponent implements OnInit {
         id_producto: item.producto.id!,
         cantidad: item.cantidad
       })),
+      estado: this.estadoVenta,
 
       // 2. Datos del Cliente
       cliente_nombre: this.datosCliente.nombre,
@@ -239,6 +241,7 @@ export class NuevaVentaComponent implements OnInit {
     this.datosCliente = { nombre: 'Consumidor Final', cuit: '', direccion: '' };
     this.datosVenta.cuotas = 1;
     this.metodoPago = 'EFECTIVO'; // Volver al default
+    this.estadoVenta = 'COBRADA';
 
     setTimeout(() => this.inputBusqueda.nativeElement.focus(), 100);
   }

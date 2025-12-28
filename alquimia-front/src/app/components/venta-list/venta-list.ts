@@ -21,12 +21,17 @@ export class VentaListComponent implements OnInit {
   ventasFiltradas: Venta[] = []; // Nueva lista para mostrar
   
   loading = true;
-  verAnuladas = false; // Controla el "switch" de vistas
+  filtroEstado: 'COBRADA' | 'PENDIENTE' | 'ANULADA' = 'COBRADA'; // Controla el "switch" de vistas
 
   // Variables para el filtro
   fechaDesde: string = '';
   fechaHasta: string = '';
   totalFiltrado = 0; // Para mostrar la suma de lo que buscaste
+
+  paginaActual = 1;
+  totalPaginas = 1;
+  totalItems = 0;
+  limitePorPagina = 10; // Puedes cambiarlo a 20 o 50
 
   ngOnInit() {
     this.establecerFechasPorDefecto();
@@ -45,67 +50,77 @@ export class VentaListComponent implements OnInit {
 
   cargarVentas() {
     this.loading = true;
-    this.ventaService.getAll().subscribe({
-      next: (data) => {
-        this.ventas = data;
-        this.filtrarVentas(); 
+    
+    // Llamamos al servicio pasando TODOS los parámetros
+    this.ventaService.getAll(
+        this.paginaActual, 
+        this.limitePorPagina, 
+        this.filtroEstado, 
+        this.fechaDesde, 
+        this.fechaHasta
+    ).subscribe({
+      next: (resp) => {
+        this.ventas = resp.data; // Solo cargamos los datos de esta página
+        
+        // Actualizamos info de paginación
+        this.totalItems = resp.meta.total;
+        this.totalPaginas = resp.meta.totalPages;
+        this.paginaActual = resp.meta.page; // Por seguridad
+
         this.loading = false;
         this.cd.detectChanges();
       },
-      error: (err) => { console.error(err); this.loading = false; }
+      error: (err) => { 
+          console.error(err); 
+          this.loading = false; 
+          this.notif.show('Error al cargar ventas', 'error');
+      }
     });
   }
+
+  cambiarPagina(delta: number) {
+    const nuevaPagina = this.paginaActual + delta;
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
+        this.paginaActual = nuevaPagina;
+        this.cargarVentas();
+    }
+  }
+  
 
   buscarPorRango() {
     if (!this.fechaDesde || !this.fechaHasta) {
         this.notif.show('Selecciona ambas fechas', 'error');
         return;
     }
-
-    this.loading = true;
-    this.ventaService.filtrarPorFechas(this.fechaDesde, this.fechaHasta).subscribe({
-        next: (response) => {
-            // El backend devuelve { data: ventas[], resumen: { total, ... } }
-            this.ventas = response.data;
-            this.totalFiltrado = response.resumen.total;
-            this.filtrarVentas();
-            this.loading = false;
-            this.notif.show(`Se encontraron ${this.ventas.length} ventas`, 'success');
-        },
-        error: (err) => {
-            console.error(err);
-            this.loading = false;
-            this.notif.show('Error al buscar', 'error');
-        }
-    });
+    this.paginaActual = 1;
+    this.cargarVentas();
   }
 
   // Alternar entre ver activas o anuladas
   toggleVista() {
-    this.verAnuladas = !this.verAnuladas;
+    this.filtroEstado = this.filtroEstado === 'COBRADA' ? 'ANULADA' : 'COBRADA';
     this.filtrarVentas();
   }
 
   filtrarVentas() {
-    if (this.verAnuladas) {
-      this.ventasFiltradas = this.ventas.filter(v => v.estado === 'ANULADA');
-    } else {
-      this.ventasFiltradas = this.ventas.filter(v => v.estado === 'ACTIVA');
-    }
+    // Filtramos según la variable filtroEstado
+    this.ventasFiltradas = this.ventas.filter(v => v.estado === this.filtroEstado);
+  }
+
+  cambiarFiltro(estado: 'COBRADA' | 'PENDIENTE' | 'ANULADA') {
+    this.filtroEstado = estado;
+    this.paginaActual = 1; 
+    this.cargarVentas();
   }
 
   anularVenta(id: number) {
-    if (!confirm('¿Estás seguro de anular esta venta? Se devolverá el stock.')) return;
-
+    if (!confirm('¿Estás seguro de anular esta venta?')) return;
     this.ventaService.anular(id).subscribe({
       next: () => {
-        this.notif.show('Venta anulada correctamente', 'success');
-        this.cargarVentas(); // Recargar para actualizar la lista
+        this.notif.show('Venta anulada', 'success');
+        this.cargarVentas(); 
       },
-      error: (err) => {
-        console.error(err);
-        this.notif.show('Error al anular venta', 'error');
-      }
+      error: (err) => console.error(err)
     });
   }
 }

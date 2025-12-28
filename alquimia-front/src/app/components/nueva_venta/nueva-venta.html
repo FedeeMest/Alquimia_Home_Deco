@@ -5,11 +5,13 @@
         <div class="p-3 lg:p-4 border-b border-slate-100 bg-slate-50">
             
             <div *ngIf="mostrarCamara" class="mb-4 relative rounded-xl overflow-hidden bg-black shadow-lg border-2 border-slate-800 animate-fade-in">
-                <div class="h-48 sm:h-64 bg-black relative"> <zxing-scanner 
-                        [formats]="formatosAdmitidos"
-                        (scanSuccess)="onCodigoEscaneado($event)"
-                        class="w-full h-full object-cover"
-                    ></zxing-scanner>
+                <div class="h-48 sm:h-64 bg-black relative"> <zxing-scanner
+    [formats]="formatosAdmitidos"
+    [tryHarder]="true"
+    [device]="dispositivoActual" 
+    (camerasFound)="onCamerasFound($event)"
+    (scanSuccess)="onCodigoEscaneado($event)">
+  </zxing-scanner>
                     
                     <button (click)="toggleCamara()" class="absolute top-2 right-2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-md z-50">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">

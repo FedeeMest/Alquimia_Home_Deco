@@ -25,6 +25,9 @@ export class Producto {
     @Property()
     activo: boolean = true;
 
+    @Property({ nullable: true }) 
+    codigo_proveedor?: string;
+
     // --- BASE ECONÓMICA ---
     // Este es el valor que escribes en el formulario (Input)
     @Property({ type: 'decimal', precision: 10, scale: 2 })

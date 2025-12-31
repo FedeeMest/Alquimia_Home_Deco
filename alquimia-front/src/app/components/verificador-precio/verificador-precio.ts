@@ -1,6 +1,7 @@
-import { Component, ElementRef, ViewChild, inject, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, AfterViewInit, ChangeDetectorRef, OnInit, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ConfiguracionService } from '../../services/configuracion.service';
 import { ProductoService } from '../../services/producto.service';
 import { Producto } from '../../Interfaces/producto.interface';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
@@ -12,9 +13,10 @@ import { BarcodeFormat } from '@zxing/library';
   templateUrl: './verificador-precio.html',
   styleUrl: './verificador-precio.css',
 })
-export class VerificadorPrecio implements AfterViewInit {
+export class VerificadorPrecio implements OnInit, AfterViewInit {
   private productoService = inject(ProductoService);
   private cd = inject(ChangeDetectorRef);
+  private configuracionService = inject(ConfiguracionService);
 
   // Referencia al input para mantener el foco siempre ahí
   @ViewChild('scanInput') scanInput!: ElementRef;
@@ -25,6 +27,9 @@ export class VerificadorPrecio implements AfterViewInit {
   buscando = false;
   error = false;
 
+  recargoLocal: number = 0;   // <--- Nueva variable
+  recargoTarjeta: number = 0; // <--- Nueva variable
+
   mostrarCamara = false;
   formatosAdmitidos = [
     BarcodeFormat.EAN_13, 
@@ -32,6 +37,25 @@ export class VerificadorPrecio implements AfterViewInit {
     BarcodeFormat.CODE_128, 
     BarcodeFormat.QR_CODE
   ];
+
+  ngOnInit() {
+    this.cargarConfiguracion();
+  }
+
+  cargarConfiguracion() {
+    this.configuracionService.obtener().subscribe({
+      next: (config: any) => {
+        // Asumiendo que el endpoint devuelve el objeto de configuración directamente
+        // Si devuelve un array, usar config[0]
+        if (config) {
+          // Ajusta estos nombres de propiedad según tu base de datos exacta
+          this.recargoLocal = config.porcentaje_tarjeta_local || 0; 
+          this.recargoTarjeta = config.porcentaje_tarjeta || 0;
+        }
+      },
+      error: (err) => console.error('Error cargando porcentajes', err)
+    });
+  }
 
   ngAfterViewInit() {
     // Al entrar a la pantalla, poner el cursor en el input

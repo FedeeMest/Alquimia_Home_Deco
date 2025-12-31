@@ -74,15 +74,17 @@
                 <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wide mb-3">Efectivo</span>
                 <div class="text-5xl font-bold text-emerald-600 font-mono tracking-tighter">{{ producto.precio_efectivo | currency:'ARS':'symbol-narrow':'1.0-0' }}</div>
             </div>
+            
             <div class="p-8 text-center bg-blue-50/50">
                 <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold uppercase tracking-wide mb-3">Tarjeta Local</span>
                 <div class="text-4xl font-bold text-blue-600 font-mono tracking-tighter">{{ producto.precio_tarjeta_local | currency:'ARS':'symbol-narrow':'1.0-0' }}</div>
-                <p class="text-blue-800/60 text-sm mt-2 font-medium">+6% Recargo</p>
+                <p class="text-blue-800/60 text-sm mt-2 font-medium">+{{ recargoLocal }}% Recargo</p>
             </div>
+            
             <div class="p-8 text-center bg-white">
                 <span class="inline-block px-3 py-1 bg-slate-100 text-slate-800 rounded-full text-xs font-bold uppercase tracking-wide mb-3">Tarjeta</span>
                 <div class="text-4xl font-bold text-slate-700 font-mono tracking-tighter">{{ producto.precio_tarjeta | currency:'ARS':'symbol-narrow':'1.0-0' }}</div>
-                <p class="text-slate-500 text-sm mt-2 font-medium">+15% Recargo</p>
+                <p class="text-slate-500 text-sm mt-2 font-medium">+{{ recargoTarjeta }}% Recargo</p>
             </div>
          </div>
          
@@ -90,4 +92,5 @@
             <p class="text-slate-400 text-sm">Escanea el siguiente producto para limpiar la pantalla</p>
         </div>
     </div>
+
 </div>

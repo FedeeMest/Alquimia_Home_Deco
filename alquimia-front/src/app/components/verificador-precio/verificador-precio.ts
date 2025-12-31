@@ -27,8 +27,9 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
   buscando = false;
   error = false;
 
-  recargoLocal: number = 0;   // <--- Nueva variable
-  recargoTarjeta: number = 0; // <--- Nueva variable
+  recargoLocal: number = 0;   
+  recargoTarjeta: number = 0; 
+  descuentoEfectivo: number = 0;
 
   mostrarCamara = false;
   formatosAdmitidos = [
@@ -49,8 +50,9 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
         // Si devuelve un array, usar config[0]
         if (config) {
           // Ajusta estos nombres de propiedad según tu base de datos exacta
-          this.recargoLocal = config.porcentaje_tarjeta_local || 0; 
+          this.recargoLocal = config.porcentaje_local || 0; 
           this.recargoTarjeta = config.porcentaje_tarjeta || 0;
+          this.descuentoEfectivo = config.porcentaje_efectivo || 0;
         }
       },
       error: (err) => console.error('Error cargando porcentajes', err)

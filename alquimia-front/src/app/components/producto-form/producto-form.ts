@@ -93,6 +93,7 @@ categorias = [
       nombre: ['', [Validators.required, Validators.minLength(3)]],
       descripcion: [''],
       codigo_barra: [''],
+      codigo_proveedor: [''],
       proveedor: ['', Validators.required],
       categoria: ['', Validators.required],
       stock: [0, [Validators.required, Validators.min(0)]],

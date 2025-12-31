@@ -3,6 +3,7 @@ export type TipoAjuste = 'DESCUENTO' | 'RECARGO' | 'NINGUNO';
 export interface Producto {
   id?: number; // Opcional al crear, obligatorio al leer
   codigo_barra?: string;
+  codigo_proveedor?: string;
   nombre: string;
   proveedor?: string;
   categoria?: string;
@@ -12,6 +13,7 @@ export interface Producto {
   tiene_iva: boolean;
   precio_costo: number;
   ganancia: number;
+  
 
   // Ajustes
   ajuste_efectivo_tipo: TipoAjuste;

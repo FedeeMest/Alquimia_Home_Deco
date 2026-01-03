@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { findAll, findOne, add, update, remove, inputS, restaurar, fixPrecios } from './producto.controller.js';
+import { findAll, findOne, add, update, remove, inputS, restaurar, fixPrecios, actualizarGananciasMasivo } from './producto.controller.js';
 
 export const productoRouter = Router();
 
@@ -10,3 +10,4 @@ productoRouter.put('/:id', inputS, update); // Editar (Pasa por sanitización)
 productoRouter.delete('/:id', remove);      // Borrar
 productoRouter.patch('/:id/restaurar', restaurar);        // Restaurar producto eliminado
 productoRouter.post('/fix-precios', fixPrecios);
+productoRouter.post('/actualizar-ganancias-masivo', actualizarGananciasMasivo);

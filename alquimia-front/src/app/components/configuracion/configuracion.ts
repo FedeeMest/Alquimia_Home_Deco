@@ -18,6 +18,8 @@ export class ConfiguracionComponent implements OnInit {
   private productoService = inject(ProductoService)
 
   loadingFix = false;
+  gananciaMasiva: number | null = null;
+  loadingMasivo: boolean = false;
   
   config: any = { porcentaje_efectivo: 0, porcentaje_tarjeta: 0, porcentaje_local: 0 };
 
@@ -48,6 +50,32 @@ export class ConfiguracionComponent implements OnInit {
         error: () => this.notification.show('Error en actualización', 'error')
       });
     }
+  }
+
+  aplicarGananciaMasiva() {
+    if (this.gananciaMasiva === null || this.gananciaMasiva < 0) {
+      this.notification.show('Ingresa un porcentaje válido', 'error');
+      return;
+    }
+
+    // Confirmación de seguridad (¡Muy importante!)
+    if (!confirm(`⚠️ PRECAUCIÓN: \n\nEsto cambiará el precio de TODOS los productos usando una ganancia del ${this.gananciaMasiva}%. \n\n¿Estás seguro de continuar?`)) {
+      return;
+    }
+
+    this.loadingMasivo = true;
+    this.productoService.updateGananciaMasiva(this.gananciaMasiva).subscribe({
+      next: (res: any) => {
+        this.notification.show(res.message, 'success');
+        this.loadingMasivo = false;
+        this.gananciaMasiva = null; // Limpiamos el input
+      },
+      error: (err) => {
+        console.error(err);
+        this.notification.show('Error al actualizar precios', 'error');
+        this.loadingMasivo = false;
+      }
+    });
   }
 
   recalcularPrecios() {

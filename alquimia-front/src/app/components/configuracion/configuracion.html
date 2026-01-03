@@ -29,6 +29,47 @@
               🔄 Aplicar cambios a TODOS los productos
           </button>
       </div>
+      <div class="bg-white shadow-md rounded-lg p-6 mb-6 border-l-4 border-blue-500">
+    <div class="flex items-center mb-4">
+        <i class="bi bi-tags-fill text-2xl text-blue-600 mr-3"></i>
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">Actualización Masiva de Precios</h2>
+            <p class="text-sm text-gray-500">Define una ganancia general para todo el catálogo.</p>
+        </div>
+    </div>
+
+    <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4 flex items-start">
+        <i class="bi bi-exclamation-triangle-fill text-yellow-600 mr-2 mt-1"></i>
+        <p class="text-sm text-yellow-800">
+            <strong>Atención:</strong> Esta acción recalculará el precio final de 
+            <span class="underline">todos los productos</span> basándose en su costo actual y el porcentaje que ingreses aquí.
+        </p>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-4 items-end">
+        <div class="w-full sm:w-1/3">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nueva Ganancia (%)</label>
+            <div class="relative">
+                <input 
+                    type="number" 
+                    [(ngModel)]="gananciaMasiva"
+                    placeholder="Ej: 50"
+                    class="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                <span class="absolute right-3 top-2 text-gray-400 font-bold">%</span>
+            </div>
+        </div>
+
+        <button 
+            (click)="aplicarGananciaMasiva()"
+            [disabled]="loadingMasivo || !gananciaMasiva"
+            class="w-full sm:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+        >
+            <span *ngIf="loadingMasivo" class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            <span *ngIf="!loadingMasivo">Aplicar a Todo el Catálogo</span>
+        </button>
+    </div>
+</div>
     </div>
     <hr class="my-8 border-gray-200">
 

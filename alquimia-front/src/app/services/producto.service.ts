@@ -53,4 +53,8 @@ export class ProductoService {
   fixPrecios() {
     return this.http.post(`${this.apiUrl}/fix-precios`, {});
   }
+
+  updateGananciaMasiva(nuevaGanancia: number): Observable<any> {
+  return this.http.put(`${this.apiUrl}/productos/actualizar-ganancias-masivo`, { nueva_ganancia: nuevaGanancia });
+}
 }

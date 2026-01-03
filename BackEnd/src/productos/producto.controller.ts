@@ -234,4 +234,36 @@ async function fixPrecios(req: Request, res: Response) {
     }
 }
 
-export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios};
+async function actualizarGananciasMasivo(req: Request, res: Response) {
+    const em = orm.em.fork();
+    try {
+        const { nueva_ganancia } = req.body;
+
+        // Validamos que sea un número lógico (ej: entre 0 y 500%)
+        if (nueva_ganancia === undefined || nueva_ganancia < 0) {
+            return res.status(400).json({ message: 'El porcentaje de ganancia no es válido' });
+        }
+
+        // 1. Buscamos TODOS los productos
+        const productos = await em.find(Producto, {});
+
+        // 2. Actualizamos uno por uno (esto dispara los Hooks @BeforeUpdate)
+        for (const prod of productos) {
+            prod.ganancia = Number(nueva_ganancia);
+            // Al hacer flush, MikroORM ejecutará calcularPrecios() automáticamente para cada uno
+        }
+
+        // 3. Guardamos todo en una sola transacción
+        await em.flush();
+
+        return res.status(200).json({ 
+            message: `Se actualizaron los precios de ${productos.length} productos correctamente.` 
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Error al actualizar ganancias masivamente' });
+    }
+}
+
+export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo };

@@ -55,6 +55,6 @@ export class ProductoService {
   }
 
   updateGananciaMasiva(nuevaGanancia: number): Observable<any> {
-  return this.http.put(`${this.apiUrl}/productos/actualizar-ganancias-masivo`, { nueva_ganancia: nuevaGanancia });
+  return this.http.put(`${this.apiUrl}/actualizar-ganancias-masivo`, { nueva_ganancia: nuevaGanancia });
 }
 }

@@ -12,6 +12,7 @@ function inputS(req: Request, res: Response, next: NextFunction) {
         nombre: req.body.nombre,
         proveedor: req.body.proveedor,
         categoria: req.body.categoria,
+        codigo_proveedor: req.body.codigo_proveedor,
 
         // --- Inventario ---
         stock: req.body.stock,

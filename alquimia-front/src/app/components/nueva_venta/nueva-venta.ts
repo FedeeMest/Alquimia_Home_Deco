@@ -36,6 +36,7 @@ export class NuevaVentaComponent implements OnInit {
   productosEncontrados: Producto[] = [];
   carrito: ItemCarrito[] = [];
   metodoPago: 'EFECTIVO' | 'TARJETA' | 'TARJETA_LOCAL' = 'EFECTIVO';
+  estadoVenta: 'COBRADA' | 'PENDIENTE' = 'COBRADA';
   total = 0;
   autoEnter = true;
   procesando = false;
@@ -50,6 +51,8 @@ export class NuevaVentaComponent implements OnInit {
   };
 
   mostrarCamara = false;
+  dispositivoActual: MediaDeviceInfo | undefined; // La cámara seleccionada
+  tienePermisos = false;
   formatosAdmitidos = [
     BarcodeFormat.EAN_13, 
     BarcodeFormat.EAN_8, 
@@ -70,6 +73,27 @@ export class NuevaVentaComponent implements OnInit {
     }
   }
 
+  onCamerasFound(devices: MediaDeviceInfo[]): void {
+    this.tienePermisos = true;
+    
+    // 1. Buscamos la cámara trasera (environment)
+    // En iOS, la cámara principal suele etiquetarse como "Back Camera" o "Cámara trasera"
+    // Evitamos las que digan "Ultra Wide" si es posible, ya que no enfocan de cerca.
+    
+    let camaraSeleccionada = devices.find(device => 
+      /back|trasera/i.test(device.label) && 
+      !/wide|angular/i.test(device.label) // Tratamos de evitar el gran angular si hay otra opción
+    );
+
+    // 2. Si no encontramos una "ideal", buscamos cualquiera trasera
+    if (!camaraSeleccionada) {
+       camaraSeleccionada = devices.find(device => /back|trasera/i.test(device.label));
+    }
+
+    // 3. Si aún así no hay, usamos la primera que encuentre (fallback)
+    this.dispositivoActual = camaraSeleccionada || devices[0];
+  }
+
   onCodigoEscaneado(codigo: string) {
     const codigoLimpio = codigo.trim(); // Limpiamos espacios vacíos por si acaso
     this.busqueda = codigoLimpio;
@@ -79,32 +103,20 @@ export class NuevaVentaComponent implements OnInit {
     // Buscamos el producto
     this.productoService.getAll(codigoLimpio).subscribe((resp: any) => {
       this.productosEncontrados = resp.data;
-
-      // LÓGICA DE AUTO-ENTER MEJORADA
-      if (this.autoEnter && this.productosEncontrados.length > 0) {
-        
-        // 1. Intentamos encontrar el exacto primero (Ideal)
-        const exacto = this.productosEncontrados.find(p => String(p.codigo_barra).trim() === String(codigoLimpio).trim());
-        
-        if (exacto) {
-          this.agregarAlCarrito(exacto);
-        } 
-        // 2. Si no hay exacto, pero hay resultados, agregamos el primero (Igual que presionar Enter)
-        else {
-           this.agregarAlCarrito(this.productosEncontrados[0]);
+        if (this.autoEnter && this.productosEncontrados.length > 0) {
+            const exacto = this.productosEncontrados.find(p => String(p.codigo_barra).trim() === String(codigoLimpio).trim());
+            if (exacto) {
+                this.agregarAlCarrito(exacto);
+            } else {
+                this.agregarAlCarrito(this.productosEncontrados[0]);
+            }
+            this.busqueda = ''; 
+            this.productosEncontrados = [];
         }
-
-        // Limpiamos la búsqueda para que quede listo para el siguiente
-        // Opcional: Si prefieres ver lo que se agregó, borra la línea de abajo
-        this.busqueda = ''; 
-        this.productosEncontrados = [];
-      }
-      this.cdr.detectChanges();
-      
-      // Devolvemos el foco al input (con un pequeño delay para asegurar que la UI se actualizó)
-      setTimeout(() => {
-          if(this.inputBusqueda) this.inputBusqueda.nativeElement.focus();
-      }, 200);
+        this.cdr.detectChanges();
+        setTimeout(() => {
+            if(this.inputBusqueda) this.inputBusqueda.nativeElement.focus();
+        }, 200);
     });
   }
 
@@ -188,6 +200,7 @@ export class NuevaVentaComponent implements OnInit {
         id_producto: item.producto.id!,
         cantidad: item.cantidad
       })),
+      estado: this.estadoVenta,
 
       // 2. Datos del Cliente
       cliente_nombre: this.datosCliente.nombre,
@@ -228,6 +241,7 @@ export class NuevaVentaComponent implements OnInit {
     this.datosCliente = { nombre: 'Consumidor Final', cuit: '', direccion: '' };
     this.datosVenta.cuotas = 1;
     this.metodoPago = 'EFECTIVO'; // Volver al default
+    this.estadoVenta = 'COBRADA';
 
     setTimeout(() => this.inputBusqueda.nativeElement.focus(), 100);
   }

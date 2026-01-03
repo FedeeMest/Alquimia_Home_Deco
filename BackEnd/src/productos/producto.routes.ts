@@ -5,9 +5,9 @@ export const productoRouter = Router();
 
 productoRouter.get('/', findAll);           // Obtener todos (con paginación)
 productoRouter.get('/:id', findOne);        // Obtener uno
-productoRouter.post('/', inputS, add);      // Crear (Pasa por sanitización)
+productoRouter.post('/', inputS, add); 
+productoRouter.put('/actualizar-ganancias-masivo', actualizarGananciasMasivo);     // Crear (Pasa por sanitización)
 productoRouter.put('/:id', inputS, update); // Editar (Pasa por sanitización)
 productoRouter.delete('/:id', remove);      // Borrar
 productoRouter.patch('/:id/restaurar', restaurar);        // Restaurar producto eliminado
 productoRouter.post('/fix-precios', fixPrecios);
-productoRouter.post('/actualizar-ganancias-masivo', actualizarGananciasMasivo);

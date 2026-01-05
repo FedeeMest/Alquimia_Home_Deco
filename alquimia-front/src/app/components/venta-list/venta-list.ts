@@ -32,6 +32,7 @@ export class VentaListComponent implements OnInit {
   totalPaginas = 1;
   totalItems = 0;
   limitePorPagina = 10; // Puedes cambiarlo a 20 o 50
+  totalVentas: number = 0;
 
   ngOnInit() {;
     this.cargarVentas()
@@ -43,6 +44,12 @@ export class VentaListComponent implements OnInit {
     this.paginaActual = 1; // Volver a la primera página
     this.cargarVentas();   // Al no haber fechas, el backend traerá todo el historial
     this.notif.show('Filtro de fechas eliminado', 'info');
+  }
+
+  calcularTotal() {
+    // Sumamos el campo 'total' de cada venta en la lista actual
+    // Usamos Number() por si el backend devuelve un string
+    this.totalVentas = this.ventas.reduce((acc, venta) => acc + Number(venta.total), 0);
   }
 
 
@@ -64,6 +71,7 @@ export class VentaListComponent implements OnInit {
         this.totalItems = resp.meta.total;
         this.totalPaginas = resp.meta.totalPages;
         this.paginaActual = resp.meta.page; // Por seguridad
+        this.calcularTotal(); // Calculamos el total de las ventas cargadas
 
         this.loading = false;
         this.cd.detectChanges();

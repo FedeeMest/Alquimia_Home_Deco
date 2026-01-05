@@ -37,15 +37,33 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z" />
                 </svg>
             </div>
+            
             <input 
                 #scanInput
                 type="text" 
+                [attr.inputmode]="tecladoManual ? 'text' : 'none'"
+                autocomplete="off"
                 [(ngModel)]="codigoLeido" 
                 (keyup.enter)="buscar()"
                 (blur)="mantenerFoco()"
-                placeholder="O escribe el código..." 
-                class="block w-full pl-10 pr-3 py-4 border-2 border-slate-300 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:border-slate-500 focus:ring-slate-500 sm:text-xl text-center shadow-lg transition-all"
+                placeholder="Escanea o escribe..." 
+                class="block w-full pl-10 pr-12 py-4 border-2 border-slate-300 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:border-slate-500 focus:ring-slate-500 sm:text-xl text-center shadow-lg transition-all"
+                [ngClass]="{'caret-transparent': !tecladoManual}"
             >
+
+            <div class="absolute inset-y-0 right-0 flex items-center pr-2">
+                <button 
+                    (click)="toggleTeclado()"
+                    [class]="tecladoManual ? 'text-blue-600 bg-blue-50' : 'text-slate-400 hover:text-slate-600'"
+                    class="p-2 rounded-lg transition-colors focus:outline-none"
+                    type="button"
+                    title="Ingresar manualmente"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h12.25A2.25 2.25 0 0 1 20.5 6v12a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18V6ZM4.5 16.5h15M6 10.5h.75v.75H6v-.75Zm3 0h.75v.75H9v-.75Zm3 0h.75v.75H12v-.75Zm3 0h.75v.75H15v-.75Zm3 0h.75v.75H18v-.75ZM6 13.5h.75v.75H6v-.75Zm3 0h.75v.75H9v-.75Zm3 0h.75v.75H12v-.75Zm3 0h.75v.75H15v-.75Zm3 0h.75v.75H18v-.75Z" />
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -92,5 +110,4 @@
             <p class="text-slate-400 text-sm">Escanea el siguiente producto para limpiar la pantalla</p>
         </div>
     </div>
-
 </div>

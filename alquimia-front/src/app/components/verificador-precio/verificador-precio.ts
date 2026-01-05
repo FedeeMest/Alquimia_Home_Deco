@@ -18,7 +18,6 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
   private cd = inject(ChangeDetectorRef);
   private configuracionService = inject(ConfiguracionService);
 
-  // Referencia al input para mantener el foco siempre ahí
   @ViewChild('scanInput') scanInput!: ElementRef;
 
   codigoLeido: string = '';
@@ -26,6 +25,9 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
   mensaje: string = 'Escanea un código para ver el precio';
   buscando = false;
   error = false;
+  
+  // Nueva variable para controlar si el teclado virtual debe abrirse
+  tecladoManual = false;
 
   recargoLocal: number = 0;   
   recargoTarjeta: number = 0; 
@@ -46,10 +48,7 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
   cargarConfiguracion() {
     this.configuracionService.obtener().subscribe({
       next: (config: any) => {
-        // Asumiendo que el endpoint devuelve el objeto de configuración directamente
-        // Si devuelve un array, usar config[0]
         if (config) {
-          // Ajusta estos nombres de propiedad según tu base de datos exacta
           this.recargoLocal = config.porcentaje_local || 0; 
           this.recargoTarjeta = config.porcentaje_tarjeta || 0;
           this.descuentoEfectivo = config.porcentaje_efectivo || 0;
@@ -60,30 +59,35 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // Al entrar a la pantalla, poner el cursor en el input
     this.enfocarInput();
   }
 
-  // Truco para que si haces clic fuera, el foco vuelva al input (ideal para kioscos)
   mantenerFoco() {
     this.enfocarInput();
   }
+  
   toggleCamara() {
     this.mostrarCamara = !this.mostrarCamara;
     this.mensaje = this.mostrarCamara ? 'Apuntá al código...' : 'Escanea un código para ver el precio';
     
-    // Si abrimos cámara, limpiamos el producto anterior para no confundir
     if (this.mostrarCamara) {
       this.producto = undefined;
     } else {
-      // Si cerramos, volvemos a enfocar el input
       setTimeout(() => this.enfocarInput(), 100);
     }
   }
+
+  // Nueva función para alternar entre teclado manual y modo escáner
+  toggleTeclado() {
+    this.tecladoManual = !this.tecladoManual;
+    // Forzamos el foco y un pequeño delay para que el navegador detecte el cambio de inputmode
+    setTimeout(() => this.enfocarInput(), 50);
+  }
+
   onCodigoEscaneado(codigo: string) {
     this.codigoLeido = codigo;
-    this.mostrarCamara = false; // Apagar cámara
-    this.buscar(); // Ejecutar búsqueda automáticamente
+    this.mostrarCamara = false; 
+    this.buscar(); 
   }
 
   private enfocarInput() {
@@ -93,23 +97,20 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
   buscar() {
     if (!this.codigoLeido.trim()) return;
 
+    // Reseteamos a modo escáner (sin teclado) para la próxima búsqueda
+    this.tecladoManual = false;
+
     this.buscando = true;
     this.error = false;
-    this.producto = undefined; // Limpiamos el anterior mientras busca
+    this.producto = undefined; 
     this.mensaje = 'Buscando...';
 
     const codigoParaBuscar = this.codigoLeido;
-    
-    // Limpiamos el input INMEDIATAMENTE para el siguiente escaneo
     this.codigoLeido = ''; 
 
     this.productoService.getAll(codigoParaBuscar).subscribe({
-      next: (resp: any) => { // <--- Cambiamos 'productos' por 'resp' (la respuesta completa)
-        
-        // 1. EXTRAEMOS LA LISTA REAL DEL OBJETO PAGINADO
+      next: (resp: any) => { 
         const listaProductos = resp.data; 
-
-        // 2. Ahora sí buscamos la coincidencia exacta en esa lista
         const encontrado = listaProductos.find((p: any) => p.codigo_barra === codigoParaBuscar);
 
         if (encontrado) {
@@ -121,6 +122,7 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
         }
         this.buscando = false;
         this.cd.detectChanges();
+        // Al reenfocar aquí, como tecladoManual es false, el teclado NO saldrá
         setTimeout(() => this.enfocarInput(), 100);
       },
       error: (err) => {
@@ -128,11 +130,9 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
         this.error = true;
         this.mensaje = 'Error de conexión';
         this.buscando = false;
-
         this.cd.detectChanges();
+        setTimeout(() => this.enfocarInput(), 100);
       }
     });
   }
-
-  
 }

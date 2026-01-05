@@ -46,17 +46,9 @@ export class VentaListComponent implements OnInit {
     this.notif.show('Filtro de fechas eliminado', 'info');
   }
 
-  calcularTotal() {
-    // Sumamos el campo 'total' de cada venta en la lista actual
-    // Usamos Number() por si el backend devuelve un string
-    this.totalVentas = this.ventas.reduce((acc, venta) => acc + Number(venta.total), 0);
-  }
-
-
   cargarVentas() {
     this.loading = true;
     
-    // Llamamos al servicio pasando TODOS los parámetros
     this.ventaService.getAll(
         this.paginaActual, 
         this.limitePorPagina, 
@@ -64,14 +56,18 @@ export class VentaListComponent implements OnInit {
         this.fechaDesde, 
         this.fechaHasta
     ).subscribe({
-      next: (resp) => {
-        this.ventas = resp.data; // Solo cargamos los datos de esta página
+      next: (resp: any) => { // Tipado como any para acceder fácil a meta
+        this.ventas = resp.data; 
         
-        // Actualizamos info de paginación
         this.totalItems = resp.meta.total;
-        this.totalPaginas = resp.meta.totalPages;
-        this.paginaActual = resp.meta.page; // Por seguridad
-        this.calcularTotal(); // Calculamos el total de las ventas cargadas
+        this.totalPaginas = resp.meta.totalPages || Math.ceil(resp.meta.total / this.limitePorPagina);
+        this.paginaActual = resp.meta.page;
+
+        // --- CAMBIO AQUÍ ---
+        // En lugar de calcularTotal(), leemos lo que manda el backend
+        // Si el backend no lo manda aún, ponemos 0 para que no rompa
+        this.totalVentas = Number(resp.meta.totalAmount) || 0;
+        // -------------------
 
         this.loading = false;
         this.cd.detectChanges();

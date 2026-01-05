@@ -153,51 +153,59 @@ async function crearVenta(req: Request, res: Response) {
 async function obtenerVentas(req: Request, res: Response) {
     const em = orm.em.fork();
     try {
-        // 1. Recogemos los parámetros de Paginación y Filtros
+        // 1. Recogemos los parámetros
         const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 10; // 10 ventas por página
-        const estado = req.query.estado as string; // 'COBRADA', 'PENDIENTE', etc.
+        const limit = parseInt(req.query.limit as string) || 10;
+        const estado = req.query.estado as string;
         const desde = req.query.desde as string;
         const hasta = req.query.hasta as string;
 
-        console.log('--- DEBUG BACKEND ---');
-        console.log('1. Params recibidos:', { estado, desde, hasta });
-
-        // 2. Construimos el objeto de búsqueda dinámico
+        // 2. Construimos el filtro (where)
         const where: any = {};
 
-        // Filtro por Estado (Opcional)
         if (estado) {
             where.estado = estado;
         }
 
-        // Filtro por Fechas (Opcional)
         if (desde && hasta) {
             const fechaDesde = new Date(`${desde}T00:00:00`); 
             const fechaHasta = new Date(`${hasta}T23:59:59`);
-            
             where.fecha = {
                 $gte: fechaDesde,
                 $lte: fechaHasta
             };
         }
 
-        // 3. Ejecutamos la consulta con Paginación (findAndCount es la clave)
-        const [ventas, total] = await em.findAndCount(Venta, where, {
+        // 3. CONSULTA PRINCIPAL (Paginación)
+        // Esto NO cambia, tu paginación sigue segura
+        const [ventas, totalItems] = await em.findAndCount(Venta, where, {
             populate: ['detalles', 'detalles.producto'],
             orderBy: { fecha: 'DESC' },
             limit: limit,
             offset: (page - 1) * limit
         });
 
-        // 4. Devolvemos estructura paginada profesional
+        // 4. CONSULTA SECUNDARIA (Suma Total) - NUEVO
+        // Usamos QueryBuilder para sumar el campo 'total' usando EL MISMO filtro 'where'
+        const qb = em.createQueryBuilder(Venta);
+        // "select sum(total)" devuelve un array de objetos
+        const resultadoSuma = await qb
+            .select('sum(total) as totalSum')
+            .where(where)
+            .execute();
+        
+        // Extraemos el valor numérico (si no hay ventas, es 0)
+        const totalDinero = resultadoSuma[0] ? Number((resultadoSuma[0] as any).totalSum) : 0;
+
+        // 5. Devolvemos todo junto
         return res.status(200).json({
             data: ventas,
             meta: {
-                total,
+                total: totalItems, // Total de filas (para paginar)
                 page,
                 limit,
-                totalPages: Math.ceil(total / limit)
+                totalPages: Math.ceil(totalItems / limit),
+                totalAmount: totalDinero // <--- EL DATO NUEVO QUE NECESITAS
             }
         });
 

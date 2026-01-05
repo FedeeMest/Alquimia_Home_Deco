@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { orm } from '../shared/db/orm.js';
+import { raw } from '@mikro-orm/core';
 import { Venta } from './venta.entity.js';
 import { DetalleVenta } from '../detalle_venta/detalle.entity.js';
 import { Producto } from '../productos/producto.entity.js'; // Ajusta ruta
@@ -153,20 +154,16 @@ async function crearVenta(req: Request, res: Response) {
 async function obtenerVentas(req: Request, res: Response) {
     const em = orm.em.fork();
     try {
-        // 1. Recogemos los parámetros
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const estado = req.query.estado as string;
         const desde = req.query.desde as string;
         const hasta = req.query.hasta as string;
 
-        // 2. Construimos el filtro (where)
         const where: any = {};
-
         if (estado) {
             where.estado = estado;
         }
-
         if (desde && hasta) {
             const fechaDesde = new Date(`${desde}T00:00:00`); 
             const fechaHasta = new Date(`${hasta}T23:59:59`);
@@ -176,8 +173,7 @@ async function obtenerVentas(req: Request, res: Response) {
             };
         }
 
-        // 3. CONSULTA PRINCIPAL (Paginación)
-        // Esto NO cambia, tu paginación sigue segura
+        // 1. Consulta Principal
         const [ventas, totalItems] = await em.findAndCount(Venta, where, {
             populate: ['detalles', 'detalles.producto'],
             orderBy: { fecha: 'DESC' },
@@ -185,27 +181,27 @@ async function obtenerVentas(req: Request, res: Response) {
             offset: (page - 1) * limit
         });
 
-        // 4. CONSULTA SECUNDARIA (Suma Total) - NUEVO
-        // Usamos QueryBuilder para sumar el campo 'total' usando EL MISMO filtro 'where'
+        // 2. Consulta de Total de Dinero (Optimizada)
         const qb = em.createQueryBuilder(Venta);
-        // "select sum(total)" devuelve un array de objetos
+        
+        // Usamos raw() para evitar el error de columna 'v0.sum(total)'
         const resultadoSuma = await qb
-            .select('sum(total) as totalSum')
+            .select(raw('sum(total) as totalSum')) 
             .where(where)
             .execute();
         
-        // Extraemos el valor numérico (si no hay ventas, es 0)
-        const totalDinero = resultadoSuma[0] ? Number((resultadoSuma[0] as any).totalSum) : 0;
+        // CORRECCIÓN FINAL: Casting a 'any' para evitar error TS2339
+        const fila = resultadoSuma[0] as any;
+        const totalDinero = (fila && fila.totalSum) ? Number(fila.totalSum) : 0;
 
-        // 5. Devolvemos todo junto
         return res.status(200).json({
             data: ventas,
             meta: {
-                total: totalItems, // Total de filas (para paginar)
+                total: totalItems, 
                 page,
                 limit,
                 totalPages: Math.ceil(totalItems / limit),
-                totalAmount: totalDinero // <--- EL DATO NUEVO QUE NECESITAS
+                totalAmount: totalDinero 
             }
         });
 

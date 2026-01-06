@@ -64,6 +64,8 @@ export class NuevaVentaComponent implements OnInit {
     BarcodeFormat.QR_CODE
   ];
 
+  mostrarSugerencias = false;
+
   ngOnInit() {
     // 1. Foco inicial al campo de búsqueda
     setTimeout(() => this.inputBusqueda?.nativeElement.focus(), 100);
@@ -131,6 +133,18 @@ export class NuevaVentaComponent implements OnInit {
     // Importante desuscribirse para evitar fugas de memoria
     this.searchSubscription?.unsubscribe();
   }
+  onInputFocus() {
+  this.mostrarSugerencias = true;
+}
+
+onInputBlur() {
+  // Usamos un timeout para dar tiempo a que el "click" en la lista 
+  // se registre antes de ocultarla. Sin esto, la lista desaparece 
+  // antes de que el evento (click) se dispare.
+  setTimeout(() => {
+    this.mostrarSugerencias = false;
+  }, 200);
+}
 
   toggleCamara() {
     this.mostrarCamara = !this.mostrarCamara;

@@ -27,15 +27,15 @@
             <div class="relative flex gap-2">
                 
                 <input 
-                    #inputBusqueda
-                    type="text" 
-                    [(ngModel)]="busqueda"
-                    (keyup)="buscar()"
-                    (keyup.enter)="productosEncontrados.length > 0 ? agregarAlCarrito(productosEncontrados[0]) : null"
-                    placeholder="Escanear o buscar..." 
-                    class="flex-1 w-full pl-4 pr-4 py-2 lg:py-3 rounded-lg border-2 border-slate-300 focus:border-slate-500 focus:ring-0 text-base lg:text-lg shadow-inner text-slate-700"
-                    [disabled]="procesando"
-                >
+    #inputBusqueda
+    type="text" 
+    [ngModel]="busqueda" 
+    (ngModelChange)="buscar($event)"
+    (keyup.enter)="productosEncontrados.length > 0 ? agregarAlCarrito(productosEncontrados[0]) : null"
+    placeholder="Escanear o buscar..." 
+    class="flex-1 w-full pl-4 pr-4 py-2 lg:py-3 rounded-lg border-2 border-slate-300 focus:border-slate-500 focus:ring-0 text-base lg:text-lg shadow-inner text-slate-700"
+    [disabled]="procesando"
+>
 
                 <button 
                     (click)="toggleCamara()"

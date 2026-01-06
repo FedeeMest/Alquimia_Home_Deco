@@ -65,43 +65,64 @@ export class NuevaVentaComponent implements OnInit {
   ];
 
   ngOnInit() {
-    // Foco inicial
+    // 1. Foco inicial al campo de búsqueda
     setTimeout(() => this.inputBusqueda?.nativeElement.focus(), 100);
 
-    // CONFIGURACIÓN DE BÚSQUEDA OPTIMIZADA
+    // 2. Configuración del "Tubo" de búsqueda reactiva
     this.searchSubscription = this.searchSubject.pipe(
-      debounceTime(300), // Espera 300ms después de que el usuario deja de escribir
-      distinctUntilChanged(), // Si el texto es igual al anterior, no hace nada
-      switchMap((termino) => {
-        // switchMap cancela la petición anterior si hay una nueva pendiente
-        if (termino.length < 2) return []; // O retorna un observable vacío
+      debounceTime(300),        // Espera 300ms desde que dejas de escribir
+      distinctUntilChanged(),   // Si el texto es igual al anterior, no hace nada
+      switchMap((terminoCrudo) => {
+        // Limpiamos espacios al principio y final
+        const termino = terminoCrudo.trim(); 
+        
+        // Validación de longitud mínima
+        if (termino.length < 2) {
+          // Retornamos un array vacío (como observable) si es muy corto
+          return []; 
+        }
+
+        // Llamada al Backend
         return this.productoService.getAll(termino).pipe(
-          // Procesamos la respuesta aquí mismo para ordenarla
+          // Procesamos la respuesta AQUÍ para ordenarla antes de mostrarla
           map((resp: any) => {
             const lista = resp.data || [];
-            // ORDENAMIENTO: Priorizar coincidencia exacta de código de barras
+            
+            // LOGICA DE ORDENAMIENTO: Exactos primero
             return lista.sort((a: Producto, b: Producto) => {
-              const terminoStr = String(termino).trim();
-              const codigoA = String(a.codigo_barra).trim();
-              const codigoB = String(b.codigo_barra).trim();
+              const busqueda = termino.toLowerCase();
+              const codigoA = String(a.codigo_barra).trim().toLowerCase();
+              const codigoB = String(b.codigo_barra).trim().toLowerCase();
 
-              // Si A es exacto, va primero (-1)
-              if (codigoA === terminoStr) return -1;
-              // Si B es exacto, va primero (1, porque A se mueve atrás)
-              if (codigoB === terminoStr) return 1;
-              return 0; // Si ninguno es exacto, mantiene el orden del backend
+              // Si A es el código exacto, va primero (-1)
+              if (codigoA === busqueda) return -1;
+              // Si B es el código exacto, va primero (1, empuja a A abajo)
+              if (codigoB === busqueda) return 1;
+              
+              return 0; // Si ninguno es exacto, mantiene el orden original del backend
             });
           })
         );
       })
-    ).subscribe((productosOrdenados: Producto[]) => {
-      this.productosEncontrados = productosOrdenados;
-      
-      // Auto-selección inteligente (Opcional: solo si hay 1 resultado exacto)
-      if (this.productosEncontrados.length === 1 && 
-          String(this.productosEncontrados[0].codigo_barra) === this.busqueda.trim()) {
-          // Podrías descomentar esto si quieres que se agregue solo sin presionar enter
-          // this.agregarAlCarrito(this.productosEncontrados[0]);
+    ).subscribe({
+      next: (productosOrdenados: Producto[]) => {
+        // Actualizamos la lista visible
+        this.productosEncontrados = productosOrdenados;
+        this.cdr.detectChanges(); // Forzamos la detección de cambios por si acaso
+
+        // OPCIONAL: Auto-seleccionar si hay 1 solo resultado y es EXACTO
+        /*
+        if (this.autoEnter && this.productosEncontrados.length === 1) {
+            const p = this.productosEncontrados[0];
+            if (String(p.codigo_barra).trim() === this.busqueda.trim()) {
+                this.agregarAlCarrito(p);
+            }
+        }
+        */
+      },
+      error: (err) => {
+        console.error('Error en el buscador:', err);
+        this.procesando = false;
       }
     });
   }
@@ -167,16 +188,20 @@ export class NuevaVentaComponent implements OnInit {
   }
 
   // 1. Buscar productos mientras escribes
-  buscar() {
-    const termino = this.busqueda.trim();
+  buscar(termino: string) {
+    // 1. Actualizamos manualmente la variable local para mantener sincronía
+    this.busqueda = termino; 
+
+    // 2. Usamos el valor que llega del evento, no la variable this.busqueda
+    // Evitamos el trim() aquí para que distinctUntilChanged detecte cambios como "espacios" si fuera necesario,
+    // el trim() lo haremos dentro del pipe antes de llamar a la API.
     
-    // Si el usuario borró todo, limpiamos la lista inmediatamente
-    if (termino.length < 2) {
+    if (termino.trim().length < 2) {
       this.productosEncontrados = [];
+      // Si quieres limpiar cuando borran, puedes emitir vacío o no hacer nada
       return;
     }
 
-    // Enviamos el texto al "tubo" (Subject) para que sea procesado por ngOnInit
     this.searchSubject.next(termino);
   }
 

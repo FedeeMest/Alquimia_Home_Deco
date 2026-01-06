@@ -25,6 +25,9 @@ export class Venta {
     @Property({ nullable: true })
     cliente_direccion?: string; // Necesario para Factura A
 
+    @Property({ type: 'text', nullable: true })
+    observaciones?: string;
+
     // --- IDENTIFICACIÓN DE VENTA (Fiscal/Interna) ---
     // El ID numérico sirve para la base de datos, pero un negocio suele usar un formato compuesto
     @Property({ nullable: true })

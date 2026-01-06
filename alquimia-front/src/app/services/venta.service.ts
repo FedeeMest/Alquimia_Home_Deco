@@ -29,6 +29,7 @@ export interface VentaRequest {
   cuotas?: number;
   monto_descuento_recargo?: number;
   estado?: 'COBRADA' | 'PENDIENTE';
+  observaciones?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -77,5 +78,8 @@ export class VentaService {
     }
 
     return this.http.get<any>(`${this.apiUrl}/dashboard`, { params });
+  }
+  update(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, data);
   }
 }

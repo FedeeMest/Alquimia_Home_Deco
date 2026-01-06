@@ -325,4 +325,24 @@ async function getMetricasDelDia(req: Request, res: Response) {
     }
 }
 
-export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada };
+async function update(req: Request, res: Response) {
+    const em = orm.em.fork();
+    try {
+        const id = parseInt(req.params.id);
+        const venta = await em.findOneOrFail(Venta, { id });
+
+        // Solo actualizamos lo que nos envíen (en este caso, observaciones)
+        if (req.body.observaciones !== undefined) {
+            venta.observaciones = req.body.observaciones;
+        }
+
+        await em.flush();
+
+        return res.status(200).json({ message: 'Venta actualizada', data: venta });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Error al actualizar venta' });
+    }
+}
+
+export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada, update };

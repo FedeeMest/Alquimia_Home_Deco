@@ -22,6 +22,7 @@ export interface Venta {
     usuario_vendedor?: string;
     numero_comprobante?: string;
     cuotas?: number;
+    observaciones?: string;
 
     detalles: DetalleVenta[];
 }

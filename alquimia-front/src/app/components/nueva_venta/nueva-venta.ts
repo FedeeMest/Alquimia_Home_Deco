@@ -54,6 +54,8 @@ export class NuevaVentaComponent implements OnInit {
     cuotas: 1
   };
 
+  observaciones = '';
+
   mostrarCamara = false;
   dispositivoActual: MediaDeviceInfo | undefined; // La cámara seleccionada
   tienePermisos = false;
@@ -295,7 +297,8 @@ onInputBlur() {
       usuario_vendedor: this.datosVenta.vendedor,
       
       // 4. Financieros
-      cuotas: (this.metodoPago !== 'EFECTIVO') ? this.datosVenta.cuotas : 1
+      cuotas: (this.metodoPago !== 'EFECTIVO') ? this.datosVenta.cuotas : 1,
+      observaciones: this.observaciones
     };
 
     this.ventaService.crear(ventaPayload).subscribe({
@@ -326,6 +329,7 @@ onInputBlur() {
     this.datosVenta.cuotas = 1;
     this.metodoPago = 'EFECTIVO'; // Volver al default
     this.estadoVenta = 'COBRADA';
+    this.observaciones = '';
 
     setTimeout(() => this.inputBusqueda.nativeElement.focus(), 100);
   }

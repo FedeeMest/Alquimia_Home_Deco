@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../services/producto.service';
@@ -8,6 +8,8 @@ import { Producto } from '../../Interfaces/producto.interface';
 import { Router } from '@angular/router';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { BarcodeFormat } from '@zxing/library';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs/operators';
 
 // Interfaz local para mostrar en la tabla del carrito
 interface ItemCarrito {
@@ -28,6 +30,8 @@ export class NuevaVentaComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private searchSubject = new Subject<string>();
+  private searchSubscription?: Subscription;
 
   @ViewChild('inputBusqueda') inputBusqueda!: ElementRef;
 
@@ -63,6 +67,48 @@ export class NuevaVentaComponent implements OnInit {
   ngOnInit() {
     // Foco inicial
     setTimeout(() => this.inputBusqueda?.nativeElement.focus(), 100);
+
+    // CONFIGURACIÓN DE BÚSQUEDA OPTIMIZADA
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(300), // Espera 300ms después de que el usuario deja de escribir
+      distinctUntilChanged(), // Si el texto es igual al anterior, no hace nada
+      switchMap((termino) => {
+        // switchMap cancela la petición anterior si hay una nueva pendiente
+        if (termino.length < 2) return []; // O retorna un observable vacío
+        return this.productoService.getAll(termino).pipe(
+          // Procesamos la respuesta aquí mismo para ordenarla
+          map((resp: any) => {
+            const lista = resp.data || [];
+            // ORDENAMIENTO: Priorizar coincidencia exacta de código de barras
+            return lista.sort((a: Producto, b: Producto) => {
+              const terminoStr = String(termino).trim();
+              const codigoA = String(a.codigo_barra).trim();
+              const codigoB = String(b.codigo_barra).trim();
+
+              // Si A es exacto, va primero (-1)
+              if (codigoA === terminoStr) return -1;
+              // Si B es exacto, va primero (1, porque A se mueve atrás)
+              if (codigoB === terminoStr) return 1;
+              return 0; // Si ninguno es exacto, mantiene el orden del backend
+            });
+          })
+        );
+      })
+    ).subscribe((productosOrdenados: Producto[]) => {
+      this.productosEncontrados = productosOrdenados;
+      
+      // Auto-selección inteligente (Opcional: solo si hay 1 resultado exacto)
+      if (this.productosEncontrados.length === 1 && 
+          String(this.productosEncontrados[0].codigo_barra) === this.busqueda.trim()) {
+          // Podrías descomentar esto si quieres que se agregue solo sin presionar enter
+          // this.agregarAlCarrito(this.productosEncontrados[0]);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    // Importante desuscribirse para evitar fugas de memoria
+    this.searchSubscription?.unsubscribe();
   }
 
   toggleCamara() {
@@ -122,17 +168,16 @@ export class NuevaVentaComponent implements OnInit {
 
   // 1. Buscar productos mientras escribes
   buscar() {
-    if (this.busqueda.length < 2) {
+    const termino = this.busqueda.trim();
+    
+    // Si el usuario borró todo, limpiamos la lista inmediatamente
+    if (termino.length < 2) {
       this.productosEncontrados = [];
       return;
     }
 
-    this.productoService.getAll(this.busqueda).subscribe((resp: any) => {
-      this.productosEncontrados = resp.data
-      if (this.productosEncontrados.length === 1 && this.productosEncontrados[0].codigo_barra === this.busqueda) {
-         this.agregarAlCarrito(this.productosEncontrados[0]);
-      }
-    });
+    // Enviamos el texto al "tubo" (Subject) para que sea procesado por ngOnInit
+    this.searchSubject.next(termino);
   }
 
   // 2. Agregar al carrito

@@ -12,6 +12,11 @@ import { CierreService } from '../../services/cierre.service';
 export class CierreHistorialComponent implements OnInit {
   private cierreService = inject(CierreService);
   
+  // --- SOLUCIÓN DEL ERROR ---
+  // Exponemos la función global "Number" como una propiedad de la clase
+  // para que el HTML pueda usarla.
+  Number = Number; 
+
   cierres: any[] = [];
   loading = true;
   expandedId: number | null = null; 

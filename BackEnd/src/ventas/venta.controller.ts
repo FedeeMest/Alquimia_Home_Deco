@@ -10,6 +10,7 @@ function inputS(req: Request, res: Response, next: NextFunction) {
         // --- Datos Críticos de la Venta ---
         items: req.body.items,           // El array de productos [{id, cantidad}]
         metodo_pago: req.body.metodo_pago, // 'EFECTIVO', 'TARJETA', etc.
+        observaciones: req.body.observaciones,
 
         // --- Datos del Cliente (Opcionales) ---
         cliente_nombre: req.body.cliente_nombre,
@@ -98,6 +99,7 @@ async function crearVenta(req: Request, res: Response) {
         nuevaVenta.cliente_nombre = datos.cliente_nombre;
         nuevaVenta.cliente_cuit = datos.cliente_cuit;
         nuevaVenta.usuario_vendedor = datos.usuario_vendedor;
+        nuevaVenta.observaciones = datos.observaciones
         
         let totalVenta = 0;
 

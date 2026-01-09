@@ -208,7 +208,7 @@ async function fixPrecios(req: Request, res: Response) {
         
         // Si no hay nada que arreglar, avisamos rápido
         if (productos.length === 0) {
-            return res.json({ message: 'No se encontraron productos con precio $0 para actualizar.' });
+            return res.json({ message: 'No se encontraron productos con precio_compra para actualizar.' });
         }
 
         console.log(`⏳ Encontrados ${productos.length} productos sin precio. Calculando...`);

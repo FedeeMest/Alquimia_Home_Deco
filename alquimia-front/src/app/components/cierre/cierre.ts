@@ -26,6 +26,7 @@ export class CierreCajaComponent implements OnInit {
 
   // Calculados
   diferencia = 0;
+  diferenciaTarjeta = 0;
   procesando = false;
 
   ngOnInit() {
@@ -54,6 +55,14 @@ export class CierreCajaComponent implements OnInit {
     const efectivoReal = Number(this.efectivoReal) || 0;
     
     this.diferencia = efectivoReal - efectivoSistema;
+
+    if (this.tarjetaReal !== null) {
+        const tarjetaSistema = Number(this.datosSistema.sistema_tarjeta) || 0;
+        const tarjetaReal = Number(this.tarjetaReal) || 0;
+        this.diferenciaTarjeta = tarjetaReal - tarjetaSistema;
+    } else {
+        this.diferenciaTarjeta = 0;
+    }
   }
 
   confirmarCierre() {

@@ -105,34 +105,88 @@
     </div>
 
     <div class="mt-6 bg-white rounded-xl shadow-lg border border-slate-200 p-4 lg:p-6 flex flex-col md:flex-row gap-6 items-center justify-between" *ngIf="datosSistema">
+    
+    <div class="flex flex-col gap-6 w-full md:w-auto">
         
         <div class="flex items-center gap-4">
-            <div class="p-3 rounded-full" [ngClass]="diferencia >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'">
-                <svg *ngIf="diferencia >= 0" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <svg *ngIf="diferencia < 0" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            <div class="p-3 rounded-full flex-shrink-0 transition-colors" 
+                [ngClass]="diferencia === 0 ? 'bg-emerald-100 text-emerald-600' : (diferencia > 0 ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600')">
+                
+                <svg *ngIf="diferencia === 0" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <svg *ngIf="diferencia > 0" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                <svg *ngIf="diferencia < 0" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
             </div>
+
             <div>
-                <p class="text-sm font-bold uppercase tracking-wider text-slate-500">Resultado del Arqueo</p>
-                <div class="text-3xl font-black font-mono" 
-                    [class.text-emerald-600]="diferencia >= 0" 
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Diferencia Efectivo</p>
+                <div class="text-3xl font-black font-mono leading-none" 
+                    [class.text-emerald-600]="diferencia === 0" 
+                    [class.text-blue-600]="diferencia > 0"
                     [class.text-red-600]="diferencia < 0">
                     {{ diferencia | currency:'ARS':'symbol-narrow':'1.0-0' }}
                 </div>
-                <p class="text-xs font-medium" 
-                    [class.text-emerald-700]="diferencia >= 0" 
+                <p class="text-xs font-medium mt-0.5" 
+                    [class.text-emerald-700]="diferencia === 0" 
+                    [class.text-blue-700]="diferencia > 0"
                     [class.text-red-700]="diferencia < 0">
                     {{ diferencia === 0 ? 'Caja Perfecta' : (diferencia > 0 ? 'Sobrante de Caja' : 'Faltante de Caja') }}
                 </p>
             </div>
         </div>
 
-        <button (click)="confirmarCierre()" 
-            [disabled]="procesando"
-            class="w-full md:w-auto px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white text-lg font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all active:scale-95 disabled:bg-slate-400 flex items-center justify-center gap-3">
+        <div class="h-px bg-slate-100 w-full"></div>
+
+        <div class="flex items-center gap-4">
+            <div class="p-3 rounded-full flex-shrink-0 transition-colors" 
+                [ngClass]="{
+                    'bg-slate-100 text-slate-400': tarjetaReal === null,
+                    'bg-emerald-100 text-emerald-600': tarjetaReal !== null && diferenciaTarjeta === 0,
+                    'bg-blue-100 text-blue-600': tarjetaReal !== null && diferenciaTarjeta > 0,
+                    'bg-red-100 text-red-600': tarjetaReal !== null && diferenciaTarjeta < 0
+                }">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+            </div>
+
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Diferencia Tarjeta</p>
+                <div class="text-3xl font-black font-mono leading-none transition-colors" 
+                    [ngClass]="{
+                        'text-slate-300': tarjetaReal === null,
+                        'text-emerald-600': tarjetaReal !== null && diferenciaTarjeta === 0,
+                        'text-blue-600': tarjetaReal !== null && diferenciaTarjeta > 0,
+                        'text-red-600': tarjetaReal !== null && diferenciaTarjeta < 0
+                    }">
+                    {{ (tarjetaReal === null ? 0 : diferenciaTarjeta) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                </div>
+                <p class="text-xs font-medium mt-0.5 transition-colors"
+                   [ngClass]="{
+                       'text-slate-400': tarjetaReal === null,
+                       'text-emerald-700': tarjetaReal !== null && diferenciaTarjeta === 0,
+                       'text-blue-700': tarjetaReal !== null && diferenciaTarjeta > 0,
+                       'text-red-700': tarjetaReal !== null && diferenciaTarjeta < 0
+                   }">
+                   <span *ngIf="tarjetaReal === null">Sin auditar</span>
+                   <span *ngIf="tarjetaReal !== null && diferenciaTarjeta === 0">Lote Coincide</span>
+                   <span *ngIf="tarjetaReal !== null && diferenciaTarjeta > 0">Sobra en Banco</span>
+                   <span *ngIf="tarjetaReal !== null && diferenciaTarjeta < 0">Falta Cupón</span>
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <button (click)="confirmarCierre()" 
+        [disabled]="procesando"
+        class="w-full md:w-auto h-full px-8 py-6 bg-slate-900 hover:bg-slate-800 text-white text-lg font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all active:scale-95 disabled:bg-slate-400 flex flex-col items-center justify-center gap-2">
+        <div class="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
-            <span *ngIf="!procesando">Confirmar Cierre del Día</span>
+            <span *ngIf="!procesando">Confirmar Cierre</span>
             <span *ngIf="procesando">Guardando...</span>
-        </button>
+        </div>
+        <span class="text-[10px] font-normal text-slate-400 uppercase tracking-widest">Fin del día</span>
+    </button>
 
     </div>
 </div>

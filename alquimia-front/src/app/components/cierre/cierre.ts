@@ -39,7 +39,7 @@ export class CierreCajaComponent implements OnInit {
       next: (data) => {
         this.datosSistema = data;
         this.calcularDiferencia()
-        this.cd.detectChanges()
+        this.cd.detectChanges() //SACAR CUANDO ESTÉ TODO ANDANDO
         // Opcional: pre-cargar tarjeta real con lo del sistema si confías en los cupones
         // this.tarjetaReal = data.sistema_tarjeta; 
       },

@@ -15,4 +15,8 @@ export class CierreService {
   cerrar(datos: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/cerrar`, datos);
   }
+  
+  getHistorial(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}`);
+  }
 }

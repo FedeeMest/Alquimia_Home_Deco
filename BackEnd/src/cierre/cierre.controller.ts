@@ -68,6 +68,21 @@ async function cerrarCaja(req: Request, res: Response) {
     } catch (error) {
         return res.status(500).json({ message: 'Error al cerrar caja' });
     }
+    
 }
 
-export { previsualizarHoy, cerrarCaja };
+async function obtenerHistorial(req: Request, res: Response) {
+    const em = orm.em.fork();
+    try {
+        const cierres = await em.find(CierreCaja, {}, {
+            orderBy: { fecha_cierre: 'DESC' }, // Ordenar: Más nuevos primero
+            limit: 50 // Traer los últimos 50 para que sea rápido
+        });
+        return res.json(cierres);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Error al obtener historial' });
+    }
+}
+
+export { previsualizarHoy, cerrarCaja, obtenerHistorial };

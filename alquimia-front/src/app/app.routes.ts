@@ -42,6 +42,10 @@ export const routes: Routes = [
                 loadComponent: () => import('./components/cierre/cierre').then(m => m.CierreCajaComponent) 
             },
             { 
+                path: 'historial-cierres',
+                loadComponent: () => import('./components/cierre-historial/cierre-historial').then(m => m.CierreHistorialComponent) 
+            },
+            { 
                 path: 'nueva_venta', 
                 loadComponent: () => import('./components/nueva_venta/nueva-venta').then(m => m.NuevaVentaComponent) 
             },

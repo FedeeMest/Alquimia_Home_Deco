@@ -204,9 +204,7 @@ async function fixPrecios(req: Request, res: Response) {
     const em = orm.em.fork();
     try {
         // CAMBIO AQUÍ: Filtramos para traer solo los que tienen precio base en 0
-        const productos = await em.find(Producto, { 
-            precio_venta_base: 0 
-        });
+        const productos = await em.find(Producto, {});
         
         // Si no hay nada que arreglar, avisamos rápido
         if (productos.length === 0) {

@@ -38,6 +38,10 @@ export const routes: Routes = [
                 loadComponent: () => import('./components/verificador-precio/verificador-precio').then(m => m.VerificadorPrecio) 
             },
             { 
+                path: 'cierre-caja', 
+                loadComponent: () => import('./components/cierre/cierre').then(m => m.CierreCajaComponent) 
+            },
+            { 
                 path: 'nueva_venta', 
                 loadComponent: () => import('./components/nueva_venta/nueva-venta').then(m => m.NuevaVentaComponent) 
             },

@@ -6,6 +6,7 @@ import { orm, syncSchema } from './shared/db/orm.js';
 import { productoRouter } from './productos/producto.routes.js';
 import { ventaRouter } from './ventas/venta.routes.js';
 import { configuracionRouter } from './configuracion/configuracion.routes.js';
+import { cierreRouter } from './cierre/cierre.routes.js';
 import { authRouter } from './auth/auth.routes.js';
 import { usuarioRouter } from './usuario/usuario.routes.js'; // <--- AGREGADO: Faltaba importar esto
 import { initSemillas } from './shared/db/seeds.js';
@@ -62,6 +63,7 @@ app.use('/api/usuarios', authMiddleware, usuarioRouter); // <--- AGREGADO: Falta
 app.use('/api/productos', authMiddleware, productoRouter);
 app.use('/api/ventas', authMiddleware, ventaRouter);
 app.use('/api/configuracion', authMiddleware, configuracionRouter);
+app.use('/api/cierre_caja',authMiddleware, cierreRouter)
 
 // Ruta Base (Health Check)
 app.get('/', (req, res) => {

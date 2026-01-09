@@ -2,19 +2,19 @@
 
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Cierre de Caja</h1>
-            <p class="text-slate-500 text-sm mt-1">Realiza el arqueo y control de valores del día.</p>
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Cierre de Caja</h1>
+            <p class="text-slate-500 font-medium">Control y arqueo diario de valores</p>
         </div>
         
-        <div class="flex items-center gap-4 bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
-            <div class="px-4 border-r border-slate-200 text-right hidden sm:block">
-                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Fecha Actual</div>
-                <div class="font-mono font-bold text-slate-800">{{ fechaHoy | date:'dd/MM/yyyy' }}</div>
+        <div class="flex items-center gap-3">
+            <div class="hidden md:flex flex-col items-end mr-2 px-4 border-r border-slate-200">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Fecha de Hoy</span>
+                <span class="text-slate-800 font-mono font-bold">{{ fechaHoy | date:'dd/MM/yyyy' }}</span>
             </div>
             
             <a routerLink="/historial-cierres" 
-               class="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 font-medium rounded-lg transition-all text-sm border border-slate-200">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+               class="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 font-bold rounded-xl shadow-sm hover:shadow transition-all text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-slate-400">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
                 Ver Historial
@@ -24,157 +24,151 @@
 
     <div *ngIf="datosSistema" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <div class="lg:col-span-5 space-y-6">
-            
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-bold text-slate-800 text-sm uppercase tracking-wide flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                        Esperado por Sistema
-                    </h2>
-                    <span class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded border border-slate-200">AUTOMÁTICO</span>
+        <div class="lg:col-span-5">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <div class="p-1.5 bg-blue-100 text-blue-600 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        </div>
+                        <h2 class="font-bold text-slate-700 text-sm uppercase tracking-wide">Reporte del Sistema</h2>
+                    </div>
+                    <span class="text-[10px] font-bold bg-white border border-slate-200 text-slate-400 px-2 py-1 rounded">AUTOMÁTICO</span>
                 </div>
                 
-                <div class="p-6">
-                    <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-50 border-dashed">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                            </div>
-                            <span class="text-sm font-medium text-slate-600">Efectivo</span>
-                        </div>
-                        <span class="text-lg font-mono font-bold text-slate-900">
+                <div class="p-6 space-y-5">
+                    <div class="flex justify-between items-center group">
+                        <span class="text-sm font-medium text-slate-500 group-hover:text-slate-700 transition-colors">Ventas en Efectivo</span>
+                        <span class="text-lg font-mono font-bold text-slate-800">
                             {{ datosSistema.sistema_efectivo | currency:'ARS':'symbol-narrow':'1.0-0' }}
                         </span>
                     </div>
+                    <div class="h-px bg-slate-100 border-t border-dashed border-slate-200 w-full"></div>
 
-                    <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-50 border-dashed">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-                            </div>
-                            <span class="text-sm font-medium text-slate-600">Tarjetas / Digital</span>
-                        </div>
-                        <span class="text-lg font-mono font-bold text-slate-900">
+                    <div class="flex justify-between items-center group">
+                        <span class="text-sm font-medium text-slate-500 group-hover:text-slate-700 transition-colors">Tarjetas / Digital</span>
+                        <span class="text-lg font-mono font-bold text-slate-600">
                             {{ datosSistema.sistema_tarjeta | currency:'ARS':'symbol-narrow':'1.0-0' }}
                         </span>
                     </div>
+                    <div class="h-px bg-slate-100 border-t border-dashed border-slate-200 w-full"></div>
 
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-purple-50 text-purple-600 rounded-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                            </div>
-                            <span class="text-sm font-medium text-slate-600">Otros Medios</span>
-                        </div>
-                        <span class="text-lg font-mono font-bold text-slate-900">
+                    <div class="flex justify-between items-center group">
+                        <span class="text-sm font-medium text-slate-500 group-hover:text-slate-700 transition-colors">Otros Medios</span>
+                        <span class="text-lg font-mono font-bold text-slate-400">
                             {{ datosSistema.sistema_otros | currency:'ARS':'symbol-narrow':'1.0-0' }}
                         </span>
                     </div>
                 </div>
                 
-                <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-between items-center">
-                    <span class="text-xs font-bold text-slate-500 uppercase">Total Recaudado</span>
-                    <span class="text-xl font-black text-slate-800 tracking-tight">
-                        {{ (datosSistema.sistema_efectivo + datosSistema.sistema_tarjeta + datosSistema.sistema_otros) | currency:'ARS':'symbol-narrow':'1.0-0' }}
-                    </span>
+                <div class="bg-slate-50/50 px-6 py-5 border-t border-slate-100">
+                    <div class="flex justify-between items-end">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Teórico</span>
+                        <span class="text-2xl font-black text-slate-900 tracking-tight leading-none">
+                            {{ (datosSistema.sistema_efectivo + datosSistema.sistema_tarjeta + datosSistema.sistema_otros) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="lg:col-span-7 space-y-6">
+        <div class="lg:col-span-7">
             
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
-                <div class="bg-slate-900 px-6 py-4 flex justify-between items-center">
-                    <h2 class="font-bold text-white text-sm uppercase tracking-wide flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Arqueo Real (Conteo)
-                    </h2>
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col h-full">
+                
+                <div class="bg-slate-900 px-6 py-4 flex justify-between items-center text-white">
+                    <div class="flex items-center gap-2">
+                        <div class="p-1.5 bg-emerald-500/20 rounded-lg text-emerald-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </div>
+                        <h2 class="font-bold text-sm uppercase tracking-wide">Arqueo Físico</h2>
+                    </div>
                 </div>
 
-                <div class="p-6 space-y-6">
+                <div class="p-6 md:p-8 space-y-8 flex-1">
                     
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider ml-1">Efectivo en Caja</label>
+                        <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Efectivo contado en caja</label>
                         <div class="relative group">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl font-light">$</span>
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <span class="text-slate-400 text-2xl font-light">$</span>
+                            </div>
                             <input type="number" 
                                 [(ngModel)]="efectivoReal"
                                 (ngModelChange)="calcularDiferencia()"
-                                class="w-full pl-10 pr-4 py-4 text-3xl font-mono font-bold text-slate-800 bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-slate-900 focus:ring-0 transition-all placeholder-slate-300"
+                                class="block w-full pl-10 pr-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl text-3xl font-mono font-bold text-slate-800 focus:bg-white focus:border-slate-900 focus:ring-0 transition-all placeholder-slate-300"
                                 placeholder="0"
                             >
                         </div>
-                        <p class="text-xs text-slate-400 mt-2 ml-1">Ingresa la suma total de billetes y monedas.</p>
+                        
+                        <div class="mt-2 flex items-center gap-2 text-sm font-medium transition-all"
+                             [ngClass]="{
+                                 'text-slate-400': efectivoReal === null,
+                                 'text-emerald-600': efectivoReal !== null && diferencia === 0,
+                                 'text-red-600': efectivoReal !== null && diferencia < 0,
+                                 'text-blue-600': efectivoReal !== null && diferencia > 0
+                             }">
+                             <span *ngIf="efectivoReal === null" class="italic">Ingresa el monto total de billetes.</span>
+                             <span *ngIf="efectivoReal !== null && diferencia === 0">✔ Caja perfecta.</span>
+                             <span *ngIf="efectivoReal !== null && diferencia < 0">⚠ Faltante de {{ diferencia | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+                             <span *ngIf="efectivoReal !== null && diferencia > 0">ℹ Sobrante de +{{ diferencia | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider ml-1">Ticket Lote (Posnet)</label>
+                            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Lote Tarjetas (Opcional)</label>
                             <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
                                 <input type="number" 
                                     [(ngModel)]="tarjetaReal"
                                     (ngModelChange)="calcularDiferencia()"
-                                    class="w-full pl-7 pr-10 py-2.5 font-mono text-slate-800 bg-white border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition-all"
-                                    placeholder="Total cierre lote"
+                                    class="block w-full pl-8 pr-12 py-3 bg-white border border-slate-300 rounded-lg text-lg font-mono text-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                                    placeholder="Ticket Posnet"
                                 >
                                 <div *ngIf="tarjetaReal !== null" class="absolute right-2 top-1/2 -translate-y-1/2">
-                                    <div *ngIf="diferenciaTarjeta === 0" class="w-2 h-2 rounded-full bg-emerald-500" title="Coincide"></div>
-                                    <div *ngIf="diferenciaTarjeta !== 0" class="w-2 h-2 rounded-full bg-red-500" title="Diferencia"></div>
+                                    <span *ngIf="diferenciaTarjeta === 0" class="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">OK</span>
+                                    <span *ngIf="diferenciaTarjeta !== 0" 
+                                          [class]="diferenciaTarjeta > 0 ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-red-100 text-red-700 border-red-200'"
+                                          class="text-[10px] font-bold px-2 py-0.5 rounded border">
+                                        {{ diferenciaTarjeta > 0 ? '+' : '' }}{{ diferenciaTarjeta }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider ml-1">Observaciones</label>
+                            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Observaciones</label>
                             <textarea 
                                 [(ngModel)]="observaciones"
                                 rows="1"
-                                class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-700 focus:border-slate-500 focus:ring-0 resize-none overflow-hidden"
-                                placeholder="Notas del cierre..."
+                                class="block w-full px-3 py-3 bg-white border border-slate-300 rounded-lg text-sm text-slate-700 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 resize-none overflow-hidden"
+                                placeholder="Notas internas..."
                             ></textarea>
                         </div>
                     </div>
+
                 </div>
 
-                <div class="bg-slate-50 border-t border-slate-100 p-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div class="bg-slate-50 border-t border-slate-200 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                     
-                    <div class="flex items-center gap-6 w-full sm:w-auto">
-                        <div class="flex items-center gap-3">
-                            <div class="flex flex-col">
-                                <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Dif. Efectivo</span>
-                                <span class="text-2xl font-black font-mono leading-none"
-                                    [class.text-emerald-600]="diferencia === 0"
-                                    [class.text-red-600]="diferencia < 0"
-                                    [class.text-blue-600]="diferencia > 0">
-                                    {{ diferencia | currency:'ARS':'symbol-narrow':'1.0-0' }}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="h-8 w-px bg-slate-200"></div>
-
-                        <div class="flex items-center gap-3">
-                            <div class="flex flex-col">
-                                <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Dif. Tarjeta</span>
-                                <span class="text-xl font-bold font-mono leading-none"
-                                    [class.text-slate-300]="tarjetaReal === null"
-                                    [class.text-emerald-600]="tarjetaReal !== null && diferenciaTarjeta === 0"
-                                    [class.text-red-600]="tarjetaReal !== null && diferenciaTarjeta !== 0">
-                                    {{ (tarjetaReal === null ? 0 : diferenciaTarjeta) | currency:'ARS':'symbol-narrow':'1.0-0' }}
-                                </span>
-                            </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Diferencia Final</span>
+                            <span class="text-3xl font-black font-mono leading-none transition-colors"
+                                [ngClass]="diferencia === 0 ? 'text-emerald-600' : (diferencia > 0 ? 'text-blue-600' : 'text-red-600')">
+                                {{ diferencia | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                            </span>
                         </div>
                     </div>
 
                     <button (click)="confirmarCierre()" 
                         [disabled]="procesando"
-                        class="w-full sm:w-auto px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-95 disabled:bg-slate-400 disabled:shadow-none flex items-center justify-center gap-2 min-w-[200px]">
+                        class="w-full md:w-auto px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-95 disabled:bg-slate-400 disabled:shadow-none flex items-center justify-center gap-2 min-w-[220px]">
                         <span *ngIf="!procesando">Confirmar Cierre</span>
                         <span *ngIf="procesando" class="flex items-center gap-2">
-                            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            Guardando...
+                            <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Procesando...
                         </span>
                     </button>
                 </div>

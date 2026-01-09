@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CierreService } from '../../services/cierre.service';
@@ -15,6 +15,7 @@ export class CierreCajaComponent implements OnInit {
   private cierreService = inject(CierreService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private cd = inject(ChangeDetectorRef);
 
   fechaHoy = new Date();
   datosSistema: any = null;
@@ -31,6 +32,7 @@ export class CierreCajaComponent implements OnInit {
 
   ngOnInit() {
     this.cargarDatosSistema();
+    this.cd.detectChanges();
   }
 
   cargarDatosSistema() {
@@ -55,11 +57,13 @@ export class CierreCajaComponent implements OnInit {
     const efectivoReal = Number(this.efectivoReal) || 0;
     
     this.diferencia = efectivoReal - efectivoSistema;
+    this.cd.detectChanges();
 
     if (this.tarjetaReal !== null) {
         const tarjetaSistema = Number(this.datosSistema.sistema_tarjeta) || 0;
         const tarjetaReal = Number(this.tarjetaReal) || 0;
         this.diferenciaTarjeta = tarjetaReal - tarjetaSistema;
+        this.cd.detectChanges();
     } else {
         this.diferenciaTarjeta = 0;
     }

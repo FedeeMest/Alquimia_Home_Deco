@@ -89,7 +89,7 @@ export class CierreCajaComponent implements OnInit {
     this.cierreService.cerrar(payload).subscribe({
       next: () => {
         this.notificationService.show('Caja cerrada correctamente', 'success');
-        this.router.navigate(['/dashboard']); // O a donde prefieras
+        this.router.navigate(['/historial-cierres']); // O a donde prefieras
       },
       error: (err) => {
         console.error(err);

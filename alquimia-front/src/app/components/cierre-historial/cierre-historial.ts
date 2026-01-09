@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CierreService } from '../../services/cierre.service';
@@ -11,6 +11,7 @@ import { CierreService } from '../../services/cierre.service';
 })
 export class CierreHistorialComponent implements OnInit {
   private cierreService = inject(CierreService);
+  private cd = inject(ChangeDetectorRef);
   
   // --- SOLUCIÓN DEL ERROR ---
   // Exponemos la función global "Number" como una propiedad de la clase
@@ -26,6 +27,7 @@ export class CierreHistorialComponent implements OnInit {
       next: (data) => {
         this.cierres = data;
         this.loading = false;
+        this.cd.detectChanges();
       },
       error: (err) => {
         console.error(err);

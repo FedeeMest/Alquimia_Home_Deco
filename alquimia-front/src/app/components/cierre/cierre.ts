@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
   selector: 'app-cierre-caja',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './cierre-caja.html'
+  templateUrl: './cierre.html'
 })
 export class CierreCajaComponent implements OnInit {
   private cierreService = inject(CierreService);

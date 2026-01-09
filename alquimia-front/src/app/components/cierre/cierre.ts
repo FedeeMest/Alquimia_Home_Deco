@@ -32,13 +32,14 @@ export class CierreCajaComponent implements OnInit {
 
   ngOnInit() {
     this.cargarDatosSistema();
-    this.cd.detectChanges();
   }
 
   cargarDatosSistema() {
     this.cierreService.previsualizar().subscribe({
       next: (data) => {
         this.datosSistema = data;
+        this.calcularDiferencia()
+        this.cd.detectChanges()
         // Opcional: pre-cargar tarjeta real con lo del sistema si confías en los cupones
         // this.tarjetaReal = data.sistema_tarjeta; 
       },
@@ -57,16 +58,15 @@ export class CierreCajaComponent implements OnInit {
     const efectivoReal = Number(this.efectivoReal) || 0;
     
     this.diferencia = efectivoReal - efectivoSistema;
-    this.cd.detectChanges();
 
     if (this.tarjetaReal !== null) {
         const tarjetaSistema = Number(this.datosSistema.sistema_tarjeta) || 0;
         const tarjetaReal = Number(this.tarjetaReal) || 0;
         this.diferenciaTarjeta = tarjetaReal - tarjetaSistema;
-        this.cd.detectChanges();
     } else {
         this.diferenciaTarjeta = 0;
     }
+    this.cd.detectChanges();
   }
 
   confirmarCierre() {

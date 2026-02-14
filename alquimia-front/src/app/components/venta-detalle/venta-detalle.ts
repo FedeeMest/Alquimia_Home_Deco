@@ -5,7 +5,7 @@ import { VentaService } from '../../services/venta.service';
 import { Venta } from '../../Interfaces/venta.interface';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../services/notification.service';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 @Component({

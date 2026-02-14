@@ -7,6 +7,7 @@ import { Producto } from '../../Interfaces/producto.interface';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { BarcodeFormat } from '@zxing/library';
 
+
 @Component({
   selector: 'app-verificador-precio',
   imports: [CommonModule, FormsModule, ZXingScannerModule],
@@ -25,6 +26,7 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
   mensaje: string = 'Escanea un código para ver el precio';
   buscando = false;
   error = false;
+  esModoOffline: boolean = false;
   
   // Nueva variable para controlar si el teclado virtual debe abrirse
   tecladoManual = false;
@@ -126,13 +128,41 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
         setTimeout(() => this.enfocarInput(), 100);
       },
       error: (err) => {
-        console.error(err);
-        this.error = true;
-        this.mensaje = 'Error de conexión';
-        this.buscando = false;
-        this.cd.detectChanges();
-        setTimeout(() => this.enfocarInput(), 100);
+        console.warn('Fallo conexión online, intentando modo offline...');
+        
+        // 2. INTENTO OFFLINE (Plan B si falla internet)
+        this.productoService.getAllOffline(codigoParaBuscar).subscribe({
+          next: (respOffline) => {
+            this.esModoOffline = true; // Activamos la alerta visual
+            
+            // Buscamos en los datos locales
+            const encontrado = respOffline.data.find((p: any) => p.codigo_barra === codigoParaBuscar);
+            
+            if (encontrado) {
+               this.producto = encontrado;
+               this.mensaje = '';
+               this.error = false; // Limpiamos el error porque lo encontramos offline
+            } else {
+               this.error = true;
+               this.mensaje = 'No encontrado (ni en internet ni en memoria local)';
+            }
+            this.finalizarBusqueda();
+          },
+          error: (e) => {
+            // Si falla también el offline (raro, pero posible)
+            this.error = true;
+            this.mensaje = 'Error crítico al buscar';
+            this.finalizarBusqueda();
+          }
+        });
       }
     });
+  }
+
+  private finalizarBusqueda() {
+    this.buscando = false;
+    this.cd.detectChanges();
+    // Reenfocamos para permitir escaneo rápido consecutivo
+    setTimeout(() => this.enfocarInput(), 100);
   }
 }

@@ -71,13 +71,13 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    <tr *ngFor="let item of venta.detalles">
+                    <tr *ngFor="let item of venta.items">
                         <td class="py-4 px-4">
                             <div class="font-bold text-slate-700">{{ item.producto?.nombre || 'Producto eliminado' }}</div>
                             <div class="text-xs text-slate-400 font-mono mt-0.5" *ngIf="item.producto?.codigo">Cód: {{ item.producto?.codigo }}</div>
                         </td>
                         <td class="py-4 px-4 text-center font-medium text-slate-600">{{ item.cantidad }}</td>
-                        <td class="py-4 px-4 text-right font-mono text-slate-600">{{ item.precio_unitario_historico | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                        <td class="py-4 px-4 text-right font-mono text-slate-600">{{ item.precio_unitario | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
                         <td class="py-4 px-4 text-right font-mono font-bold text-slate-800">{{ item.subtotal | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
                     </tr>
                 </tbody>

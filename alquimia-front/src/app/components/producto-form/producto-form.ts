@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductoService } from '../../services/producto.service';
 import { NotificationService } from '../../services/notification.service';
@@ -9,7 +9,7 @@ import { ConfiguracionService } from '../../services/configuracion.service';
 @Component({
   selector: 'app-producto-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule,FormsModule, RouterLink],
   templateUrl: './producto-form.html',
   styleUrl: './producto-form.css',
 })
@@ -51,6 +51,13 @@ categorias = [
   'Otros'
 ];
   tiposAjuste = ['DESCUENTO', 'RECARGO', 'NINGUNO'];
+
+  showPrintModal = false;
+  printConfig = {
+    nombre: '',
+    ganancia: 0,
+    precioEfectivoCalculado: 0
+  };
 
   ngOnInit(): void {
     this.initForm();
@@ -235,4 +242,52 @@ categorias = [
       });
     }
   }
+
+  abrirModalImpresion() {
+    const form = this.productoForm.getRawValue();
+    this.printConfig.nombre = form.nombre;
+    this.printConfig.ganancia = form.ganancia;
+    this.calcularPrecioImpresion();
+    this.showPrintModal = true;
+  }
+
+  cerrarModalImpresion() {
+    this.showPrintModal = false;
+  }
+
+  calcularPrecioImpresion() {
+    const form = this.productoForm.getRawValue();
+    
+    let costo = Number(form.precio_compra) || 0;
+    if (form.tiene_iva) {
+      costo = costo * 1.21;
+    }
+
+    const gananciaNum = Number(this.printConfig.ganancia) || 0;
+    const porcentaje = gananciaNum / 100;
+    
+    let precioBaseCalculado = 0;
+    
+    if (porcentaje >= 1) {
+      precioBaseCalculado = costo * 2; 
+    } else {
+      precioBaseCalculado = costo / (1 - porcentaje);
+    }
+    
+    const precioBase = this.redondearComoExcel(precioBaseCalculado);
+
+    this.printConfig.precioEfectivoCalculado = this.aplicarRegla(
+      precioBase, 
+      form.ajuste_efectivo_tipo || 'DESCUENTO', 
+      Number(form.ajuste_efectivo_valor) || 0
+    );
+  }
+
+  imprimirEtiqueta() {
+    setTimeout(() => {
+      window.print();
+      this.cerrarModalImpresion();
+    }, 100);
+  }
+
 }

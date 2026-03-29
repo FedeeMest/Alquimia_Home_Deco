@@ -39,15 +39,25 @@ export class ProductoForm implements OnInit {
   // Dentro de la clase ProductoForm...
 
 categorias = [
-  'Cocina',       // Tazas, platos, cubiertos
-  'Decoración',   // Floreros, adornos
-  'Difusores',    // Tus productos de Orakke
-  'Aromas',       // Velas, esencias
-  'Iluminación',  // Lámparas
-  'Muebles',      // Mesas, sillas
-  'Textil',       // Almohadones, mantas
-  'Baño',         // Jaboneras, accesorios
-  'Jardín',       // Macetas
+  'Vasos',
+  'Copas',
+  'Tazas',
+  'Copetineros',
+  'Tortera',
+  'Jarras',
+  'Compoteras',
+  'Ensaladeras',
+  'Jarrones/Floreros',
+  'Borlas',
+  'Accesorio de Mesa',
+  'Almohadones',
+  'Mantas',
+  'Manteles',
+  'Caminos', 
+  'Decoración',
+  'Difusores / Aromas',
+  'Ceramica',
+  'Jardín',
   'Otros'
 ];
   tiposAjuste = ['DESCUENTO', 'RECARGO', 'NINGUNO'];

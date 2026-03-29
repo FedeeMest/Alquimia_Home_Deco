@@ -35,21 +35,45 @@
                 </span>
             </button>
 
-            <div class="relative w-full md:w-80">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-                </div>
-                <input 
-                    type="text" 
-                    [(ngModel)]="terminoBusqueda" 
-                    (keyup.enter)="buscar()"
-                    placeholder="Buscar producto..." 
-                    class="pl-10 pr-10 w-full rounded-xl border-slate-200 bg-white focus:border-slate-400 focus:ring-slate-400 shadow-sm py-2.5 text-sm font-medium transition-all"
-                >
-                <button *ngIf="terminoBusqueda" (click)="limpiar()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" /></svg>
-                </button>
-            </div>
+            <form (ngSubmit)="buscar()" action="." class="w-full md:w-80">
+    <div class="relative w-full">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+        </div>
+        
+        <input 
+            type="search" 
+            enterkeyhint="search"
+            name="terminoBusqueda"
+            [(ngModel)]="terminoBusqueda" 
+            placeholder="Buscar producto..." 
+            class="pl-10 pr-20 w-full rounded-xl border-slate-200 bg-white focus:border-slate-400 focus:ring-slate-400 shadow-sm py-2.5 text-sm font-medium transition-all"
+        >
+        
+        <div class="absolute inset-y-0 right-0 flex items-center pr-1.5 gap-1">
+            
+            <button 
+                type="button" 
+                *ngIf="terminoBusqueda" 
+                (click)="limpiar()" 
+                class="p-1 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors rounded-full"
+                title="Limpiar búsqueda"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" /></svg>
+            </button>
+
+            <button 
+                type="submit" 
+                class="bg-slate-800 text-white p-1.5 rounded-lg hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm flex items-center justify-center"
+                title="Buscar"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                   <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+</form>
 
             <a *ngIf="!verInactivos" routerLink="/productos/nuevo" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 whitespace-nowrap text-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>

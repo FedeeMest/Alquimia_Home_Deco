@@ -1,5 +1,6 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductoService } from '../../services/producto.service';
@@ -21,6 +22,8 @@ export class ProductoForm implements OnInit {
   private configService = inject(ConfiguracionService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private http = inject(HttpClient);
+  @ViewChild('etiquetaCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   // Variable del formulario (En el HTML se llamaba 'form', aquí unificamos a 'productoForm')
   productoForm!: FormGroup;
@@ -294,10 +297,55 @@ categorias = [
   }
 
   imprimirEtiqueta() {
-    setTimeout(() => {
-      window.print();
-      this.cerrarModalImpresion();
-    }, 100);
+    // 1. Obtenemos los valores que el usuario ve en el modal
+    const nombreEtiqueta = this.printConfig.nombre;
+    const precioEtiqueta = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(this.printConfig.precioEfectivoCalculado);
+    const codigoEtiqueta = this.productoForm.get('codigo_barra')?.value || this.productoForm.get('codigo_proveedor')?.value || 'S/C';
+
+    // 2. Preparamos el canvas
+    const canvas = this.canvasRef.nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Dibujamos fondo blanco
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 3. Recreamos tu diseño del CSS pero en Canvas (Tinta negra)
+    ctx.fillStyle = 'black';
+
+    // Código (Arriba, chiquito)
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Cód: ' + codigoEtiqueta, canvas.width / 2, 40);
+
+    // Nombre (Centro, bold. Si es largo, lo cortamos rudimentariamente por ahora)
+    ctx.font = 'bold 24px Arial';
+    // Mantenemos solo los primeros 30 caracteres para que no desborde
+    const nombreCorto = nombreEtiqueta.length > 30 ? nombreEtiqueta.substring(0, 30) + '...' : nombreEtiqueta;
+    ctx.fillText(nombreCorto, canvas.width / 2, 100);
+
+    // Precio (Abajo, muy grande)
+    ctx.font = '900 48px Arial';
+    ctx.fillText(precioEtiqueta, canvas.width / 2, 180);
+
+    // 4. Convertimos a imagen Base64
+    const imagenBase64 = canvas.toDataURL('image/png').split(',')[1];
+
+    // 5. Enviamos la imagen al script de Python local
+    this.notificationService.show('Enviando a la impresora...', 'success');
+    
+    this.http.post('http://localhost:5000/imprimir', { imagen: imagenBase64 })
+      .subscribe({
+        next: () => {
+          this.notificationService.show('¡Etiqueta impresa con éxito!', 'success');
+          this.cerrarModalImpresion(); // Cerramos el modal solo si se imprimió bien
+        },
+        error: (err) => {
+          console.error(err);
+          this.notificationService.show('Error: Verificá que el script de impresión esté abierto y la impresora conectada por USB.', 'error');
+        }
+      });
   }
 
 }

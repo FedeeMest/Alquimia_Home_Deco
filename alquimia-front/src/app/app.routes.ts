@@ -46,6 +46,11 @@ export const routes: Routes = [
                 loadComponent: () => import('./components/cierre-historial/cierre-historial').then(m => m.CierreHistorialComponent) 
             },
             { 
+                path: 'carga-camion', 
+                loadComponent: () => import('./components/carga-camion/carga-camion').then(m => m.CargaCamionComponent) 
+            },
+
+            { 
                 path: 'nueva_venta', 
                 loadComponent: () => import('./components/nueva_venta/nueva-venta').then(m => m.NuevaVentaComponent) 
             },

@@ -102,20 +102,24 @@
                         <td class="px-6 py-4 text-center font-bold text-blue-600 text-base">{{ p.stock_camion || 0 }}</td>
                         
                         <td class="px-6 py-4">
-                            <div class="flex items-center justify-center gap-2">
-                                <input type="number" #cantInput min="1" class="w-16 rounded-lg border-slate-200 text-center py-1.5 text-sm focus:ring-slate-400 focus:border-slate-400 shadow-sm" placeholder="Cant">
-                                
-                                <button (click)="moverStock(p, cantInput.value, 'camion'); cantInput.value=''" 
-                                        class="bg-blue-100 text-blue-700 hover:bg-blue-200 hover:text-blue-800 p-1.5 rounded-lg transition-colors shadow-sm" title="Mover a Camión">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" /></svg>
-                                </button>
-                                
-                                <button (click)="moverStock(p, cantInput.value, 'almacen'); cantInput.value=''" 
-                                        class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800 p-1.5 rounded-lg transition-colors shadow-sm" title="Devolver a Almacén">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.662l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.662 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd" /></svg>
-                                </button>
-                            </div>
-                        </td>
+    <div class="flex items-center justify-center gap-2">
+        <input type="number" #cantInput min="1" 
+               class="w-20 rounded-lg border-2 border-slate-400 bg-white text-center py-1.5 text-sm font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all" 
+               placeholder="Cant.">
+        
+        <button (click)="moverStock(p, cantInput.value, 'camion'); cantInput.value=''" 
+                class="bg-blue-100 text-blue-700 hover:bg-blue-600 hover:text-white font-bold text-xs uppercase tracking-wide px-3 py-2 rounded-lg transition-colors shadow-sm border border-blue-200" 
+                title="Pasar a Camión">
+            Camión
+        </button>
+        
+        <button (click)="moverStock(p, cantInput.value, 'almacen'); cantInput.value=''" 
+                class="bg-emerald-100 text-emerald-700 hover:bg-emerald-600 hover:text-white font-bold text-xs uppercase tracking-wide px-3 py-2 rounded-lg transition-colors shadow-sm border border-emerald-200" 
+                title="Devolver a Almacén">
+            Almacén
+        </button>
+    </div>
+</td>
                     </tr>
                 </tbody>
             </table>
@@ -136,8 +140,7 @@
         </div>
     </div>
 </div>
-<!-- 
- <div class="container mx-auto p-4 max-w-7xl">
+<!-- <div class="container mx-auto p-4 max-w-7xl">
     
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
@@ -149,23 +152,29 @@
             </p>
         </div>
 
-        <div class="flex bg-slate-100 p-1.5 rounded-xl shadow-inner w-full sm:w-auto">
-            <button (click)="cambiarVistaTabs('todos')" 
-                    [class.bg-white]="vistaActual === 'todos'" [class.shadow]="vistaActual === 'todos'" [class.text-slate-800]="vistaActual === 'todos'"
-                    class="flex-1 sm:flex-none px-5 py-2.5 rounded-lg font-bold text-sm text-slate-500 transition-all">
-                Todos
-            </button>
-            <button (click)="cambiarVistaTabs('camion')" 
-                    [class.bg-white]="vistaActual === 'camion'" [class.shadow]="vistaActual === 'camion'" [class.text-blue-700]="vistaActual === 'camion'"
-                    class="flex-1 sm:flex-none px-5 py-2.5 rounded-lg font-bold text-sm text-slate-500 transition-all flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
-                En Camión
-            </button>
-            <button (click)="cambiarVistaTabs('almacen')" 
-                    [class.bg-white]="vistaActual === 'almacen'" [class.shadow]="vistaActual === 'almacen'" [class.text-emerald-700]="vistaActual === 'almacen'"
-                    class="flex-1 sm:flex-none px-5 py-2.5 rounded-lg font-bold text-sm text-slate-500 transition-all flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg>
-                En Almacén
+        <div class="flex flex-col sm:flex-row gap-4 items-center">
+            <div class="flex bg-slate-100 p-1.5 rounded-xl shadow-inner w-full sm:w-auto">
+                <button (click)="cambiarVistaTabs('todos')" 
+                        [class.bg-white]="vistaActual === 'todos'" [class.shadow]="vistaActual === 'todos'" [class.text-slate-800]="vistaActual === 'todos'"
+                        class="flex-1 sm:flex-none px-5 py-2.5 rounded-lg font-bold text-sm text-slate-500 transition-all">
+                    Todos
+                </button>
+                <button (click)="cambiarVistaTabs('camion')" 
+                        [class.bg-white]="vistaActual === 'camion'" [class.shadow]="vistaActual === 'camion'" [class.text-blue-700]="vistaActual === 'camion'"
+                        class="flex-1 sm:flex-none px-5 py-2.5 rounded-lg font-bold text-sm text-slate-500 transition-all flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
+                    En Camión
+                </button>
+                <button (click)="cambiarVistaTabs('almacen')" 
+                        [class.bg-white]="vistaActual === 'almacen'" [class.shadow]="vistaActual === 'almacen'" [class.text-emerald-700]="vistaActual === 'almacen'"
+                        class="flex-1 sm:flex-none px-5 py-2.5 rounded-lg font-bold text-sm text-slate-500 transition-all flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg>
+                    En Almacén
+                </button>
+            </div>
+            <button (click)="vaciarCamion()" class="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
+                Vaciar Camión
             </button>
         </div>
     </div>
@@ -206,21 +215,67 @@
             <table class="w-full text-left text-sm text-slate-600">
                 <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase text-[11px] tracking-wider border-b border-slate-300">
                     <tr>
-                        <th class="px-6 py-5">Producto</th>
+                        <th class="px-6 py-5 min-w-[250px]">Producto</th>
                         <th class="px-6 py-5">Categoría / Proveedor</th>
                         <th class="px-6 py-5 text-center">Stock Total</th>
                         <th class="px-6 py-5 text-center text-emerald-700">En Almacén</th>
                         <th class="px-6 py-5 text-center text-blue-700">En Camión</th>
+                        <th class="px-6 py-5 text-center">Movimiento Rápido</th>
                     </tr>
                 </thead>
                 
                 <tbody class="divide-y divide-slate-300">
-                    <tr *ngIf="loading"><td colspan="5" class="px-6 py-12 text-center text-slate-400">Cargando productos...</td></tr>
-                    <tr *ngIf="!loading && productosPaginados.length === 0"><td colspan="5" class="px-6 py-12 text-center text-slate-400">No hay productos en esta vista.</td></tr>
+                    <tr *ngIf="loading"><td colspan="6" class="px-6 py-12 text-center text-slate-400">Cargando productos...</td></tr>
+                    <tr *ngIf="!loading && productosPaginados.length === 0"><td colspan="6" class="px-6 py-12 text-center text-slate-400">No hay productos en esta vista.</td></tr>
 
                     <tr *ngFor="let p of productosPaginados; trackBy: trackByProductoId" class="hover:bg-slate-50 transition-colors group">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-slate-800 text-sm mb-1">{{ p.nombre }}</div>
+                            <div class="text-xs text-slate-500 font-mono">{{ p.codigo_barra }}</div>
+                        </td>
                         
                         <td class="px-6 py-4">
-                            <div class="font-bold text-slate-800 text-sm mb-2">{{ p.nombre }}</div>
-                            <div class="flex items-center gap-2"> 
-                                <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 text-xs text-slate-600 font-mono font-bold"> -->
+                            <div class="text-sm text-slate-700">{{ p.categoria || 'Sin Categoría' }}</div>
+                            <div class="text-xs text-slate-500">{{ p.proveedor || 'Sin Proveedor' }}</div>
+                        </td>
+
+                        <td class="px-6 py-4 text-center font-bold text-slate-700 text-base">{{ p.stock || 0 }}</td>
+                        <td class="px-6 py-4 text-center font-bold text-emerald-600 text-base">{{ (p.stock || 0) - (p.stock_camion || 0) }}</td>
+                        <td class="px-6 py-4 text-center font-bold text-blue-600 text-base">{{ p.stock_camion || 0 }}</td>
+                        
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-center gap-2">
+                                <input type="number" #cantInput min="1" class="w-16 rounded-lg border-slate-200 text-center py-1.5 text-sm focus:ring-slate-400 focus:border-slate-400 shadow-sm" placeholder="Cant">
+                                
+                                <button (click)="moverStock(p, cantInput.value, 'camion'); cantInput.value=''" 
+                                        class="bg-blue-100 text-blue-700 hover:bg-blue-200 hover:text-blue-800 p-1.5 rounded-lg transition-colors shadow-sm" title="Mover a Camión">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" /></svg>
+                                </button>
+                                
+                                <button (click)="moverStock(p, cantInput.value, 'almacen'); cantInput.value=''" 
+                                        class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800 p-1.5 rounded-lg transition-colors shadow-sm" title="Devolver a Almacén">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.662l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.662 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd" /></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span class="text-sm text-slate-500 font-medium">
+                Mostrando página <span class="font-bold text-slate-700">{{ page }}</span> de <span class="font-bold text-slate-700">{{ totalPages }}</span> (Total: {{ total }})
+            </span>
+            <div class="flex gap-2">
+                <button [disabled]="page === 1" (click)="cambiarPagina(-1)" class="px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition-colors shadow-sm">
+                    Anterior
+                </button>
+                <button [disabled]="page >= totalPages" (click)="cambiarPagina(1)" class="px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition-colors shadow-sm">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+ -->

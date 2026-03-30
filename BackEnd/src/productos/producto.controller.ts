@@ -307,7 +307,7 @@ async function ventaFeria(req: Request, res: Response) {
         // 2. Crear registro de Venta automático
         const nuevaVenta = em.create('Venta', {
             fecha: new Date(),
-            cliente_nombre: 'Venta Feria (Anónima)', // Corregido de 'cliente' a 'cliente_nombre'
+            cliente_nombre: 'Venta Feria (Persona)', // Corregido de 'cliente' a 'cliente_nombre'
             total: (producto.precio_efectivo || 0) * cantidad,
             metodo_pago: 'Efectivo', 
             estado: 'ACTIVA' // Corregido de 'activo' a 'estado'

@@ -40,7 +40,7 @@ app.use(cors({
 // 3. SEGURIDAD: Rate Limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 100, // Límite de 100 peticiones por IP
+    max: 300, // Límite de 100 peticiones por IP
     standardHeaders: true, 
     legacyHeaders: false,
     message: { message: 'Demasiadas peticiones, intenta más tarde.' } // JSON mejor que texto plano

@@ -13,6 +13,9 @@ export interface AuthRequest extends Request {
 }
 
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (req.method === 'OPTIONS') {
+        return next();
+    }
     // 1. Obtener el header "Authorization"
     const authHeader = req.headers.authorization;
 

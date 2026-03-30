@@ -265,4 +265,29 @@ async function actualizarGananciasMasivo(req: Request, res: Response) {
     }
 }
 
-export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo };
+async function vaciarCamion(req: Request, res: Response) {
+    const em = orm.em.fork();
+    try {
+        // Buscamos solo aquellos que tengan stock en el camión (> 0)
+        const productosEnCamion = await em.find(Producto, { stock_camion: { $gt: 0 } });
+        
+        let contador = 0;
+        for (const prod of productosEnCamion) {
+            prod.stock_camion = 0; // Al ponerlo en 0, automáticamente "vuelve" a almacén lógicamente
+            contador++;
+        }
+
+        await em.flush();
+
+        return res.status(200).json({ 
+            message: 'Camión vaciado correctamente', 
+            productosRestablecidos: contador 
+        });
+
+    } catch (error: any) {
+        console.error('Error al vaciar camión:', error);
+        return res.status(500).json({ message: 'Error interno al vaciar el camión' });
+    }
+}
+
+export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion };

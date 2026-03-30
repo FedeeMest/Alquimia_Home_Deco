@@ -106,11 +106,17 @@ sincronizarDatosOffline(): Observable<boolean> {
       );
     }
 
+    
+
     return of({
       data: productos,
       total: productos.length,
       page: 1,
       totalPages: 1
     });
+  }
+  
+  vaciarCamion(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/vaciar-camion`, {});
   }
 }

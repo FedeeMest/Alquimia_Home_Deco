@@ -16,6 +16,219 @@ import { finalize } from 'rxjs/operators';
 export class ProductoList implements OnInit {
   private productoService = inject(ProductoService);
   private notificationService = inject(NotificationService);
+  private cd = inject(ChangeDetectorRef);
+  
+  loading = true;
+  terminoBusqueda: string = '';
+  verInactivos = false;
+
+  mostrarFiltros: boolean = false;
+  categoriasDisponibles: string[] = [];
+
+  filtros = {
+    proveedor: '',
+    categoria: '',
+    orden: 'nombre_asc'
+  };
+
+  // --- LAS TRES LISTAS CLAVE ---
+  productosOriginales: Producto[] = []; // Los 500+ de la BD
+  productosList: Producto[] = [];       // La lista completa después de aplicar filtros
+  productosPaginados: Producto[] = [];  // Los 10 productos que se muestran en la pantalla actual
+
+  get conteoFiltrosActivos(): number {
+    let count = 0;
+    if (this.filtros.proveedor.trim() !== '') count++;
+    if (this.filtros.categoria !== '') count++;
+    return count;
+  }
+
+  // --- Variables de Paginación ---
+  page: number = 1;
+  limit: number = 10;
+  total: number = 0;
+  totalPages: number = 0;
+
+  ngOnInit(): void {
+    this.cargarProductos();
+  }
+
+  cargarProductos() {
+    this.loading = true;
+    
+    // LA SOLUCIÓN: Le pedimos al backend 10.000 productos de golpe.
+    // Parámetros: buscar='', activo=!this.verInactivos, page=1, limit=10000
+    this.productoService.getAll('', !this.verInactivos, 1, 10000).subscribe({
+      next: (resp: any) => {
+        this.productosOriginales = resp.data;
+        this.extraerCategorias(); 
+        this.aplicarFiltros(); // Esto se encarga de llenar las demás listas y apagar el loading
+        this.loading = false;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al cargar productos', err);
+        this.loading = false;
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  extraerCategorias() {
+    const cats = this.productosOriginales
+      .map(p => p.categoria || '') 
+      .filter(c => c.trim() !== ''); 
+    
+    this.categoriasDisponibles = [...new Set(cats)].sort();
+  }
+
+  aplicarFiltros() {
+    let filtrados = [...this.productosOriginales];
+    
+    const termino = (this.terminoBusqueda || '').toLowerCase().trim();
+    const provFiltro = this.filtros.proveedor.toLowerCase().trim();
+    const catFiltro = this.filtros.categoria;
+
+    if (termino !== '') {
+      filtrados = filtrados.filter(p => 
+        p.nombre.toLowerCase().includes(termino) ||
+        p.codigo_barra?.toLowerCase().includes(termino) ||
+        p.codigo_proveedor?.toLowerCase().includes(termino)
+      );
+    }
+
+    if (provFiltro !== '') {
+      filtrados = filtrados.filter(p => 
+        p.codigo_proveedor?.toLowerCase().includes(provFiltro)
+      );
+    }
+
+    if (catFiltro !== '') {
+      filtrados = filtrados.filter(p => p.categoria === catFiltro);
+    }
+
+    filtrados.sort((a, b) => {
+      switch (this.filtros.orden) {
+        case 'nombre_asc':
+          return a.nombre.localeCompare(b.nombre);
+        case 'nombre_desc':
+          return b.nombre.localeCompare(a.nombre);
+        case 'precio_asc':
+          return (a.precio_efectivo || 0) - (b.precio_efectivo || 0);
+        case 'precio_desc':
+          return (b.precio_efectivo || 0) - (a.precio_efectivo || 0);
+        default:
+          return 0;
+      }
+    });
+
+    this.productosList = filtrados;
+
+    // Actualizamos la información de páginas
+    this.total = this.productosList.length;
+    this.totalPages = Math.ceil(this.total / this.limit) || 1;
+    this.page = 1; // Siempre que filtramos, volvemos a la primer página
+
+    this.actualizarVistaPaginada();
+  }
+
+  // CORTA LA LISTA GIGANTE PARA MOSTRAR SOLO 10
+  actualizarVistaPaginada() {
+    const indiceInicio = (this.page - 1) * this.limit;
+    const indiceFin = indiceInicio + this.limit;
+    this.productosPaginados = this.productosList.slice(indiceInicio, indiceFin);
+  }
+
+  buscar() {
+    this.aplicarFiltros();
+  }
+
+  limpiar() {
+    this.terminoBusqueda = '';
+    this.aplicarFiltros();
+  }
+
+  limpiarFiltrosAvanzados() {
+    this.filtros = { proveedor: '', categoria: '', orden: 'nombre_asc' };
+    this.aplicarFiltros();
+  }
+
+  // AHORA CAMBIA DE PÁGINA AL INSTANTE SIN LLAMAR AL BACKEND
+  cambiarPagina(delta: number) {
+    const nuevaPagina = this.page + delta;
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPages) {
+      this.page = nuevaPagina;
+      this.actualizarVistaPaginada();
+    }
+  }
+
+  toggleVista() {
+    this.verInactivos = !this.verInactivos;
+    this.terminoBusqueda = ''; 
+    this.page = 1; 
+    this.cargarProductos();
+  }
+
+  borrarProducto(id: number | undefined) {
+    if(!id) return;
+    if(confirm('¿Estás seguro de eliminar este producto?')) {
+      this.loading = true;
+      this.productoService.delete(id)
+        .pipe(finalize(() => {
+            this.loading = false;
+            this.cd.detectChanges(); 
+        }))
+        .subscribe({
+          next: () => {
+            this.notificationService.show('Producto eliminado', 'error');
+            this.cargarProductos(); // Refrescamos la BD
+          },
+          error: () => {
+             this.notificationService.show('No se pudo eliminar el producto', 'error');
+          }
+        });
+    }
+  }
+
+  restaurarProducto(id: number | undefined) {
+    if(!id) return;
+    if(confirm('¿Deseas restaurar este producto?')) {
+      this.loading = true;
+      this.productoService.restaurar(id)
+        .pipe(finalize(() => {
+            this.loading = false;
+            this.cd.detectChanges(); 
+        }))
+        .subscribe({
+          next: () => {
+            this.notificationService.show('Producto restaurado', 'success');
+            this.cargarProductos(); // Refrescamos la BD
+          },
+          error: () => {
+            this.notificationService.show('No se pudo restaurar', 'error');
+          }
+        });
+    }
+  }
+}
+/* import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common'; 
+import { ProductoService, ProductoResponse } from '../../services/producto.service';
+import { Producto } from '../../Interfaces/producto.interface';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { NotificationService } from '../../services/notification.service';
+import { finalize } from 'rxjs/operators';
+
+@Component({
+  selector: 'app-producto-list',
+  imports: [CommonModule, RouterLink, FormsModule],
+  templateUrl: './producto-list.html',
+  styleUrl: './producto-list.css',
+})
+export class ProductoList implements OnInit {
+  private productoService = inject(ProductoService);
+  private notificationService = inject(NotificationService);
   private cd = inject(ChangeDetectorRef); // <--- Recuperamos el detector de cambios
   
   productos: Producto[] = [];
@@ -230,4 +443,4 @@ limpiarFiltrosAvanzados() {
         });
     }
   }
-}
+} */

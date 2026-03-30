@@ -123,4 +123,9 @@ sincronizarDatosOffline(): Observable<boolean> {
   ventaFeriaRápida(productoId: number, cantidad: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/venta-feria`, { productoId, cantidad });
 }
+
+actualizarStockRapido(id: number, stockAlmacen: number, stockCamion: number): Observable<any> {
+    // Fíjate que enviamos stockAlmacen y stockCamion
+    return this.http.patch(`${this.apiUrl}/${id}/stock`, { stockAlmacen, stockCamion });
+}
 }

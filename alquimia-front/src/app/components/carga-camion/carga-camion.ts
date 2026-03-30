@@ -167,11 +167,14 @@ export class CargaCamionComponent implements OnInit {
         ? stockCamionActual + cantidad 
         : stockCamionActual - cantidad;
 
+    const nuevoStockAlmacen = stockTotal - nuevoStockCamion;    
+
     // Actualizamos visualmente al instante
     producto.stock_camion = nuevoStockCamion;
+    
 
     // Usamos el update general que ya existe en tu servicio
-    this.productoService.update(producto.id!, { stock_camion: nuevoStockCamion }).subscribe({
+    this.productoService.actualizarStockRapido(producto.id!, nuevoStockAlmacen, nuevoStockCamion).subscribe({
       next: () => this.notificationService.show('Movimiento guardado', 'success'),
       error: () => {
         producto.stock_camion = stockCamionActual; // Revertir si falla

@@ -329,4 +329,25 @@ async function ventaFeria(req: Request, res: Response) {
     }
 }
 
-export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria };
+async function updateStockRapido(req: Request, res: Response) {
+    const em = orm.em.fork();
+  try {
+    const id = parseInt(req.params.id);
+    const { stockAlmacen, stockCamion } = req.body;
+
+    const producto = await em.findOneOrFail(Producto, { id });
+    
+    // Validamos qué nombre de variable usa tu entidad (stock_camion o stockCamion)
+    // Asumiendo que es stock_camion por tu frontend:
+    if (stockCamion !== undefined) producto.stock_camion = stockCamion;
+    // Si tuvieras stock_almacen guardado, lo actualizarías aquí también
+    // if (stockAlmacen !== undefined) producto.stock_almacen = stockAlmacen;
+
+    await em.flush();
+    res.json({ message: 'Stock actualizado', data: producto });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido };

@@ -8,7 +8,7 @@ import { NotificationService } from '../../services/notification.service';
 @Component({
   selector: 'app-carga-camion',
   imports: [CommonModule, FormsModule],
-  templateUrl: './carga-camion.component.html'
+  templateUrl: './carga-camion.html'
 })
 export class CargaCamionComponent implements OnInit {
   private productoService = inject(ProductoService);

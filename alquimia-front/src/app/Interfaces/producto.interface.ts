@@ -33,6 +33,7 @@ export interface Producto {
 
   stock: number;
   stock_minimo: number;
+  stock_camion?: number;
   
   fecha_creacion?: Date;
   fecha_actualizacion?: Date;

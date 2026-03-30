@@ -92,6 +92,9 @@ export class Producto {
 
     @Property({ nullable: false, default: 0 })
     stock_minimo!: number; 
+    
+    @Property({ default: 0 })
+    stock_camion!: number;
 
 
     @BeforeCreate()

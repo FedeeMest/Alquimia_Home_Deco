@@ -305,13 +305,12 @@ async function ventaFeria(req: Request, res: Response) {
         producto.stock_camion -= cantidad;
 
         // 2. Crear registro de Venta automático
-        // Esto asegura que la plata entre en tu sistema
         const nuevaVenta = em.create('Venta', {
             fecha: new Date(),
-            cliente: 'Venta Feria (Anónima)',
+            cliente_nombre: 'Venta Feria (Anónima)', // Corregido de 'cliente' a 'cliente_nombre'
             total: (producto.precio_efectivo || 0) * cantidad,
-            metodo_pago: 'Efectivo', // Por defecto en ferias
-            activo: true
+            metodo_pago: 'Efectivo', 
+            estado: 'ACTIVA' // Corregido de 'activo' a 'estado'
         });
 
         // 3. Crear el detalle de esa venta
@@ -319,12 +318,14 @@ async function ventaFeria(req: Request, res: Response) {
             venta: nuevaVenta,
             producto: producto,
             cantidad: cantidad,
-            precio_unitario: producto.precio_efectivo
+            precio_unitario_historico: producto.precio_efectivo || 0, // Corregido el nombre
+            subtotal: (producto.precio_efectivo || 0) * cantidad // Agregado el subtotal obligatorio
         });
 
         await em.flush();
         res.status(200).json({ message: 'Venta de feria procesada correctamente' });
     } catch (error: any) {
+        console.error('Error en venta feria:', error);
         res.status(500).json({ message: error.message });
     }
 }

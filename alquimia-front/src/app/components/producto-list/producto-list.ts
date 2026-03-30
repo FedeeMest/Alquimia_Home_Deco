@@ -34,6 +34,7 @@ export class ProductoList implements OnInit {
 
   productosOriginales: Producto[] = [];
   productosList: Producto[] = [];
+  productosPaginados: Producto[] = [];
 
   get conteoFiltrosActivos(): number {
   let count = 0;
@@ -140,6 +141,20 @@ aplicarFiltros() {
 
   // Reasignamos la lista visual con los resultados finales
   this.productosList = filtrados;
+
+  // --- NUEVA LÓGICA DE PAGINACIÓN AL FILTRAR ---
+  this.total = this.productosList.length; // Actualizamos el total de resultados
+  this.totalPages = Math.ceil(this.total / this.limit) || 1; // Recalculamos cuántas páginas hay
+  this.page = 1; // Siempre que filtramos, volvemos a la página 1 para no quedar en una página vacía
+  
+  this.actualizarVistaPaginada();
+}
+
+actualizarVistaPaginada() {
+  const indiceInicio = (this.page - 1) * this.limit;
+  const indiceFin = indiceInicio + this.limit;
+  // .slice() extrae solo el pedacito de la lista que necesitamos (ej: del 0 al 10)
+  this.productosPaginados = this.productosList.slice(indiceInicio, indiceFin);
 }
 
 buscar() {
@@ -157,13 +172,13 @@ limpiarFiltrosAvanzados() {
 }
 
   cambiarPagina(delta: number) {
-    const nuevaPagina = this.page + delta;
-    
-    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPages) {
-      this.page = nuevaPagina;
-      this.cargarProductos();
-    }
+  const nuevaPagina = this.page + delta;
+  // Verificamos que no se pase de los límites
+  if (nuevaPagina >= 1 && nuevaPagina <= this.totalPages) {
+    this.page = nuevaPagina;
+    this.actualizarVistaPaginada(); // Volvemos a recortar la lista para la nueva página
   }
+}
 
   toggleVista() {
     this.verInactivos = !this.verInactivos;

@@ -23,6 +23,25 @@ export class ProductoList implements OnInit {
   terminoBusqueda: string = '';
   verInactivos = false;
 
+  mostrarFiltros: boolean = false;
+  categoriasDisponibles: string[] = [];
+
+  filtros = {
+  proveedor: '',
+  categoria: '',
+  orden: 'nombre_asc'
+  };
+
+  productosOriginales: Producto[] = [];
+  productosList: Producto[] = [];
+
+  get conteoFiltrosActivos(): number {
+  let count = 0;
+  if (this.filtros.proveedor.trim() !== '') count++;
+  if (this.filtros.categoria !== '') count++;
+  return count;
+  }
+
   // --- Variables de Paginación ---
   page: number = 1;
   limit: number = 10;
@@ -34,29 +53,93 @@ export class ProductoList implements OnInit {
   }
 
   cargarProductos() {
-    this.loading = true;
-    const buscarActivos = !this.verInactivos;
+  this.productoService.getAll().subscribe({
+    next: (resp: any) => {
+      this.productosOriginales = resp.data;
+      this.productosList = [...this.productosOriginales]; 
+      this.extraerCategorias(); // Construye el select dinámico
+      this.aplicarFiltros(); // Se asegura de que se ordene desde el inicio
+    }
+  });
+}
 
-    this.productoService.getAll(this.terminoBusqueda, buscarActivos, this.page, this.limit)
-      .pipe(
-        finalize(() => {
-          this.loading = false;
-          this.cd.detectChanges(); // <--- ¡ESTA ES LA CLAVE! Forzamos la actualización visual aquí.
-        })
-      )
-      .subscribe({
-        next: (resp: ProductoResponse) => {
-          this.productos = resp.data;
-          this.total = resp.total;
-          this.totalPages = resp.totalPages;
-          // No hace falta detectChanges aquí porque finalize corre después de esto
-        },
-        error: (err) => {
-          console.error('Error al cargar productos', err);
-          this.notificationService.show('Error al cargar los productos', 'error');
-        }
-      });
+  extraerCategorias() {
+  const cats = this.productosOriginales
+    // Si la categoría es undefined, devolvemos un string vacío
+    .map(p => p.categoria || '') 
+    // Ahora TypeScript sabe con seguridad que 'c' es un string
+    .filter(c => c.trim() !== ''); 
+  
+  this.categoriasDisponibles = [...new Set(cats)].sort();
+}
+
+aplicarFiltros() {
+  // Siempre arrancamos desde el 100% de los productos
+  let filtrados = [...this.productosOriginales];
+  
+  const termino = (this.terminoBusqueda || '').toLowerCase().trim();
+  const provFiltro = this.filtros.proveedor.toLowerCase().trim();
+  const catFiltro = this.filtros.categoria;
+
+  // Filtro 1: Búsqueda Global (Busca en nombre, cód. barra o cód. proveedor)
+  if (termino !== '') {
+    filtrados = filtrados.filter(p => 
+      p.nombre.toLowerCase().includes(termino) ||
+      p.codigo_barra?.toLowerCase().includes(termino) ||
+      p.codigo_proveedor?.toLowerCase().includes(termino)
+    );
   }
+
+  // Filtro 2: Proveedor Específico
+  if (provFiltro !== '') {
+    filtrados = filtrados.filter(p => 
+      p.codigo_proveedor?.toLowerCase().includes(provFiltro)
+    );
+  }
+
+  // Filtro 3: Categoría Exacta
+  if (catFiltro !== '') {
+    filtrados = filtrados.filter(p => p.categoria === catFiltro);
+  }
+
+  // Filtro 4: Ordenamiento de la tabla
+  filtrados.sort((a, b) => {
+    switch (this.filtros.orden) {
+      case 'nombre_asc':
+        return a.nombre.localeCompare(b.nombre);
+      case 'nombre_desc':
+        return b.nombre.localeCompare(a.nombre);
+      case 'precio_asc':
+        // Si no hay precio, lo tratamos como 0
+        const precioAscA = a.precio_efectivo || 0;
+        const precioAscB = b.precio_efectivo || 0;
+        return precioAscA - precioAscB;
+      case 'precio_desc':
+        const precioDescA = a.precio_efectivo || 0;
+        const precioDescB = b.precio_efectivo || 0;
+        return precioDescB - precioDescA;
+      default:
+        return 0;
+    }
+  });
+
+  // Reasignamos la lista visual con los resultados finales
+  this.productosList = filtrados;
+}
+
+buscar() {
+  this.aplicarFiltros();
+}
+
+limpiar() {
+  this.terminoBusqueda = '';
+  this.aplicarFiltros();
+}
+
+limpiarFiltrosAvanzados() {
+  this.filtros = { proveedor: '', categoria: '', orden: 'nombre_asc' };
+  this.aplicarFiltros();
+}
 
   cambiarPagina(delta: number) {
     const nuevaPagina = this.page + delta;
@@ -74,16 +157,7 @@ export class ProductoList implements OnInit {
     this.cargarProductos();
   }
 
-  buscar() {
-    this.page = 1; 
-    this.cargarProductos();
-  }
 
-  limpiar() {
-    this.terminoBusqueda = '';
-    this.page = 1;
-    this.cargarProductos();
-  }
 
   borrarProducto(id: number | undefined) {
     if(!id) return;

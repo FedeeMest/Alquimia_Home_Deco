@@ -101,21 +101,25 @@
                         <td class="px-6 py-4 text-center font-bold text-emerald-600 text-base">{{ (p.stock || 0) - (p.stock_camion || 0) }}</td>
                         <td class="px-6 py-4 text-center font-bold text-blue-600 text-base">{{ p.stock_camion || 0 }}</td>
                         
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 text-center">
     <div class="flex items-center justify-center gap-2">
-        <input type="number" #cantInput min="1" 
-               class="w-20 rounded-lg border-2 border-slate-400 bg-white text-center py-1.5 text-sm font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all" 
+        <input type="number" #cantFeria min="1" 
+               class="w-20 rounded-lg border-2 border-slate-400 bg-white text-center py-1.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-orange-500 shadow-sm" 
                placeholder="Cant.">
         
-        <button (click)="moverStock(p, cantInput.value, 'camion'); cantInput.value=''" 
-                class="bg-blue-100 text-blue-700 hover:bg-blue-600 hover:text-white font-bold text-xs uppercase tracking-wide px-3 py-2 rounded-lg transition-colors shadow-sm border border-blue-200" 
-                title="Pasar a Camión">
+        <button (click)="venderFeria(p, cantFeria.value); cantFeria.value=''" 
+                class="bg-orange-100 text-orange-700 hover:bg-orange-600 hover:text-white font-bold text-xs uppercase px-3 py-2 rounded-lg transition-colors border border-orange-200"
+                title="Venta rápida de feria">
+            Vender
+        </button>
+
+        <div class="h-6 w-[1px] bg-slate-300 mx-1"></div> <button (click)="moverStock(p, cantFeria.value, 'camion'); cantFeria.value=''" 
+                class="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold text-[10px] uppercase px-2 py-2 rounded-lg transition-colors border border-blue-100">
             Camión
         </button>
         
-        <button (click)="moverStock(p, cantInput.value, 'almacen'); cantInput.value=''" 
-                class="bg-emerald-100 text-emerald-700 hover:bg-emerald-600 hover:text-white font-bold text-xs uppercase tracking-wide px-3 py-2 rounded-lg transition-colors shadow-sm border border-emerald-200" 
-                title="Devolver a Almacén">
+        <button (click)="moverStock(p, cantFeria.value, 'almacen'); cantFeria.value=''" 
+                class="bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white font-bold text-[10px] uppercase px-2 py-2 rounded-lg transition-colors border border-emerald-100">
             Almacén
         </button>
     </div>

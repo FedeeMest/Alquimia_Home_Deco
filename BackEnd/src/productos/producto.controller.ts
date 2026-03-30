@@ -290,4 +290,43 @@ async function vaciarCamion(req: Request, res: Response) {
     }
 }
 
-export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion };
+async function ventaFeria(req: Request, res: Response) {
+    const em = orm.em.fork();
+    try {
+        const { productoId, cantidad } = req.body;
+        const producto = await em.findOneOrFail(Producto, { id: productoId });
+
+        if (producto.stock_camion < cantidad) {
+            return res.status(400).json({ message: 'Stock en camión insuficiente' });
+        }
+
+        // 1. Descontar stocks
+        producto.stock -= cantidad;
+        producto.stock_camion -= cantidad;
+
+        // 2. Crear registro de Venta automático
+        // Esto asegura que la plata entre en tu sistema
+        const nuevaVenta = em.create('Venta', {
+            fecha: new Date(),
+            cliente: 'Venta Feria (Anónima)',
+            total: (producto.precio_efectivo || 0) * cantidad,
+            metodo_pago: 'Efectivo', // Por defecto en ferias
+            activo: true
+        });
+
+        // 3. Crear el detalle de esa venta
+        em.create('DetalleVenta', {
+            venta: nuevaVenta,
+            producto: producto,
+            cantidad: cantidad,
+            precio_unitario: producto.precio_efectivo
+        });
+
+        await em.flush();
+        res.status(200).json({ message: 'Venta de feria procesada correctamente' });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria };

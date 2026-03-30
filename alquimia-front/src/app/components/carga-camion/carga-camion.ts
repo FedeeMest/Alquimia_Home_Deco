@@ -181,6 +181,29 @@ export class CargaCamionComponent implements OnInit {
     });
   }
 
+  venderFeria(producto: Producto, cantidadStr: string) {
+    const cantidad = parseInt(cantidadStr, 10);
+    if (isNaN(cantidad) || cantidad <= 0) return;
+
+    if ((producto.stock_camion || 0) < cantidad) {
+        this.notificationService.show('No hay suficiente stock en el camión', 'error');
+        return;
+    }
+
+    if (confirm(`¿Confirmar venta de feria: ${cantidad} x ${producto.nombre}?`)) {
+        this.productoService.ventaFeriaRápida(producto.id!, cantidad).subscribe({
+            next: () => {
+                // Actualización local para no recargar toda la lista
+                producto.stock_camion = (producto.stock_camion || 0) - cantidad;
+                producto.stock = (producto.stock || 0) - cantidad;
+                this.notificationService.show('Venta de feria registrada', 'success');
+                this.cd.detectChanges();
+            },
+            error: () => this.notificationService.show('Error al registrar venta', 'error')
+        });
+    }
+}
+
   vaciarCamion() {
     if (confirm('¿Estás seguro de que deseas vaciar el camión por completo? Todo el stock volverá al almacén.')) {
         this.loading = true;

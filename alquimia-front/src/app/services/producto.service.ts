@@ -115,8 +115,12 @@ sincronizarDatosOffline(): Observable<boolean> {
       totalPages: 1
     });
   }
-  
+
   vaciarCamion(): Observable<any> {
     return this.http.post(`${this.apiUrl}/vaciar-camion`, {});
   }
+
+  ventaFeriaRápida(productoId: number, cantidad: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/venta-feria`, { productoId, cantidad });
+}
 }

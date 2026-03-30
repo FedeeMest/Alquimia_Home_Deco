@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { findAll, findOne, add, update, remove, inputS, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion } from './producto.controller.js';
+import { findAll, findOne, add, update, remove, inputS, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria } from './producto.controller.js';
 
 export const productoRouter = Router();
 
 productoRouter.get('/', findAll);           // Obtener todos (con paginación)
 productoRouter.post('/vaciar-camion', vaciarCamion);
+productoRouter.post('/venta-feria', ventaFeria);
 productoRouter.get('/:id', findOne);        // Obtener uno
 productoRouter.post('/', inputS, add); 
 productoRouter.put('/actualizar-ganancias-masivo', actualizarGananciasMasivo);     // Crear (Pasa por sanitización)

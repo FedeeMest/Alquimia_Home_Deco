@@ -53,12 +53,27 @@ export class ProductoList implements OnInit {
   }
 
   cargarProductos() {
+  this.loading = true; // Encendemos el loader al iniciar la petición
+  
   this.productoService.getAll().subscribe({
     next: (resp: any) => {
       this.productosOriginales = resp.data;
       this.productosList = [...this.productosOriginales]; 
-      this.extraerCategorias(); // Construye el select dinámico
-      this.aplicarFiltros(); // Se asegura de que se ordene desde el inicio
+      
+      // Actualizamos paginación (asegurate de que resp.total exista en tu backend)
+      this.total = resp.total || this.productosList.length;
+      this.totalPages = Math.ceil(this.total / this.limit) || 1;
+
+      this.extraerCategorias(); 
+      this.aplicarFiltros(); 
+      
+      this.loading = false; // ¡CLAVE! Apagamos el loader
+      this.cd.detectChanges(); // Forzamos a Angular a actualizar la pantalla
+    },
+    error: (err) => {
+      console.error('Error al cargar productos', err);
+      this.loading = false; // Apagamos el loader incluso si hay error
+      this.cd.detectChanges();
     }
   });
 }

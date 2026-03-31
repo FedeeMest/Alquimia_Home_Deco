@@ -365,6 +365,60 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     if (confirm('¿Confirmar el cierre de esta venta?')) {
       this.procesando = true;
 
+      // Armamos el Payload con TODOS los datos del formulario
+      const payload: VentaRequest = {
+        metodo_pago: this.metodoPago,
+        items: this.carrito.map(item => ({
+          id_producto: item.producto.id!, 
+          cantidad: item.cantidad
+        })),
+        // Agregamos los datos del cliente
+        cliente_nombre: this.datosCliente.nombre ? this.datosCliente.nombre : undefined,
+        cliente_cuit: this.datosCliente.cuit ? this.datosCliente.cuit : undefined,
+        cliente_direccion: this.datosCliente.direccion ? this.datosCliente.direccion : undefined,
+        // Agregamos estado, observaciones y cuotas
+        estado: this.estadoVenta as 'COBRADA' | 'PENDIENTE',
+        observaciones: this.observaciones ? this.observaciones : undefined,
+        cuotas: this.metodoPago !== 'EFECTIVO' ? this.datosVenta.cuotas : 1
+      };
+
+      this.ventaService.crear(payload).pipe(
+        finalize(() => {
+          this.procesando = false;
+          this.cd.detectChanges();
+        })
+      ).subscribe({
+        next: () => {
+          this.notificationService.show('¡Venta completada con éxito!', 'success');
+          
+          // Limpiamos todo el formulario para la siguiente venta
+          this.carrito = [];
+          this.datosCliente = { nombre: '', cuit: '', direccion: '' };
+          this.observaciones = '';
+          this.estadoVenta = 'PENDIENTE';
+          this.datosVenta.cuotas = 1;
+          this.metodoPago = 'EFECTIVO';
+          
+          this.calcularTotales();
+          this.limpiarBusqueda();
+        },
+        error: (err) => {
+          console.error('Error al guardar la venta:', err);
+          this.notificationService.show('Error al registrar la venta en la base de datos', 'error');
+        }
+      });
+    }
+  }
+
+  /* completarVenta() {
+    if (this.carrito.length === 0) {
+      this.notificationService.show('Agrega al menos un producto al carrito para vender', 'error');
+      return;
+    }
+
+    if (confirm('¿Confirmar el cierre de esta venta?')) {
+      this.procesando = true;
+
       const payload: VentaRequest = {
         metodo_pago: this.metodoPago,
         items: this.carrito.map(item => ({
@@ -393,5 +447,5 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
         }
       });
     }
-  }
+  } */
 }

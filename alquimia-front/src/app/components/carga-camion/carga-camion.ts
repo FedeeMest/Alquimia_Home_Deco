@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../services/notification.service';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-carga-camion',
@@ -35,6 +36,8 @@ export class CargaCamionComponent implements OnInit {
   productosOriginales: Producto[] = [];
   productosList: Producto[] = [];       
   productosPaginados: Producto[] = [];  
+
+  cantidadesIngresadas: { [key: number]: number } = {};
 
   page: number = 1;
   limit: number = 10;
@@ -193,101 +196,66 @@ export class CargaCamionComponent implements OnInit {
     this.notificationService.show('PDF de Feria generado con éxito', 'success');
   }
 
-  /* generarPdfCarga() {
-    // 1. Filtramos automáticamente solo lo que tiene stock en el camión
-    const enCamion = this.productosOriginales.filter(p => (p.stock_camion || 0) > 0);
+  llenarTransporteMasivo() {
+    // Filtramos los productos que tienen una cantidad mayor a 0 en el input
+    const productosAMover = this.productosOriginales.filter(p => 
+        this.cantidadesIngresadas[p.id!] && this.cantidadesIngresadas[p.id!] > 0
+    );
 
-    if (enCamion.length === 0) {
-        this.notificationService.show('No hay productos cargados en el camión para generar el listado.', 'error');
+    if (productosAMover.length === 0) {
+        this.notificationService.show('No ingresaste ninguna cantidad para mover.', 'info');
         return;
     }
 
-    this.notificationService.show('Generando listado de feria...', 'info');
+    if (confirm(`¿Estás seguro de mover ${productosAMover.length} productos distintos al camión?`)) {
+        this.loading = true;
+        const peticiones: any[] = [];
 
-    // 2. Ordenamos por nombre para que el cliente encuentre todo rápido
-    enCamion.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        productosAMover.forEach(producto => {
+            const cantidadAMover = this.cantidadesIngresadas[producto.id!];
+            const stockTotal = producto.stock || 0;
+            const stockCamionActual = producto.stock_camion || 0;
+            const stockAlmacenActual = stockTotal - stockCamionActual;
 
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
+            // Validamos que haya stock suficiente en el almacén
+            if (stockAlmacenActual >= cantidadAMover) {
+                const nuevoStockCamion = stockCamionActual + cantidadAMover;
+                const nuevoStockAlmacen = stockTotal - nuevoStockCamion;
 
-    // 3. Encabezado Estilo Alquimia
-    doc.setFontSize(18);
-    doc.setTextColor(15, 23, 42); // Slate-900
-    doc.text('Listado de Mercadería - Feria', 14, 20);
+                // Actualización instantánea en la vista
+                producto.stock_camion = nuevoStockCamion;
 
-    doc.setFontSize(10);
-    doc.setTextColor(100, 116, 139); // Slate-500
-    doc.text(`Alquimia Home Deco  |  Fecha: ${new Date().toLocaleDateString('es-AR')}`, 14, 28);
+                // Preparamos la petición al backend
+                peticiones.push(this.productoService.actualizarStockRapido(producto.id!, nuevoStockAlmacen, nuevoStockCamion));
+            }
+        });
 
-    // 4. Resumen de Carga
-    const totalUnidades = enCamion.reduce((acc, p) => acc + (p.stock_camion || 0), 0);
-    doc.setFontSize(11);
-    doc.setTextColor(15, 23, 42);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Items: ${enCamion.length}  |  Total Unidades en Transporte: ${totalUnidades}`, 14, 36);
-
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.5);
-    doc.line(14, 40, pageWidth - 14, 40);
-
-    // 5. Mapeo de datos (Agregamos la columna de Precio Efectivo)
-    const datos = enCamion.map(p => [
-        p.codigo_barra || '-',
-        p.nombre || '-',
-        p.stock_camion?.toString() || '0',
-        `$ ${p.precio_efectivo?.toLocaleString('es-AR') || '0'}`, // PRECIO UNITARIO
-        '' // Espacio para control manual
-    ]);
-
-    // 6. Generación de la Tabla
-    autoTable(doc, {
-        startY: 45,
-        head: [['Código', 'Producto', 'Cant.', 'Precio Venta', 'Control Check']],
-        body: datos,
-        theme: 'grid', 
-        headStyles: { 
-            fillColor: [15, 23, 42], // Slate oscuro
-            textColor: [255, 255, 255], 
-            fontStyle: 'bold',
-            halign: 'center'
-        },
-        columnStyles: {
-            0: { cellWidth: 30, fontStyle: 'normal', halign:'center'},
-            1: { cellWidth: 'auto' },
-            2: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-            3: { 
-                cellWidth: 40, 
-                halign: 'center', 
-                fontStyle: 'bold',
-                fontSize: 13, 
-                textColor: [5, 150, 105] // Verde Esmeralda (igual que en el catálogo)
-            },
-            4: { 
-                cellWidth: 30, 
-                halign: 'center' } 
-        },
-        styles: { fontSize: 9, cellPadding: 4, textColor: [51, 65, 83] }, 
-        alternateRowStyles: { fillColor: [248, 250, 252] }, 
-        
-        didDrawPage: function (data) {
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'italic');
-            doc.setTextColor(148, 163, 184); 
-            doc.text(
-                `Página ${data.pageNumber}  -  Alquimia Home Deco - Uso Feria`, 
-                pageWidth / 2, 
-                pageHeight - 10, 
-                { align: 'center' }
-            );
+        // Verificamos si algunos productos se omitieron por falta de stock
+        const omitidos = productosAMover.length - peticiones.length;
+        if (omitidos > 0) {
+            this.notificationService.show(`Se omitieron ${omitidos} productos por falta de stock en almacén.`, 'error');
         }
-    });
 
-    doc.save(`Listado_Feria_${new Date().toISOString().split('T')[0]}.pdf`);
-    this.notificationService.show('PDF de Feria generado con éxito', 'success');
-  } */
+        if (peticiones.length === 0) {
+            this.loading = false;
+            return; // No ejecutamos el forkJoin si no hay peticiones válidas
+        }
 
-  
+        // Ejecutamos todas las peticiones al mismo tiempo
+        forkJoin(peticiones).subscribe({
+            next: () => {
+                this.notificationService.show('¡Carga masiva completada con éxito!', 'success');
+                this.cantidadesIngresadas = {}; // Limpiamos todos los inputs
+                this.loading = false;
+                this.cd.detectChanges();
+            },
+            error: () => {
+                this.notificationService.show('Hubo un error al guardar algunos productos.', 'error');
+                this.cargarProductos(); // Recargamos para evitar datos erróneos en la pantalla
+            }
+        });
+    }
+  }
 
   cargarProductos() {
     this.loading = true;

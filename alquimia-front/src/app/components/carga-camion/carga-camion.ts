@@ -104,7 +104,7 @@ export class CargaCamionComponent implements OnInit {
     // 6. Generación de la Tabla
     autoTable(doc, {
         startY: 45,
-        head: [['Cód. Barras', 'Producto', 'Categoría', 'Cantidad', 'Control (✓)']],
+        head: [['Cód. Barras', 'Producto', 'Categoría', 'Cantidad', 'Control']],
         body: datos,
         theme: 'grid', // Usamos 'grid' para que queden las celdas marcadas para escribir
         headStyles: { 
@@ -129,7 +129,7 @@ export class CargaCamionComponent implements OnInit {
             doc.setFont('helvetica', 'italic');
             doc.setTextColor(148, 163, 184); 
             doc.text(
-                `Página ${data.pageNumber}  -  Firma del responsable: _______________________`, 
+                `Página ${data.pageNumber}  -  Alquimia Home Deco`, 
                 pageWidth / 2, 
                 pageHeight - 10, 
                 { align: 'center' }

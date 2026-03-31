@@ -369,4 +369,29 @@ async function findByBarcode(req: Request, res: Response) {
   }
 }
 
-export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido, findByBarcode };
+async function getPublicCatalog(req: Request, res: Response) {
+    try {
+      // Buscamos SOLO los que están marcados para publicar en la web
+      const productos = await orm.em.find(Producto, { publicarEnWeb: true });
+
+      // Filtramos y "limpiamos" los datos antes de enviarlos al frontend
+      const catalogoSeguro = productos.map(p => ({
+        id: p.id,
+        nombre: p.nombre,
+        categoria: p.categoria,
+        precio: p.precio_efectivo, // Precio principal de venta
+        precio_tarjeta: p.precio_tarjeta,
+        imagenUrl: p.imagenUrl,
+        // Ocultamos el número real, solo decimos si hay disponibilidad
+        disponible: (p.stock || 0) > 0 
+      }));
+
+      res.status(200).json({ data: catalogoSeguro });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+
+
+export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido, findByBarcode, getPublicCatalog };

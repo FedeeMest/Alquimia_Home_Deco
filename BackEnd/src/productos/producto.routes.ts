@@ -1,7 +1,12 @@
 import { Router } from 'express';
-import { findAll, findOne, add, update, remove, inputS, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido,findByBarcode } from './producto.controller.js';
+import { findAll, findOne, add, update, remove, inputS, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido,findByBarcode, getPublicCatalog } from './producto.controller.js';
+import { authMiddleware } from '../shared/middleware/auth.middleware.js';
 
 export const productoRouter = Router();
+
+productoRouter.get('/public/catalogo', getPublicCatalog);
+
+productoRouter.use(authMiddleware);
 
 productoRouter.get('/', findAll);           // Obtener todos (con paginación)
 productoRouter.post('/vaciar-camion', vaciarCamion);

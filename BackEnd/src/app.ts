@@ -57,13 +57,11 @@ app.use((req, res, next) => {
 
 // --- RUTAS ---
 app.use('/api/auth', authRouter); // Pública (Login)
-
-// Rutas Protegidas
-app.use('/api/usuarios', authMiddleware, usuarioRouter); // <--- AGREGADO: Faltaba esta ruta
-app.use('/api/productos', authMiddleware, productoRouter);
-app.use('/api/ventas', authMiddleware, ventaRouter);
-app.use('/api/configuracion', authMiddleware, configuracionRouter);
-app.use('/api/cierre_caja',authMiddleware, cierreRouter)
+app.use('/api/productos', productoRouter); // Ya incluye authMiddleware dentro de producto.routes.ts para permitir catálogo público
+app.use('/api/usuarios', usuarioRouter); // Rutas de usuario protegidas por authMiddleware dentro de usuario.routes.ts
+app.use('/api/ventas', ventaRouter); // Rutas de ventas protegidas por authMiddleware dentro de venta.routes.ts
+app.use('/api/configuracion',configuracionRouter); // Rutas de configuración protegidas por authMiddleware dentro de configuracion.routes.ts
+app.use('/api/cierre_caja',cierreRouter); // Rutas de cierre de caja protegidas por authMiddleware dentro de cierre.routes.ts
 
 // Ruta Base (Health Check)
 app.get('/', (req, res) => {

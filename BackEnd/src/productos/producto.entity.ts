@@ -96,6 +96,12 @@ export class Producto {
     @Property({ default: 0 })
     stock_camion!: number;
 
+    @Property({ nullable: true })
+    imagenUrl?: string;
+
+    @Property({ default: false })
+    publicarEnWeb!: boolean;
+
 
     @BeforeCreate()
     @BeforeUpdate()

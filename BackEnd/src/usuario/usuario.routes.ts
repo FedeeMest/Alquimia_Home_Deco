@@ -1,12 +1,5 @@
 import { Router } from 'express';
-import { 
-    getAll, 
-    getOne, 
-    add, 
-    update, 
-    remove, 
-    sanitizeUsuarioInput 
-} from './usuario.controller.js';
+import { getAll, getOne, add, update, remove, sanitizeUsuarioInput } from './usuario.controller.js';
 import { authMiddleware } from '../shared/middleware/auth.middleware.js';
 
 export const usuarioRouter = Router();

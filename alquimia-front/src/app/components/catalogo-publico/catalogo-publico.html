@@ -1,0 +1,17 @@
+<div class="container mx-auto p-4 lg:p-8 mt-8 text-center animate-fade-in">
+    <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight mb-4">
+        Catálogo Online
+    </h1>
+    <p class="text-lg text-slate-500 max-w-2xl mx-auto">
+        Estamos preparando todo para mostrarte nuestros mejores productos. ¡Muy pronto vas a poder comprar online!
+    </p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-12">
+        <div *ngFor="let item of [1,2,3,4,5,6,7,8]" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 animate-pulse flex flex-col items-center h-72">
+            <div class="w-full h-3/5 bg-slate-200 rounded-xl mb-4"></div>
+            <div class="h-4 w-3/4 bg-slate-200 rounded mb-2"></div>
+            <div class="h-4 w-1/2 bg-slate-200 rounded mb-4"></div>
+            <div class="h-8 w-full bg-slate-200 rounded-lg mt-auto"></div>
+        </div>
+    </div>
+</div>

@@ -97,9 +97,8 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
   }
 
   buscar() {
-    // 1. LIMPIEZA INMEDIATA: Capturamos el valor y le quitamos espacios/enters fantasma
+    // 1. Siempre limpiar espacios extra del lector láser
     const codigoLimpio = (this.codigoLeido || '').trim();
-
     if (!codigoLimpio) return;
 
     this.tecladoManual = false;
@@ -107,42 +106,36 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
     this.error = false;
     this.producto = undefined; 
     this.mensaje = 'Buscando...';
+    this.codigoLeido = ''; // Limpiamos input para el siguiente
 
-    // 2. Limpiamos el input para el próximo escaneo
-    this.codigoLeido = ''; 
-
-    // 3. Enviamos el código LIMPIO al backend
-    this.productoService.getAll(codigoLimpio).subscribe({
-      next: (resp: any) => { 
-        const listaProductos = resp.data; 
-        
-        // 4. Comparamos usando el código LIMPIO y limpiamos también el de la BD por seguridad
-        const encontrado = listaProductos.find((p: any) => 
-            (p.codigo_barra || '').trim() === codigoLimpio || 
-            (p.codigo_proveedor || '').trim().toLowerCase() === codigoLimpio.toLowerCase() // Opcional: Permitir buscar por cod. proveedor
-        );
-
-        if (encontrado) {
-          this.producto = encontrado;
-          this.mensaje = '';
-        } else {
-          this.error = true;
-          this.mensaje = 'Producto no encontrado';
-        }
-        
+    // 2. Búsqueda DIRECTA y EXACTA por código de barras
+    this.productoService.getByBarcode(codigoLimpio).subscribe({
+      next: (resp) => { 
+        this.producto = resp.data; // Ya viene el objeto limpio, sin array
+        this.mensaje = '';
         this.finalizarBusqueda();
       },
       error: (err) => {
-        console.warn('Fallo conexión online, intentando modo offline...');
-        
-        this.productoService.getAllOffline(codigoLimpio).subscribe({
+        if (err.status === 404) {
+           // Si el backend responde 404, sabemos con certeza que no existe online
+           this.buscarOffline(codigoLimpio); 
+        } else {
+           // Si es otro error (ej. sin internet), también intentamos offline
+           console.warn('Sin conexión online, intentando offline...');
+           this.buscarOffline(codigoLimpio);
+        }
+      }
+    });
+  }
+
+  // Separé el offline para que quede más prolijo
+  private buscarOffline(codigoLimpio: string) {
+      this.productoService.getAllOffline(codigoLimpio).subscribe({
           next: (respOffline) => {
             this.esModoOffline = true;
             
-            // Misma limpieza de comparación en modo offline
             const encontrado = respOffline.data.find((p: any) => 
-                (p.codigo_barra || '').trim() === codigoLimpio ||
-                (p.codigo_proveedor || '').trim().toLowerCase() === codigoLimpio.toLowerCase()
+                (p.codigo_barra || '').trim() === codigoLimpio
             );
             
             if (encontrado) {
@@ -151,18 +144,22 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
                this.error = false; 
             } else {
                this.error = true;
-               this.mensaje = 'No encontrado (ni en internet ni en memoria local)';
+               this.mensaje = 'Producto no encontrado';
             }
             this.finalizarBusqueda();
           },
-          error: (e) => {
+          error: () => {
             this.error = true;
             this.mensaje = 'Error crítico al buscar';
             this.finalizarBusqueda();
           }
-        });
-      }
-    });
+      });
+  }
+
+  private finalizarBusqueda() {
+    this.buscando = false;
+    this.cd.detectChanges();
+    setTimeout(() => this.enfocarInput(), 100);
   }
 
   // Actualicé este método para que también apague el estado 'buscando' del primer try
@@ -231,11 +228,11 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
     });
   } */
 
-  private finalizarBusqueda() {
+  /* private finalizarBusqueda() {
     this.buscando = false;
     this.cd.detectChanges();
     setTimeout(() => this.enfocarInput(), 100);
-  }
+  } */
  
 
   /* private finalizarBusqueda() {

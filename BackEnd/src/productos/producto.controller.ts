@@ -351,4 +351,22 @@ async function updateStockRapido(req: Request, res: Response) {
   }
 }
 
-export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido };
+async function findByBarcode(req: Request, res: Response) {
+  try {
+    const { codigo } = req.params;
+    const em = orm.em.fork();
+    
+    // Buscamos coincidencia exacta y que el producto esté activo
+    const producto = await em.findOne(Producto, { codigo_barra: codigo, activo: true });
+    
+    if (!producto) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+    
+    return res.status(200).json({ data: producto });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido, findByBarcode };

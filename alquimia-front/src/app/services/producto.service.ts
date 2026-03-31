@@ -128,4 +128,8 @@ actualizarStockRapido(id: number, stockAlmacen: number, stockCamion: number): Ob
     // Fíjate que enviamos stockAlmacen y stockCamion
     return this.http.patch(`${this.apiUrl}/${id}/stock`, { stockAlmacen, stockCamion });
 }
+
+getByBarcode(codigo: string): Observable<{ data: Producto }> {
+    return this.http.get<{ data: Producto }>(`${this.apiUrl}/codigo/${codigo}`);
+  }
 }

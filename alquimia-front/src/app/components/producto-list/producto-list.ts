@@ -215,8 +215,8 @@ export class ProductoList implements OnInit, OnDestroy {
     doc.text(`Artículos distintos: ${productos.length} refs.`, 20, startY + 15);
     doc.text(`Unidades físicas totales: ${totalStockUnidades} un.`, 20, startY + 20);
     
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Valor de Venta Estimado: $ ${valorTotalInventario.toLocaleString('es-AR')}`, pageWidth - 20, startY + 15, { align: 'right' });
+    /* doc.setFont('helvetica', 'bold'); */
+    /* doc.text(`Valor de Venta Estimado: $ ${valorTotalInventario.toLocaleString('es-AR')}`, pageWidth - 20, startY + 15, { align: 'right' }); */
 
     const pageCount = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {

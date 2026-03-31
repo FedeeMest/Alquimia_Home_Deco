@@ -80,8 +80,72 @@ export class CargaCamionComponent implements OnInit {
     this.vistaActual = vista;
     this.aplicarFiltros();
   }
-
+  
   aplicarFiltros() {
+    let filtrados = [...this.productosOriginales];
+    
+    if (this.vistaActual === 'camion') {
+        filtrados = filtrados.filter(p => (p.stock_camion || 0) > 0);
+    } else if (this.vistaActual === 'almacen') {
+        filtrados = filtrados.filter(p => ((p.stock || 0) - (p.stock_camion || 0)) > 0);
+    }
+
+    const termino = (this.terminoBusqueda || '').toLowerCase().trim();
+    const codProvFiltro = this.filtros.codigoProveedor.toLowerCase().trim();
+    const provNombreFiltro = this.filtros.proveedorNombre;
+    const catFiltro = this.filtros.categoria;
+
+    if (termino !== '') {
+      filtrados = filtrados.filter(p => 
+        (p.nombre || '').toLowerCase().includes(termino) ||
+        (p.codigo_barra || '').toLowerCase().includes(termino) ||
+        (p.codigo_proveedor || '').toLowerCase().includes(termino)
+      );
+    }
+    if (codProvFiltro !== '') filtrados = filtrados.filter(p => (p.codigo_proveedor || '').toLowerCase().includes(codProvFiltro));
+    if (provNombreFiltro !== '') filtrados = filtrados.filter(p => p.proveedor === provNombreFiltro);
+    if (catFiltro !== '') filtrados = filtrados.filter(p => p.categoria === catFiltro);
+
+    // --- LÓGICA DE ORDENAMIENTO ACTUALIZADA ---
+    filtrados.sort((a, b) => {
+      // Variables auxiliares para el ordenamiento de stock
+      const stockGralA = a.stock || 0;
+      const stockGralB = b.stock || 0;
+      const stockCamionA = a.stock_camion || 0;
+      const stockCamionB = b.stock_camion || 0;
+      const stockAlmacenA = stockGralA - stockCamionA;
+      const stockAlmacenB = stockGralB - stockCamionB;
+
+      switch (this.filtros.orden) {
+        // Ordenamiento original
+        case 'nombre_asc': return (a.nombre || '').localeCompare(b.nombre || '');
+        case 'nombre_desc': return (b.nombre || '').localeCompare(a.nombre || '');
+        case 'precio_asc': return (a.precio_efectivo || 0) - (b.precio_efectivo || 0);
+        case 'precio_desc': return (b.precio_efectivo || 0) - (a.precio_efectivo || 0);
+        
+        // NUEVO: Ordenamiento por Stock General
+        case 'stock_general_asc': return stockGralA - stockGralB;
+        case 'stock_general_desc': return stockGralB - stockGralA;
+        
+        // NUEVO: Ordenamiento por Stock Camión
+        case 'stock_camion_asc': return stockCamionA - stockCamionB;
+        case 'stock_camion_desc': return stockCamionB - stockCamionA;
+        
+        // NUEVO: Ordenamiento por Stock Almacén
+        case 'stock_almacen_asc': return stockAlmacenA - stockAlmacenB;
+        case 'stock_almacen_desc': return stockAlmacenB - stockAlmacenA;
+        
+        default: return 0;
+      }
+    });
+
+    this.productosList = filtrados;
+    this.total = this.productosList.length;
+    this.totalPages = Math.ceil(this.total / this.limit) || 1;
+    this.page = 1; 
+    this.actualizarVistaPaginada();
+  }
+  /* aplicarFiltros() {
     let filtrados = [...this.productosOriginales];
     
     if (this.vistaActual === 'camion') {
@@ -121,7 +185,7 @@ export class CargaCamionComponent implements OnInit {
     this.totalPages = Math.ceil(this.total / this.limit) || 1;
     this.page = 1; 
     this.actualizarVistaPaginada();
-  }
+  } */
 
   actualizarVistaPaginada() {
     const indiceInicio = (this.page - 1) * this.limit;

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -23,6 +23,7 @@ export class ProductoForm implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
+  private cd = inject(ChangeDetectorRef);
   @ViewChild('etiquetaCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   // Variable del formulario (En el HTML se llamaba 'form', aquí unificamos a 'productoForm')
@@ -32,6 +33,7 @@ export class ProductoForm implements OnInit {
   productId: number | null = null;
   loading = false;
   imagenCargando = false;
+  
 
   // --- VARIABLES QUE FALTABAN PARA EL HTML ---
   previewCosto: number = 0;
@@ -170,11 +172,13 @@ proveedoresFrecuentes = [
           this.productoForm.patchValue({ imagenUrl: res.url });
           this.imagenCargando = false;
           this.notificationService.show('Imagen subida y optimizada con éxito', 'success');
+          this.cd.detectChanges();
         },
         error: (err) => {
           console.error(err);
           this.imagenCargando = false;
           this.notificationService.show('Error al subir la imagen a Cloudinary', 'error');
+          this.cd.detectChanges();
         }
       });
     }

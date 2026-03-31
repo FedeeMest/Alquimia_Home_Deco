@@ -97,6 +97,78 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
   }
 
   buscar() {
+    // 1. LIMPIEZA INMEDIATA: Capturamos el valor y le quitamos espacios/enters fantasma
+    const codigoLimpio = (this.codigoLeido || '').trim();
+
+    if (!codigoLimpio) return;
+
+    this.tecladoManual = false;
+    this.buscando = true;
+    this.error = false;
+    this.producto = undefined; 
+    this.mensaje = 'Buscando...';
+
+    // 2. Limpiamos el input para el próximo escaneo
+    this.codigoLeido = ''; 
+
+    // 3. Enviamos el código LIMPIO al backend
+    this.productoService.getAll(codigoLimpio).subscribe({
+      next: (resp: any) => { 
+        const listaProductos = resp.data; 
+        
+        // 4. Comparamos usando el código LIMPIO y limpiamos también el de la BD por seguridad
+        const encontrado = listaProductos.find((p: any) => 
+            (p.codigo_barra || '').trim() === codigoLimpio || 
+            (p.codigo_proveedor || '').trim().toLowerCase() === codigoLimpio.toLowerCase() // Opcional: Permitir buscar por cod. proveedor
+        );
+
+        if (encontrado) {
+          this.producto = encontrado;
+          this.mensaje = '';
+        } else {
+          this.error = true;
+          this.mensaje = 'Producto no encontrado';
+        }
+        
+        this.finalizarBusqueda();
+      },
+      error: (err) => {
+        console.warn('Fallo conexión online, intentando modo offline...');
+        
+        this.productoService.getAllOffline(codigoLimpio).subscribe({
+          next: (respOffline) => {
+            this.esModoOffline = true;
+            
+            // Misma limpieza de comparación en modo offline
+            const encontrado = respOffline.data.find((p: any) => 
+                (p.codigo_barra || '').trim() === codigoLimpio ||
+                (p.codigo_proveedor || '').trim().toLowerCase() === codigoLimpio.toLowerCase()
+            );
+            
+            if (encontrado) {
+               this.producto = encontrado;
+               this.mensaje = '';
+               this.error = false; 
+            } else {
+               this.error = true;
+               this.mensaje = 'No encontrado (ni en internet ni en memoria local)';
+            }
+            this.finalizarBusqueda();
+          },
+          error: (e) => {
+            this.error = true;
+            this.mensaje = 'Error crítico al buscar';
+            this.finalizarBusqueda();
+          }
+        });
+      }
+    });
+  }
+
+  // Actualicé este método para que también apague el estado 'buscando' del primer try
+  
+
+  /* buscar() {
     if (!this.codigoLeido.trim()) return;
 
     // Reseteamos a modo escáner (sin teclado) para la próxima búsqueda
@@ -157,12 +229,19 @@ export class VerificadorPrecio implements OnInit, AfterViewInit {
         });
       }
     });
-  }
+  } */
 
   private finalizarBusqueda() {
     this.buscando = false;
     this.cd.detectChanges();
-    // Reenfocamos para permitir escaneo rápido consecutivo
     setTimeout(() => this.enfocarInput(), 100);
   }
+ 
+
+  /* private finalizarBusqueda() {
+    this.buscando = false;
+    this.cd.detectChanges();
+    // Reenfocamos para permitir escaneo rápido consecutivo
+    setTimeout(() => this.enfocarInput(), 100);
+  } */
 }

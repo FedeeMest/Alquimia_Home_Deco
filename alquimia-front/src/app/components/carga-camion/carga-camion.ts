@@ -54,6 +54,97 @@ export class CargaCamionComponent implements OnInit {
   }
 
   generarPdfCarga() {
+    // 1. Filtramos automáticamente solo lo que tiene stock en el camión
+    const enCamion = this.productosOriginales.filter(p => (p.stock_camion || 0) > 0);
+
+    if (enCamion.length === 0) {
+        this.notificationService.show('No hay productos cargados en el camión para generar el listado.', 'error');
+        return;
+    }
+
+    this.notificationService.show('Generando listado de feria...', 'info');
+
+    // 2. Ordenamos por nombre para que el cliente encuentre todo rápido
+    enCamion.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // 3. Encabezado Estilo Alquimia
+    doc.setFontSize(18);
+    doc.setTextColor(15, 23, 42); // Slate-900
+    doc.text('Listado de Mercadería - Feria', 14, 20);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139); // Slate-500
+    doc.text(`Alquimia Home Deco  |  Fecha: ${new Date().toLocaleDateString('es-AR')}`, 14, 28);
+
+    // 4. Resumen de Carga
+    const totalUnidades = enCamion.reduce((acc, p) => acc + (p.stock_camion || 0), 0);
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Items: ${enCamion.length}  |  Total Unidades en Transporte: ${totalUnidades}`, 14, 36);
+
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(14, 40, pageWidth - 14, 40);
+
+    // 5. Mapeo de datos (Agregamos la columna de Precio Efectivo)
+    const datos = enCamion.map(p => [
+        p.codigo_barra || '-',
+        p.nombre || '-',
+        p.stock_camion?.toString() || '0',
+        `$ ${p.precio_efectivo?.toLocaleString('es-AR') || '0'}`, // PRECIO UNITARIO
+        '' // Espacio para control manual
+    ]);
+
+    // 6. Generación de la Tabla
+    autoTable(doc, {
+        startY: 45,
+        head: [['Código', 'Producto', 'Cant.', 'Precio Venta', 'Control (✓)']],
+        body: datos,
+        theme: 'grid', 
+        headStyles: { 
+            fillColor: [15, 23, 42], // Slate oscuro
+            textColor: [255, 255, 255], 
+            fontStyle: 'bold',
+            halign: 'center'
+        },
+        columnStyles: {
+            0: { cellWidth: 30, fontStyle: 'normal' },
+            1: { cellWidth: 'auto' },
+            2: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
+            3: { 
+                cellWidth: 35, 
+                halign: 'right', 
+                fontStyle: 'bold', 
+                textColor: [5, 150, 105] // Verde Esmeralda (igual que en el catálogo)
+            },
+            4: { cellWidth: 20 } 
+        },
+        styles: { fontSize: 9, cellPadding: 4, textColor: [51, 65, 83] }, 
+        alternateRowStyles: { fillColor: [248, 250, 252] }, 
+        
+        didDrawPage: function (data) {
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(148, 163, 184); 
+            doc.text(
+                `Página ${data.pageNumber}  -  Alquimia Home Deco - Uso Feria`, 
+                pageWidth / 2, 
+                pageHeight - 10, 
+                { align: 'center' }
+            );
+        }
+    });
+
+    doc.save(`Listado_Feria_${new Date().toISOString().split('T')[0]}.pdf`);
+    this.notificationService.show('PDF de Feria generado con éxito', 'success');
+  }
+
+  /* generarPdfCarga() {
     // 1. Filtramos SOLO los productos que están en el camión
     const enCamion = this.productosOriginales.filter(p => (p.stock_camion || 0) > 0);
 
@@ -139,7 +230,7 @@ export class CargaCamionComponent implements OnInit {
 
     doc.save(`Hoja_Ruta_Camion_${new Date().toISOString().split('T')[0]}.pdf`);
     this.notificationService.show('Planilla PDF generada con éxito', 'success');
-  }
+  } */
 
   cargarProductos() {
     this.loading = true;

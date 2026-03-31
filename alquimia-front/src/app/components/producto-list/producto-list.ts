@@ -66,6 +66,17 @@ export class ProductoList implements OnInit, OnDestroy {
     this.guardarEstado();
   }
 
+  // Función para sanitizar textos: quita tildes, dobles espacios y pasa a minúsculas
+  private normalizarTexto(texto: string | undefined | null): string {
+    if (!texto) return '';
+    return texto
+      .normalize('NFD') // Separa las letras de sus acentos
+      .replace(/[\u0300-\u036f]/g, '') // Elimina los acentos
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, ' '); // Reemplaza múltiples espacios seguidos por uno solo
+  }
+
   // --- MÉTODOS DE MANEJO DE ESTADO ---
   restaurarEstado() {
     if (ProductoList.listState) {
@@ -113,7 +124,7 @@ export class ProductoList implements OnInit, OnDestroy {
     });
   }
 
-  private crearDocumentoPdf(productos: Producto[]) {
+  crearDocumentoPdf(productos: Producto[]) {
     const productosPorCategoria: { [categoria: string]: Producto[] } = {};
     let valorTotalInventario = 0; 
     let totalStockUnidades = 0;   
@@ -285,6 +296,82 @@ export class ProductoList implements OnInit, OnDestroy {
   aplicarFiltros(resetPage: boolean = true) {
     let filtrados = [...this.productosOriginales];
     
+    // 1. PREPARAMOS EL TÉRMINO DE BÚSQUEDA
+    const terminoSaneado = this.normalizarTexto(this.terminoBusqueda);
+    // Dividimos la búsqueda en palabras individuales ("taza", "vidrio")
+    const palabrasBuscadas = terminoSaneado.split(' ').filter(p => p.length > 0);
+
+    const codProvFiltro = this.filtros.codigoProveedor.toLowerCase().trim();
+    const provNombreFiltro = this.filtros.proveedorNombre;
+    const catFiltro = this.filtros.categoria;
+
+    // 2. BÚSQUEDA PROFESIONAL (Tokenizada y Normalizada)
+    if (palabrasBuscadas.length > 0) {
+      filtrados = filtrados.filter(p => {
+        // Normalizamos también los campos de la base de datos para compararlos en igualdad de condiciones
+        const nombreDB = this.normalizarTexto(p.nombre);
+        const codBarraDB = this.normalizarTexto(p.codigo_barra);
+        const codProvDB = this.normalizarTexto(p.codigo_proveedor);
+
+        // CONDICIÓN: TODAS las palabras que el usuario tipeó deben existir en el producto.
+        // No importa el orden. Ej: si busca "doble taza", encontrará "Taza de vidrio doble"
+        return palabrasBuscadas.every(palabra => 
+          nombreDB.includes(palabra) || 
+          codBarraDB.includes(palabra) || 
+          codProvDB.includes(palabra)
+        );
+      });
+    }
+
+    // 3. FILTROS AVANZADOS (Se mantienen intactos porque funcionan perfecto)
+    if (codProvFiltro !== '') {
+      filtrados = filtrados.filter(p => 
+        (p.codigo_proveedor || '').toLowerCase().includes(codProvFiltro)
+      );
+    }
+
+    if (provNombreFiltro !== '') {
+      filtrados = filtrados.filter(p => p.proveedor === provNombreFiltro);
+    }
+
+    if (catFiltro !== '') {
+      filtrados = filtrados.filter(p => p.categoria === catFiltro);
+    }
+
+    // 4. ORDENAMIENTO
+    filtrados.sort((a, b) => {
+      switch (this.filtros.orden) {
+        case 'nombre_asc':
+          return (a.nombre || '').localeCompare(b.nombre || '');
+        case 'nombre_desc':
+          return (b.nombre || '').localeCompare(a.nombre || '');
+        case 'precio_asc':
+          return (a.precio_efectivo || 0) - (b.precio_efectivo || 0);
+        case 'precio_desc':
+          return (b.precio_efectivo || 0) - (a.precio_efectivo || 0);
+        default:
+          return 0;
+      }
+    });
+
+    // 5. ACTUALIZACIÓN DE ESTADO Y PAGINACIÓN
+    this.productosList = filtrados;
+    this.total = this.productosList.length;
+    this.totalPages = Math.ceil(this.total / this.limit) || 1;
+    
+    if (resetPage) {
+      this.page = 1; 
+    } else {
+      if (this.page > this.totalPages) this.page = this.totalPages;
+      if (this.page < 1) this.page = 1;
+    }
+
+    this.actualizarVistaPaginada();
+  }
+
+  /* aplicarFiltros(resetPage: boolean = true) {
+    let filtrados = [...this.productosOriginales];
+    
     const termino = (this.terminoBusqueda || '').toLowerCase().trim();
     const codProvFiltro = this.filtros.codigoProveedor.toLowerCase().trim();
     const provNombreFiltro = this.filtros.proveedorNombre;
@@ -339,7 +426,7 @@ export class ProductoList implements OnInit, OnDestroy {
     }
 
     this.actualizarVistaPaginada();
-  }
+  } */
 
   actualizarVistaPaginada() {
     const indiceInicio = (this.page - 1) * this.limit;

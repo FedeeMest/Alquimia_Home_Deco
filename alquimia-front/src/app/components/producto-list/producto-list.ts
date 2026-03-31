@@ -56,6 +56,7 @@ export class ProductoList implements OnInit {
   }
 
   ngOnInit(): void {
+    this.restaurarEstado();
     this.cargarProductos();
   }
 

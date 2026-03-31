@@ -61,6 +61,9 @@ categorias = [
   'Difusores / Aromas',
   'Ceramica',
   'Jardín',
+  'Contenedores',
+  'Aromatizador',
+  'Difusores',
   'Otros'
 ];
   tiposAjuste = ['DESCUENTO', 'RECARGO', 'NINGUNO'];

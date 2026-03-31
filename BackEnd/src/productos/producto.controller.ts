@@ -309,8 +309,8 @@ async function ventaFeria(req: Request, res: Response) {
             fecha: new Date(),
             cliente_nombre: 'Venta Feria (Persona)', // Corregido de 'cliente' a 'cliente_nombre'
             total: (producto.precio_efectivo || 0) * cantidad,
-            metodo_pago: 'Efectivo', 
-            estado: 'ACTIVA' // Corregido de 'activo' a 'estado'
+            metodo_pago: 'EFECTIVO', 
+            estado: 'COBRADA' // Corregido de 'activo' a 'estado'
         });
 
         // 3. Crear el detalle de esa venta

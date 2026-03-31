@@ -6,6 +6,9 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../services/notification.service';
 import { finalize } from 'rxjs/operators';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 
 @Component({
   selector: 'app-producto-list',
@@ -53,6 +56,96 @@ export class ProductoList implements OnInit {
   ngOnInit(): void {
     this.cargarProductos();
   }
+
+  descargarCatalogoPdf() {
+    this.loading = true;
+    this.notificationService.show('Generando catálogo PDF...', 'info');
+
+    // Pedimos TODOS los productos activos (límite alto como 10000)
+    this.productoService.getAll('', true, 1, 10000).subscribe({
+      next: (resp) => {
+        this.crearDocumentoPdf(resp.data);
+        this.loading = false;
+        this.notificationService.show('PDF descargado con éxito', 'success');
+      },
+      error: (err) => {
+        console.error(err);
+        this.loading = false;
+        this.notificationService.show('Error al generar el PDF', 'error');
+      }
+    });
+  }
+
+  private crearDocumentoPdf(productos: Producto[]) {
+    // Agrupamos los productos por categoría
+    const productosPorCategoria: { [categoria: string]: Producto[] } = {};
+    
+    productos.forEach(prod => {
+      const cat = prod.categoria || 'Sin Categoría';
+      if (!productosPorCategoria[cat]) {
+        productosPorCategoria[cat] = [];
+      }
+      productosPorCategoria[cat].push(prod);
+    });
+
+    // Ordenamos las categorías alfabéticamente
+    const categoriasOrdenadas = Object.keys(productosPorCategoria).sort();
+
+    const doc = new jsPDF();
+    
+    // Título Principal
+    doc.setFontSize(18);
+    doc.text('Lista de Productos - Alquimia Home Deco', 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 14, 28);
+
+    let startY = 35; // Posición vertical inicial
+
+    categoriasOrdenadas.forEach((categoria) => {
+      // Salto de página preventivo si queda poco espacio en la hoja actual
+      if (startY > 260) { 
+        doc.addPage();
+        startY = 20;
+      }
+
+      // Título de la Categoría
+      doc.setFontSize(14);
+      doc.setTextColor(30, 41, 59); // Slate-800
+      doc.text(categoria.toUpperCase(), 14, startY);
+      startY += 5;
+
+      // Ordenar productos de la categoría alfabéticamente
+      const productosDeLaCategoria = productosPorCategoria[categoria];
+      productosDeLaCategoria.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+
+      // Preparar los datos (filas) de la tabla
+      const datosTabla = productosDeLaCategoria.map(p => [
+        p.codigo_barra || '-',
+        p.nombre || '-',
+        p.proveedor || '-',
+        p.stock?.toString() || '0',
+        `$ ${p.precio_efectivo?.toLocaleString('es-AR') || '0'}`
+      ]);
+
+      // Dibujar la tabla
+      autoTable(doc, {
+        startY: startY,
+        head: [['Código', 'Producto', 'Proveedor', 'Stock Total', 'Precio Efvo.']],
+        body: datosTabla,
+        theme: 'striped',
+        headStyles: { fillColor: [15, 23, 42] }, // Slate-900 de tu diseño
+        styles: { fontSize: 9, cellPadding: 2 },
+        margin: { bottom: 15 }
+      });
+
+      // Actualizar la posición vertical (Y) para la SIGUIENTE categoría
+      startY = (doc as any).lastAutoTable.finalY + 15; 
+    });
+
+    // Guardar el archivo
+    doc.save(`Catalogo_Alquimia_${new Date().toISOString().split('T')[0]}.pdf`);
+  }
+
 
   cargarProductos() {
     this.loading = true;

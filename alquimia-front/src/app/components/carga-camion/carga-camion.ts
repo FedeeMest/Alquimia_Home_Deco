@@ -84,7 +84,7 @@ export class CargaCamionComponent implements OnInit {
     const totalUnidades = enCamion.reduce((acc, p) => acc + (p.stock_camion || 0), 0);
     
     doc.setFontSize(11);
-    doc.setTextColor(30, 58, 138); // blue-900
+    doc.setTextColor(15, 23, 42); // slate-900
     doc.setFont('helvetica', 'bold');
     doc.text(`Resumen: ${enCamion.length} artículos distintos  |  Total a transportar: ${totalUnidades} unidades.`, 14, 36);
 
@@ -108,7 +108,7 @@ export class CargaCamionComponent implements OnInit {
         body: datos,
         theme: 'grid', // Usamos 'grid' para que queden las celdas marcadas para escribir
         headStyles: { 
-            fillColor: [30, 64, 175], // blue-800
+            fillColor: [15, 23, 42], // slate-900
             textColor: [255, 255, 255], 
             fontStyle: 'bold',
             halign: 'center'
@@ -117,7 +117,7 @@ export class CargaCamionComponent implements OnInit {
             0: { cellWidth: 35, fontStyle: 'normal' },
             1: { cellWidth: 'auto' },
             2: { cellWidth: 35 },
-            3: { cellWidth: 25, halign: 'center', fontStyle: 'bold', textColor: [29, 78, 216], fillColor: [239, 246, 255] }, // Resaltamos la cantidad en azul claro
+            3: { cellWidth: 20, halign: 'center', fontStyle: 'bold', textColor: [15, 23, 42] }, // Resaltamos la cantidad en azul claro
             4: { cellWidth: 25 } // Espacio en blanco para la firma/tilde
         },
         styles: { fontSize: 9, cellPadding: 4, textColor: [51, 65, 83] },

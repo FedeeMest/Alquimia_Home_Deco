@@ -1,12 +1,32 @@
 import { Router } from 'express';
 import { findAll, findOne, add, update, remove, inputS, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido,findByBarcode, getPublicCatalog } from './producto.controller.js';
 import { authMiddleware } from '../shared/middleware/auth.middleware.js';
+import multer from 'multer';
+import cloudinary from '../shared/config/cloudinary.js';
 
 export const productoRouter = Router();
+
 
 productoRouter.get('/public/catalogo', getPublicCatalog);
 
 productoRouter.use(authMiddleware);
+
+const upload = multer({ dest: 'uploads/' });
+productoRouter.post('/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).send('No se subió ninguna imagen');
+    
+    // Subimos a Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'alquimia_productos',
+    });
+
+    // Devolvemos la URL segura y optimizada
+    res.json({ url: result.secure_url });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al subir a Cloudinary' });
+  }
+});
 
 productoRouter.get('/', findAll);           // Obtener todos (con paginación)
 productoRouter.post('/vaciar-camion', vaciarCamion);

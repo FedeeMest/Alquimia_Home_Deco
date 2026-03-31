@@ -1,4 +1,278 @@
-<div class="max-w-4xl mx-auto pb-10"> 
+<div class="container mx-auto p-4 lg:p-8 max-w-5xl mb-12">
+
+    <div class="flex items-center gap-4 mb-8">
+        <button routerLink="/productos" class="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 transition-all shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+        </button>
+        <div>
+            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">
+                {{ isEditMode ? 'Editar Producto' : 'Nuevo Producto' }}
+            </h1>
+            <p class="text-slate-500 text-sm font-medium mt-1">
+                {{ isEditMode ? 'Modifica los detalles del artículo en el catálogo.' : 'Registra un nuevo artículo en tu inventario.' }}
+            </p>
+        </div>
+    </div>
+
+    <form [formGroup]="productoForm" (ngSubmit)="onSubmit()" class="bg-white rounded-2xl shadow-xl shadow-slate-200/40 border border-slate-200 p-6 lg:p-8">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+
+            <div class="col-span-full border-b border-slate-200 pb-4 mb-2">
+                <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Datos Generales
+                </h3>
+            </div>
+
+            <div class="form-group sm:col-span-2">
+                <label class="block text-sm font-bold text-slate-700 mb-1.5">Nombre del Producto <span class="text-red-500">*</span></label>
+                <input type="text" formControlName="nombre" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-emerald-500 focus:ring-0 transition-colors bg-slate-50 focus:bg-white" placeholder="Ej: Taza de Cerámica Blanca">
+                <div *ngIf="productoForm.get('nombre')?.invalid && productoForm.get('nombre')?.touched" class="text-red-500 text-xs font-bold mt-1.5 flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    El nombre es obligatorio
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="block text-sm font-bold text-slate-700 mb-1.5">Código de Barra</label>
+                <input type="text" formControlName="codigo_barra" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-emerald-500 focus:ring-0 transition-colors bg-slate-50 focus:bg-white font-mono" placeholder="Escaneá o ingresá manual">
+            </div>
+
+            <div class="form-group">
+                <label class="block text-sm font-bold text-slate-700 mb-1.5">Código de Proveedor</label>
+                <input type="text" formControlName="codigo_proveedor" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-emerald-500 focus:ring-0 transition-colors bg-slate-50 focus:bg-white font-mono" placeholder="Ej: PRV-1234">
+            </div>
+
+            <div class="form-group">
+                <label class="block text-sm font-bold text-slate-700 mb-1.5">Proveedor</label>
+                <input type="text" formControlName="proveedor" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-emerald-500 focus:ring-0 transition-colors bg-slate-50 focus:bg-white" placeholder="Nombre del proveedor">
+            </div>
+
+            <div class="form-group">
+                <label class="block text-sm font-bold text-slate-700 mb-1.5">Categoría</label>
+                <input type="text" formControlName="categoria" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-emerald-500 focus:ring-0 transition-colors bg-slate-50 focus:bg-white" placeholder="Ej: Decoración, Cocina...">
+            </div>
+
+
+            <div class="col-span-full border-b border-slate-200 pb-4 mt-6 mb-2">
+                <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                    Control de Inventario
+                </h3>
+            </div>
+
+            <div class="form-group">
+                <label class="block text-sm font-bold text-slate-700 mb-1.5">Stock Actual <span class="text-red-500">*</span></label>
+                <input type="number" formControlName="stock" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-0 transition-colors bg-slate-50 focus:bg-white font-bold text-slate-800 text-lg">
+            </div>
+
+            <div class="form-group">
+                <label class="block text-sm font-bold text-slate-700 mb-1.5">Stock Mínimo de Alerta <span class="text-red-500">*</span></label>
+                <input type="number" formControlName="stock_minimo" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-0 transition-colors bg-slate-50 focus:bg-white font-bold text-slate-800 text-lg">
+            </div>
+
+
+            <div class="col-span-full border-b border-slate-200 pb-4 mt-6 mb-2">
+                <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Estructura de Costos y Ganancia
+                </h3>
+            </div>
+
+            <div class="col-span-full grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                <div class="form-group">
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Precio de Compra Neto (Sin IVA)</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 font-bold text-slate-400">$</span>
+                        <input type="number" formControlName="precio_compra" class="w-full pl-8 pr-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-amber-500 focus:ring-0 transition-colors font-bold text-lg text-slate-800">
+                    </div>
+                </div>
+
+                <div class="form-group flex flex-col justify-center">
+                    <label class="block text-sm font-bold text-slate-700 mb-3">¿El proveedor cobró IVA (21%)?</label>
+                    <label class="relative inline-flex items-center cursor-pointer group">
+                        <input type="checkbox" formControlName="tiene_iva" class="sr-only peer">
+                        <div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-amber-500 group-hover:bg-slate-400 peer-checked:group-hover:bg-amber-600 shadow-inner"></div>
+                        <span class="ml-3 text-sm font-bold text-slate-700 select-none">{{ productoForm.get('tiene_iva')?.value ? 'Sí, sumar IVA al Costo' : 'No, compra en negro / Monotributo' }}</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="flex justify-between items-end mb-1.5">
+                    <span class="text-sm font-bold text-slate-700">Precio de Costo Real</span>
+                    <button *ngIf="!precioCostoModificado" type="button" (click)="habilitarEdicionCosto()" class="text-[10px] uppercase font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        Editar Manualmente
+                    </button>
+                </label>
+                <div class="relative">
+                    <span class="absolute left-4 top-3 font-bold text-slate-500">$</span>
+                    <input type="number" formControlName="precio_costo" 
+                        class="w-full pl-8 pr-4 py-2.5 rounded-xl border-2 border-slate-200 font-bold text-lg transition-colors"
+                        [ngClass]="precioCostoModificado ? 'bg-white focus:border-blue-500 focus:ring-0 text-slate-800 shadow-inner' : 'bg-slate-100 text-slate-500 cursor-not-allowed'">
+                </div>
+                <p *ngIf="!precioCostoModificado" class="text-[10px] text-slate-400 mt-1 font-medium italic">Calculado automáticamente desde Compra e IVA.</p>
+            </div>
+
+            <div class="form-group">
+                <label class="block text-sm font-bold text-slate-700 mb-1.5">Margen de Ganancia Esperado</label>
+                <div class="relative">
+                    <input type="number" formControlName="ganancia" class="w-full pr-10 pl-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-amber-500 focus:ring-0 transition-colors bg-white font-black text-xl text-emerald-600 shadow-inner text-right">
+                    <span class="absolute right-4 top-2.5 font-black text-emerald-600 text-xl">%</span>
+                </div>
+            </div>
+
+            <div class="col-span-full border-b border-slate-200 pb-4 mt-6 mb-2">
+                <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    Ajustes Específicos (Excepciones)
+                </h3>
+                <p class="text-xs text-slate-500 mt-1 font-medium">Dejá en "Usar Config Global" si este producto debe seguir las reglas generales del sistema.</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border-2 border-slate-100 shadow-sm col-span-full md:col-span-1">
+                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Regla para Efectivo</label>
+                <select formControlName="ajuste_efectivo_tipo" class="w-full mb-3 rounded-lg border-slate-200 text-sm font-bold text-slate-700 bg-slate-50">
+                    <option value="NINGUNO">🌐 Usar Config Global ({{porcentajeEfectivo}}%)</option>
+                    <option value="DESCUENTO">📉 Aplicar Descuento Fijo</option>
+                    <option value="RECARGO">📈 Aplicar Recargo Fijo</option>
+                </select>
+                <div class="relative" *ngIf="productoForm.get('ajuste_efectivo_tipo')?.value !== 'NINGUNO'">
+                    <input type="number" formControlName="ajuste_efectivo_valor" class="w-full pr-8 pl-3 py-2 rounded-lg border-slate-300 text-right font-bold text-slate-700">
+                    <span class="absolute right-3 top-2 text-slate-400 font-bold">%</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border-2 border-slate-100 shadow-sm col-span-full md:col-span-1">
+                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Regla para T. Nacional</label>
+                <select formControlName="ajuste_tarjeta_tipo" class="w-full mb-3 rounded-lg border-slate-200 text-sm font-bold text-slate-700 bg-slate-50">
+                    <option value="NINGUNO">🌐 Usar Config Global (+{{porcentajeTarjeta}}%)</option>
+                    <option value="DESCUENTO">📉 Aplicar Descuento Fijo</option>
+                    <option value="RECARGO">📈 Aplicar Recargo Fijo</option>
+                </select>
+                <div class="relative" *ngIf="productoForm.get('ajuste_tarjeta_tipo')?.value !== 'NINGUNO'">
+                    <input type="number" formControlName="ajuste_tarjeta_valor" class="w-full pr-8 pl-3 py-2 rounded-lg border-slate-300 text-right font-bold text-slate-700">
+                    <span class="absolute right-3 top-2 text-slate-400 font-bold">%</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border-2 border-slate-100 shadow-sm col-span-full md:col-span-1">
+                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Regla para T. Local</label>
+                <select formControlName="ajuste_tarjeta_local_tipo" class="w-full mb-3 rounded-lg border-slate-200 text-sm font-bold text-slate-700 bg-slate-50">
+                    <option value="NINGUNO">🌐 Usar Config Global (+{{porcentajeLocal}}%)</option>
+                    <option value="DESCUENTO">📉 Aplicar Descuento Fijo</option>
+                    <option value="RECARGO">📈 Aplicar Recargo Fijo</option>
+                </select>
+                <div class="relative" *ngIf="productoForm.get('ajuste_tarjeta_local_tipo')?.value !== 'NINGUNO'">
+                    <input type="number" formControlName="ajuste_tarjeta_local_valor" class="w-full pr-8 pl-3 py-2 rounded-lg border-slate-300 text-right font-bold text-slate-700">
+                    <span class="absolute right-3 top-2 text-slate-400 font-bold">%</span>
+                </div>
+            </div>
+
+
+            <div class="col-span-full bg-slate-900 rounded-2xl p-6 mt-4 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 text-white/5">
+                    <svg class="w-40 h-40" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.64-2.25 1.64-1.74 0-2.27-.85-2.34-1.76H7.82c.13 1.68 1.28 2.75 3.08 3.1V19h2.4v-1.64c1.83-.31 2.98-1.36 2.98-2.91 0-2.13-1.69-2.82-3.97-3.31z"/></svg>
+                </div>
+                
+                <h3 class="text-white font-black uppercase tracking-widest text-sm mb-6 flex items-center gap-2 relative z-10">
+                    <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                    Proyección Final de Venta
+                </h3>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
+                    <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700/50 backdrop-blur-sm">
+                        <span class="block text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Precio Base</span>
+                        <div class="text-white text-xl font-bold flex items-baseline gap-1">
+                            <span class="text-sm text-slate-500">$</span>
+                            {{ productoForm.get('precio_venta_base')?.value | number:'1.0-0' }}
+                        </div>
+                    </div>
+                    
+                    <div class="bg-emerald-900/40 rounded-xl p-4 border border-emerald-800/50 backdrop-blur-sm">
+                        <span class="block text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-1">Efectivo</span>
+                        <div class="text-emerald-100 text-xl font-bold flex items-baseline gap-1">
+                            <span class="text-sm text-emerald-500/70">$</span>
+                            {{ productoForm.get('precio_efectivo')?.value | number:'1.0-0' }}
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-900/40 rounded-xl p-4 border border-blue-800/50 backdrop-blur-sm">
+                        <span class="block text-blue-400 text-[10px] font-bold uppercase tracking-wider mb-1">Tarjeta Nac.</span>
+                        <div class="text-blue-100 text-xl font-bold flex items-baseline gap-1">
+                            <span class="text-sm text-blue-500/70">$</span>
+                            {{ productoForm.get('precio_tarjeta')?.value | number:'1.0-0' }}
+                        </div>
+                    </div>
+
+                    <div class="bg-indigo-900/40 rounded-xl p-4 border border-indigo-800/50 backdrop-blur-sm">
+                        <span class="block text-indigo-400 text-[10px] font-bold uppercase tracking-wider mb-1">Tarjeta Local</span>
+                        <div class="text-indigo-100 text-xl font-bold flex items-baseline gap-1">
+                            <span class="text-sm text-indigo-500/70">$</span>
+                            {{ productoForm.get('precio_tarjeta_local')?.value | number:'1.0-0' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-full my-6 border-t border-slate-200"></div>
+            <h3 class="col-span-full text-lg font-extrabold text-slate-800 mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-emerald-600"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" /></svg>
+                Configuración Web y Catálogo
+            </h3>
+
+            <div class="form-group sm:col-span-2">
+                <label class="block text-sm font-bold text-slate-700 mb-2">Foto del Producto</label>
+                
+                <div class="flex items-center gap-4">
+                    <div class="w-24 h-24 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden flex items-center justify-center bg-slate-50 shrink-0">
+                        <img *ngIf="productoForm.get('imagenUrl')?.value" [src]="productoForm.get('imagenUrl')?.value" class="w-full h-full object-cover">
+                        <svg *ngIf="!productoForm.get('imagenUrl')?.value" class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 4v16m8-8H4" stroke-width="2" stroke-linecap="round"/></svg>
+                    </div>
+
+                    <div class="flex-1">
+                        <input type="file" (change)="onFileSelected($event)" accept="image/*" class="hidden" #fileInput>
+                        <button type="button" (click)="fileInput.click()" [disabled]="imagenCargando"
+                            class="bg-white border-2 border-slate-200 hover:border-emerald-500 hover:text-emerald-700 text-slate-700 px-4 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-wait shadow-sm">
+                            <svg *ngIf="!imagenCargando" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
+                            <svg *ngIf="imagenCargando" class="animate-spin h-5 w-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            {{ imagenCargando ? 'Subiendo a la nube...' : 'Subir Imagen' }}
+                        </button>
+                        <p class="text-xs text-slate-500 mt-2 font-medium">La imagen se subirá, optimizará y guardará automáticamente.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group sm:col-span-2 flex items-center pt-2">
+                <label class="relative inline-flex items-center cursor-pointer group">
+                    <input type="checkbox" formControlName="publicarEnWeb" class="sr-only peer">
+                    <div class="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500 group-hover:bg-slate-300 peer-checked:group-hover:bg-emerald-600 shadow-inner"></div>
+                    <div class="ml-4">
+                        <span class="block text-sm font-bold text-slate-800">Mostrar en el Catálogo Público</span>
+                        <span class="block text-xs text-slate-500 font-medium">Si está apagado, el producto será exclusivo de uso interno.</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="col-span-full my-4 border-t border-slate-200"></div>
+
+            <div class="col-span-full flex flex-col-reverse sm:flex-row justify-end gap-3 mt-4">
+                <button type="button" routerLink="/productos" class="w-full sm:w-auto px-6 py-3 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all text-sm">
+                    Cancelar
+                </button>
+                <button type="submit" [disabled]="productoForm.invalid || loading || imagenCargando" class="w-full sm:w-auto px-8 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm shadow-md flex items-center justify-center gap-2">
+                    <svg *ngIf="loading" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <svg *ngIf="!loading" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                    {{ isEditMode ? 'Guardar Cambios' : 'Registrar Producto' }}
+                </button>
+            </div>
+            
+        </div>
+    </form>
+</div>
+<!-- <div class="max-w-4xl mx-auto pb-10"> 
   <div class="mb-6">
     <h2 class="text-2xl font-bold text-slate-800">
       {{ isEditMode ? 'Editar Producto' : 'Nuevo Producto' }}
@@ -232,3 +506,4 @@
 <canvas #etiquetaCanvas width="400" height="240" class="hidden"></canvas>
 
 
+ -->

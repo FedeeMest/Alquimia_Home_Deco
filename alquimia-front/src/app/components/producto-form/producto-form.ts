@@ -31,6 +31,7 @@ export class ProductoForm implements OnInit {
   isEditMode = false;
   productId: number | null = null;
   loading = false;
+  imagenCargando = false;
 
   // --- VARIABLES QUE FALTABAN PARA EL HTML ---
   previewCosto: number = 0;
@@ -158,6 +159,25 @@ proveedoresFrecuentes = [
       imagenUrl: [''],
       publicarEnWeb: [false]
     });
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.imagenCargando = true;
+      this.productoService.subirImagen(file).subscribe({
+        next: (res) => {
+          this.productoForm.patchValue({ imagenUrl: res.url });
+          this.imagenCargando = false;
+          this.notificationService.show('Imagen subida y optimizada con éxito', 'success');
+        },
+        error: (err) => {
+          console.error(err);
+          this.imagenCargando = false;
+          this.notificationService.show('Error al subir la imagen a Cloudinary', 'error');
+        }
+      });
+    }
   }
 
   suscribirCambios() {

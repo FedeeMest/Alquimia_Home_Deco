@@ -28,6 +28,12 @@ getPublicCatalog() {
     return this.http.get<{data: any[]}>(`${this.apiUrl}/public/catalogo`);
   }
 
+subirImagen(file: File): Observable<{url: string}> {
+  const formData = new FormData();
+  formData.append('image', file);
+  return this.http.post<{url: string}>(`${this.apiUrl}/productos/upload-image`, formData);
+}
+
 getAll(buscar: string = '', activo: boolean = true, page: number = 1, limit: number = 10): Observable<ProductoResponse> {
     let params = new HttpParams()
       .set('page', page.toString())

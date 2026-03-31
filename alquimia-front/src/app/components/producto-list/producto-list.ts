@@ -79,6 +79,146 @@ export class ProductoList implements OnInit {
   }
 
   private crearDocumentoPdf(productos: Producto[]) {
+    // 1. AGRUPACIÓN Y ORDENAMIENTO (Igual que antes)
+    const productosPorCategoria: { [categoria: string]: Producto[] } = {};
+    let valorTotalInventario = 0; // Para el resumen final
+    let totalStockUnidades = 0;   // Para el resumen final
+    
+    productos.forEach(prod => {
+      const cat = prod.categoria || 'Sin Categoría';
+      if (!productosPorCategoria[cat]) productosPorCategoria[cat] = [];
+      productosPorCategoria[cat].push(prod);
+
+      // Calculamos totales para el resumen
+      const stock = prod.stock || 0;
+      totalStockUnidades += stock;
+      valorTotalInventario += stock * (prod.precio_efectivo || 0);
+    });
+
+    const categoriasOrdenadas = Object.keys(productosPorCategoria).sort();
+    
+    // 2. CONFIGURACIÓN DEL DOCUMENTO
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    
+    // Título Principal
+    doc.setFontSize(22);
+    doc.setTextColor(15, 23, 42); // Slate-900
+    doc.text('Catálogo de Productos', 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139); // Slate-500
+    doc.text(`Alquimia Home Deco  |  Generado el: ${new Date().toLocaleDateString('es-AR')} a las ${new Date().toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}`, 14, 28);
+
+    // Línea separadora superior
+    doc.setDrawColor(226, 232, 240); // Slate-200
+    doc.setLineWidth(0.5);
+    doc.line(14, 32, pageWidth - 14, 32);
+
+    let startY = 40; 
+
+    // 3. DIBUJADO DE TABLAS POR CATEGORÍA
+    categoriasOrdenadas.forEach((categoria) => {
+      if (startY + 45 > pageHeight) { 
+        doc.addPage();
+        startY = 20;
+      }
+
+      // Título de la Categoría
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59); // Slate-800
+      doc.text(categoria.toUpperCase(), 14, startY);
+      startY += 6;
+
+      const productosDeLaCategoria = productosPorCategoria[categoria];
+      productosDeLaCategoria.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+
+      const datosTabla = productosDeLaCategoria.map(p => [
+        p.codigo_barra || '-',
+        p.nombre || '-',
+        p.proveedor || '-',
+        p.stock?.toString() || '0',
+        `$ ${p.precio_efectivo?.toLocaleString('es-AR') || '0'}`
+      ]);
+
+      autoTable(doc, {
+        startY: startY,
+        head: [['Código', 'Producto', 'Proveedor', 'Stock', 'Precio Efvo.']],
+        body: datosTabla,
+        theme: 'striped',
+        headStyles: { 
+          fillColor: [15, 23, 42], // Fondo oscuro corporativo
+          textColor: [255, 255, 255],
+          fontStyle: 'bold'
+        },
+        styles: { fontSize: 8, cellPadding: 3, textColor: [51, 65, 83] }, // Slate-700
+        
+        // ¡MEJORA ALINEACIÓN Y ANCHOS!
+        columnStyles: {
+          0: { cellWidth: 25 }, // Código (fijo)
+          1: { cellWidth: 'auto' }, // Producto (Toma todo el espacio sobrante)
+          2: { cellWidth: 35 }, // Proveedor
+          3: { cellWidth: 20, halign: 'center', fontStyle: 'bold' }, // Stock (Centrado y negrita)
+          4: { cellWidth: 25, halign: 'right', fontStyle: 'bold', textColor: [5, 150, 105] } // Precio (Derecha, negrita, color esmeralda)
+        },
+        
+        margin: { bottom: 25 }, // Dejamos más margen abajo para los números de página
+        rowPageBreak: 'avoid',  
+        showHead: 'everyPage'   
+      });
+
+      startY = (doc as any).lastAutoTable.finalY + 12; 
+    });
+
+    // 4. RESUMEN FINAL ESTADÍSTICO
+    if (startY + 30 > pageHeight) { doc.addPage(); startY = 20; }
+    
+    doc.setDrawColor(15, 23, 42); // Borde oscuro
+    doc.setFillColor(248, 250, 252); // Fondo clarito (Slate-50)
+    doc.roundedRect(14, startY, pageWidth - 28, 25, 3, 3, 'FD'); // Caja con bordes redondeados
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text('RESUMEN DEL INVENTARIO', 20, startY + 8);
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Artículos distintos: ${productos.length} refs.`, 20, startY + 15);
+    doc.text(`Unidades físicas totales: ${totalStockUnidades} un.`, 20, startY + 20);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Valor de Venta Estimado: $ ${valorTotalInventario.toLocaleString('es-AR')}`, pageWidth - 20, startY + 15, { align: 'right' });
+
+
+    // 5. NUMERACIÓN DE PÁGINAS (PIE DE PÁGINA)
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(148, 163, 184); // Slate-400
+      
+      // Línea separadora del pie de página
+      doc.setDrawColor(226, 232, 240);
+      doc.line(14, pageHeight - 15, pageWidth - 14, pageHeight - 15);
+      
+      // Texto "Página X de Y" centrado
+      doc.text(
+        `Página ${i} de ${pageCount}  -  Documento de uso interno`, 
+        pageWidth / 2, 
+        pageHeight - 8, 
+        { align: 'center' }
+      );
+    }
+
+    // 6. GUARDAR
+    doc.save(`Catalogo_Alquimia_${new Date().toISOString().split('T')[0]}.pdf`);
+  }
+
+  /* private crearDocumentoPdf(productos: Producto[]) {
     // Agrupamos los productos por categoría
     const productosPorCategoria: { [categoria: string]: Producto[] } = {};
     
@@ -146,7 +286,7 @@ export class ProductoList implements OnInit {
 
     // Guardar el archivo
     doc.save(`Catalogo_Alquimia_${new Date().toISOString().split('T')[0]}.pdf`);
-  }
+  } */
 
 
   cargarProductos() {

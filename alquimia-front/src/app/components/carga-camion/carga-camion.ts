@@ -391,7 +391,7 @@ export class CargaCamionComponent implements OnInit {
   // --- LÓGICA DE MOVIMIENTO RÁPIDO Y VACIADO ---
 
   moverStock(producto: Producto, cantidadStr: string, destino: 'camion' | 'almacen') {
-    const cantidad = parseInt(cantidadStr, 10);
+    const cantidad = parseInt(cantidadStr || '0', 10);
     if (isNaN(cantidad) || cantidad <= 0) return;
 
     const stockTotal = producto.stock || 0;
@@ -429,7 +429,7 @@ export class CargaCamionComponent implements OnInit {
   }
 
   venderFeria(producto: Producto, cantidadStr: string) {
-    const cantidad = parseInt(cantidadStr, 10);
+    const cantidad = parseInt(cantidadStr || '0', 10);
     if (isNaN(cantidad) || cantidad <= 0) return;
 
     if ((producto.stock_camion || 0) < cantidad) {

@@ -23,7 +23,12 @@ export class ProductoService {
 
   constructor() { }
 
-  getAll(buscar: string = '', activo: boolean = true, page: number = 1, limit: number = 10): Observable<ProductoResponse> {
+getPublicCatalog() {
+    // Apunta al nuevo endpoint que creamos, el cual NO requiere token
+    return this.http.get<{data: any[]}>(`${this.apiUrl}/public/catalogo`);
+  }
+
+getAll(buscar: string = '', activo: boolean = true, page: number = 1, limit: number = 10): Observable<ProductoResponse> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('limit', limit.toString())
@@ -34,31 +39,31 @@ export class ProductoService {
     return this.http.get<ProductoResponse>(this.apiUrl, { params });
   }
 
-  getOne(id: number): Observable<Producto> {
+getOne(id: number): Observable<Producto> {
     return this.http.get<Producto>(`${this.apiUrl}/${id}`);
   }
 
-  create(producto: Producto): Observable<Producto> {
+create(producto: Producto): Observable<Producto> {
     return this.http.post<Producto>(this.apiUrl, producto);
   }
 
-  update(id: number, producto: Partial<Producto>): Observable<Producto> {
+update(id: number, producto: Partial<Producto>): Observable<Producto> {
     return this.http.put<Producto>(`${this.apiUrl}/${id}`, producto);
   }
 
-  delete(id: number): Observable<any> {
+delete(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
-  restaurar(id: number): Observable<any> {
+restaurar(id: number): Observable<any> {
     return this.http.patch(`${this.apiUrl}/${id}/restaurar`, {});
   }
 
-  fixPrecios() {
+fixPrecios() {
     return this.http.post(`${this.apiUrl}/fix-precios`, {});
   }
 
-  updateGananciaMasiva(nuevaGanancia: number): Observable<any> {
+updateGananciaMasiva(nuevaGanancia: number): Observable<any> {
   return this.http.put(`${this.apiUrl}/actualizar-ganancias-masivo`, { nueva_ganancia: nuevaGanancia });
 }
 
@@ -92,7 +97,7 @@ sincronizarDatosOffline(): Observable<boolean> {
     );
   }
 
-  getAllOffline(buscar: string = ''): Observable<ProductoResponse> {
+getAllOffline(buscar: string = ''): Observable<ProductoResponse> {
     const dataRaw = localStorage.getItem(CLAVE_OFFLINE);
     // Forzamos el tipo 'any' temporalmente al parsear porque el objeto guardado 
     // es una versión reducida de Producto, pero compatible en los campos que usamos.
@@ -116,11 +121,11 @@ sincronizarDatosOffline(): Observable<boolean> {
     });
   }
 
-  vaciarCamion(): Observable<any> {
+vaciarCamion(): Observable<any> {
     return this.http.post(`${this.apiUrl}/vaciar-camion`, {});
   }
 
-  ventaFeriaRápida(productoId: number, cantidad: number): Observable<any> {
+ventaFeriaRápida(productoId: number, cantidad: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/venta-feria`, { productoId, cantidad });
 }
 

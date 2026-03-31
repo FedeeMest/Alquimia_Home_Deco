@@ -154,7 +154,9 @@ proveedoresFrecuentes = [
       precio_tarjeta: [{ value: 0, disabled: true }],
       precio_tarjeta_local: [{ value: 0, disabled: true }],
       
-      activo: [true]
+      activo: [true],
+      imagenUrl: [''],
+      publicarEnWeb: [false]
     });
   }
 

@@ -27,8 +27,7 @@ interface ProductoCarrito extends Producto {
   selector: 'app-nueva-venta',
   standalone: true,
   imports: [CommonModule, FormsModule, ZXingScannerModule],
-  templateUrl: './nueva-venta.html',
-  styleUrl: './nueva-venta.css',
+  templateUrl: './nueva-venta.html'
 })
 export class NuevaVentaComponent implements OnInit, OnDestroy {
   private productoService = inject(ProductoService);
@@ -323,11 +322,11 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     if (confirm('¿Confirmar el cierre de esta venta?')) {
       this.guardando = true;
 
+      // Armamos el Payload exactamente como lo pide tu interfaz VentaRequest
       const payload: VentaRequest = {
-        total: this.totalVenta,
         metodo_pago: this.metodoPago,
-        detalles: this.carrito.map(item => ({
-          producto_id: item.id!,
+        items: this.carrito.map(item => ({   // <-- Cambiamos "detalles" por "items"
+          id_producto: item.id!,
           cantidad: item.cantidadCarrito,
           precio_unitario: item.precioUnitarioAplicado,
           subtotal: item.subtotal

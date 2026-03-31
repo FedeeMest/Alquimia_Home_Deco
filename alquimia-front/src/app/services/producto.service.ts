@@ -31,7 +31,7 @@ getPublicCatalog() {
 subirImagen(file: File): Observable<{url: string}> {
   const formData = new FormData();
   formData.append('image', file);
-  return this.http.post<{url: string}>(`${this.apiUrl}/productos/upload-image`, formData);
+  return this.http.post<{url: string}>(`${this.apiUrl}/upload-image`, formData);
 }
 
 getAll(buscar: string = '', activo: boolean = true, page: number = 1, limit: number = 10): Observable<ProductoResponse> {

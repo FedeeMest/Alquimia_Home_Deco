@@ -53,6 +53,17 @@ export class CargaCamionComponent implements OnInit {
     this.cargarProductos();
   }
 
+  // Función para sanitizar textos: quita tildes, dobles espacios y pasa a minúsculas
+  private normalizarTexto(texto: string | undefined | null): string {
+    if (!texto) return '';
+    return texto
+      .normalize('NFD') // Separa las letras de sus acentos
+      .replace(/[\u0300-\u036f]/g, '') // Elimina los acentos
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, ' '); // Reemplaza múltiples espacios por uno solo
+  }
+
   generarPdfCarga() {
     // 1. Filtramos automáticamente solo lo que tiene stock en el camión
     const enCamion = this.productosOriginales.filter(p => (p.stock_camion || 0) > 0);
@@ -268,6 +279,83 @@ export class CargaCamionComponent implements OnInit {
   aplicarFiltros() {
     let filtrados = [...this.productosOriginales];
     
+    // Filtro por pestañas (Camión / Almacén)
+    if (this.vistaActual === 'camion') {
+        filtrados = filtrados.filter(p => (p.stock_camion || 0) > 0);
+    } else if (this.vistaActual === 'almacen') {
+        filtrados = filtrados.filter(p => ((p.stock || 0) - (p.stock_camion || 0)) > 0);
+    }
+
+    // 1. PREPARAMOS EL TÉRMINO DE BÚSQUEDA (Saneado y Tokenizado)
+    const terminoSaneado = this.normalizarTexto(this.terminoBusqueda);
+    const palabrasBuscadas = terminoSaneado.split(' ').filter(p => p.length > 0);
+
+    const codProvFiltro = this.normalizarTexto(this.filtros.codigoProveedor);
+    const provNombreFiltro = this.filtros.proveedorNombre;
+    const catFiltro = this.filtros.categoria;
+
+    // 2. BÚSQUEDA INTELIGENTE
+    if (palabrasBuscadas.length > 0) {
+      filtrados = filtrados.filter(p => {
+        const nombreDB = this.normalizarTexto(p.nombre);
+        const codBarraDB = this.normalizarTexto(p.codigo_barra);
+        const codProvDB = this.normalizarTexto(p.codigo_proveedor);
+
+        // Todas las palabras tipeadas deben existir en el producto (sin importar el orden)
+        return palabrasBuscadas.every(palabra => 
+          nombreDB.includes(palabra) || 
+          codBarraDB.includes(palabra) || 
+          codProvDB.includes(palabra)
+        );
+      });
+    }
+
+    // 3. FILTROS AVANZADOS
+    if (codProvFiltro !== '') {
+      filtrados = filtrados.filter(p => 
+        this.normalizarTexto(p.codigo_proveedor).includes(codProvFiltro)
+      );
+    }
+    if (provNombreFiltro !== '') filtrados = filtrados.filter(p => p.proveedor === provNombreFiltro);
+    if (catFiltro !== '') filtrados = filtrados.filter(p => p.categoria === catFiltro);
+
+    // 4. LÓGICA DE ORDENAMIENTO (Mantenemos tu configuración actual)
+    filtrados.sort((a, b) => {
+      const stockGralA = a.stock || 0;
+      const stockGralB = b.stock || 0;
+      const stockCamionA = a.stock_camion || 0;
+      const stockCamionB = b.stock_camion || 0;
+      const stockAlmacenA = stockGralA - stockCamionA;
+      const stockAlmacenB = stockGralB - stockCamionB;
+
+      switch (this.filtros.orden) {
+        case 'nombre_asc': return (a.nombre || '').localeCompare(b.nombre || '');
+        case 'nombre_desc': return (b.nombre || '').localeCompare(a.nombre || '');
+        case 'precio_asc': return (a.precio_efectivo || 0) - (b.precio_efectivo || 0);
+        case 'precio_desc': return (b.precio_efectivo || 0) - (a.precio_efectivo || 0);
+        
+        case 'stock_general_asc': return stockGralA - stockGralB;
+        case 'stock_general_desc': return stockGralB - stockGralA;
+        
+        case 'stock_camion_asc': return stockCamionA - stockCamionB;
+        case 'stock_camion_desc': return stockCamionB - stockCamionA;
+        
+        case 'stock_almacen_asc': return stockAlmacenA - stockAlmacenB;
+        case 'stock_almacen_desc': return stockAlmacenB - stockAlmacenA;
+        
+        default: return 0;
+      }
+    });
+
+    this.productosList = filtrados;
+    this.total = this.productosList.length;
+    this.totalPages = Math.ceil(this.total / this.limit) || 1;
+    this.page = 1; 
+    this.actualizarVistaPaginada();
+  }
+  /* aplicarFiltros() {
+    let filtrados = [...this.productosOriginales];
+    
     if (this.vistaActual === 'camion') {
         filtrados = filtrados.filter(p => (p.stock_camion || 0) > 0);
     } else if (this.vistaActual === 'almacen') {
@@ -328,48 +416,8 @@ export class CargaCamionComponent implements OnInit {
     this.totalPages = Math.ceil(this.total / this.limit) || 1;
     this.page = 1; 
     this.actualizarVistaPaginada();
-  }
-  /* aplicarFiltros() {
-    let filtrados = [...this.productosOriginales];
-    
-    if (this.vistaActual === 'camion') {
-        filtrados = filtrados.filter(p => (p.stock_camion || 0) > 0);
-    } else if (this.vistaActual === 'almacen') {
-        filtrados = filtrados.filter(p => ((p.stock || 0) - (p.stock_camion || 0)) > 0);
-    }
-
-    const termino = (this.terminoBusqueda || '').toLowerCase().trim();
-    const codProvFiltro = this.filtros.codigoProveedor.toLowerCase().trim();
-    const provNombreFiltro = this.filtros.proveedorNombre;
-    const catFiltro = this.filtros.categoria;
-
-    if (termino !== '') {
-      filtrados = filtrados.filter(p => 
-        (p.nombre || '').toLowerCase().includes(termino) ||
-        (p.codigo_barra || '').toLowerCase().includes(termino) ||
-        (p.codigo_proveedor || '').toLowerCase().includes(termino)
-      );
-    }
-    if (codProvFiltro !== '') filtrados = filtrados.filter(p => (p.codigo_proveedor || '').toLowerCase().includes(codProvFiltro));
-    if (provNombreFiltro !== '') filtrados = filtrados.filter(p => p.proveedor === provNombreFiltro);
-    if (catFiltro !== '') filtrados = filtrados.filter(p => p.categoria === catFiltro);
-
-    filtrados.sort((a, b) => {
-      switch (this.filtros.orden) {
-        case 'nombre_asc': return (a.nombre || '').localeCompare(b.nombre || '');
-        case 'nombre_desc': return (b.nombre || '').localeCompare(a.nombre || '');
-        case 'precio_asc': return (a.precio_efectivo || 0) - (b.precio_efectivo || 0);
-        case 'precio_desc': return (b.precio_efectivo || 0) - (a.precio_efectivo || 0);
-        default: return 0;
-      }
-    });
-
-    this.productosList = filtrados;
-    this.total = this.productosList.length;
-    this.totalPages = Math.ceil(this.total / this.limit) || 1;
-    this.page = 1; 
-    this.actualizarVistaPaginada();
   } */
+  
 
   actualizarVistaPaginada() {
     const indiceInicio = (this.page - 1) * this.limit;

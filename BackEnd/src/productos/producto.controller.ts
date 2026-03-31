@@ -38,6 +38,9 @@ function inputS(req: Request, res: Response, next: NextFunction) {
         // Tarjeta Local
         ajuste_tarjeta_local_tipo: req.body.ajuste_tarjeta_local_tipo,
         ajuste_tarjeta_local_valor: req.body.ajuste_tarjeta_local_valor,
+
+        imagenUrl: req.body.imagenUrl,
+        publicarEnWeb: req.body.publicarEnWeb,
     };
 
     // Eliminar campos no definidos (undefined) para no sobreescribir con nulls accidentalmente

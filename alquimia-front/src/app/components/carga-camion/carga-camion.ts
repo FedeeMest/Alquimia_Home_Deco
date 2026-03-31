@@ -103,7 +103,7 @@ export class CargaCamionComponent implements OnInit {
     // 6. Generación de la Tabla
     autoTable(doc, {
         startY: 45,
-        head: [['Código', 'Producto', 'Cant.', 'Precio Venta', 'Control (✓)']],
+        head: [['Código', 'Producto', 'Cant.', 'Precio Venta', 'Control Check']],
         body: datos,
         theme: 'grid', 
         headStyles: { 
@@ -113,16 +113,19 @@ export class CargaCamionComponent implements OnInit {
             halign: 'center'
         },
         columnStyles: {
-            0: { cellWidth: 30, fontStyle: 'normal' },
+            0: { cellWidth: 30, fontStyle: 'normal', halign:'center'},
             1: { cellWidth: 'auto' },
-            2: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
+            2: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
             3: { 
-                cellWidth: 35, 
-                halign: 'right', 
-                fontStyle: 'bold', 
+                cellWidth: 40, 
+                halign: 'center', 
+                fontStyle: 'bold',
+                fontSize: 13, 
                 textColor: [5, 150, 105] // Verde Esmeralda (igual que en el catálogo)
             },
-            4: { cellWidth: 20 } 
+            4: { 
+                cellWidth: 30, 
+                halign: 'center' } 
         },
         styles: { fontSize: 9, cellPadding: 4, textColor: [51, 65, 83] }, 
         alternateRowStyles: { fillColor: [248, 250, 252] }, 

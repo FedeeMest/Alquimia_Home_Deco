@@ -104,7 +104,7 @@ export class CargaCamionComponent implements OnInit {
     // 6. Generación de la Tabla
     autoTable(doc, {
         startY: 45,
-        head: [['Cód. Barras', 'Producto', 'Categoría', 'Cantidad', 'Control']],
+        head: [['Cód. Barras', 'Producto', 'Categoría', 'Cant.', 'Control']],
         body: datos,
         theme: 'grid', // Usamos 'grid' para que queden las celdas marcadas para escribir
         headStyles: { 

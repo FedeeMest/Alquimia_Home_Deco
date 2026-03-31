@@ -57,7 +57,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 
   totalVenta: number = 0;
   totalArticulos: number = 0;
-  guardando: boolean = false;
+  procesando: boolean = false; // <-- AHORA SE LLAMA PROCESANDO
   cargandoProductos: boolean = true;
 
   mostrarCamara = false;
@@ -320,7 +320,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     }
 
     if (confirm('¿Confirmar el cierre de esta venta?')) {
-      this.guardando = true;
+      this.procesando = true;
 
       // Armamos el Payload exactamente como lo pide tu interfaz VentaRequest
       const payload: VentaRequest = {
@@ -335,7 +335,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 
       this.ventaService.crear(payload).pipe(
         finalize(() => {
-          this.guardando = false;
+          this.procesando = false;
           this.cd.detectChanges();
         })
       ).subscribe({

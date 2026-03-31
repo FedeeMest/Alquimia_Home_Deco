@@ -12,13 +12,15 @@ import { Subject, Subscription } from 'rxjs';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { BarcodeFormat } from '@zxing/library';
 
-// 1. EXTENDEMOS LA INTERFAZ PARA INCLUIR EL INDEX DE BÚSQUEDA
+// EXTENDEMOS LA INTERFAZ PARA INCLUIR EL INDEX DE BÚSQUEDA
 interface ProductoIndexado extends Producto {
   _searchIndex: string;
 }
 
-interface ProductoCarrito extends Producto {
-  cantidadCarrito: number;
+// ADAPTADA PARA QUE HAGA MATCH CON EL HTML (item.producto.nombre y item.cantidad)
+interface ProductoCarrito {
+  producto: ProductoIndexado | Producto;
+  cantidad: number;
   precioUnitarioAplicado: number;
   subtotal: number;
 }
@@ -39,7 +41,25 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 
   @ViewChild('scanInput') scanInput!: ElementRef;
 
-  // Cambiamos el array a nuestra interfaz indexada
+  // --- VARIABLES NUEVAS REQUERIDAS POR EL HTML ---
+  dispositivoActual: any;
+  mostrarSugerencias: boolean = false;
+  autoEnter: boolean = false;
+  estadoVenta: 'PENDIENTE' | 'COBRADA' | string = 'PENDIENTE';
+  observaciones: string = '';
+  total: number = 0; // El HTML usa 'total' en lugar de 'totalVenta'
+
+  datosCliente = {
+    nombre: '',
+    cuit: '',
+    direccion: ''
+  };
+
+  datosVenta = {
+    cuotas: 1
+  };
+  // ------------------------------------------------
+
   productosCache: ProductoIndexado[] = [];
   productosEncontrados: ProductoIndexado[] = [];
   carrito: ProductoCarrito[] = [];
@@ -57,7 +77,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 
   totalVenta: number = 0;
   totalArticulos: number = 0;
-  procesando: boolean = false; // <-- AHORA SE LLAMA PROCESANDO
+  procesando: boolean = false;
   cargandoProductos: boolean = true;
 
   mostrarCamara = false;
@@ -72,9 +92,9 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     this.cargarConfiguracion();
     this.cargarTodosLosProductos();
 
-    // --- MOTOR DE BÚSQUEDA REACTIVO ---
+    // MOTOR DE BÚSQUEDA REACTIVO
     this.searchSubscription = this.searchSubject.pipe(
-      debounceTime(250), // Bajamos un poco el tiempo para que se sienta más instantáneo
+      debounceTime(250),
       distinctUntilChanged()
     ).subscribe(termino => {
       this.ejecutarBusquedaInteligente(termino);
@@ -87,7 +107,36 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     }
   }
 
-  // --- HERRAMIENTA CENTRAL DE NORMALIZACIÓN ---
+  // --- EVENTOS DE INTERFAZ Y HTML ---
+  onCamerasFound(devices: any[]): void {
+    if (devices && devices.length > 0) {
+      this.dispositivoActual = devices[0];
+    }
+  }
+
+  onCodigoEscaneado(codigo: string): void {
+    this.onCodigoEscaneadoCamara(codigo);
+  }
+
+  onInputFocus(): void {
+    this.mostrarSugerencias = true;
+  }
+
+  onInputBlur(): void {
+    // Le damos un pequeño delay para que si el usuario hace clic en una sugerencia, 
+    // registre el clic antes de ocultar el menú
+    setTimeout(() => this.mostrarSugerencias = false, 200);
+  }
+
+  quitarDelCarrito(index: number): void {
+    this.eliminarDelCarrito(index);
+  }
+
+  confirmarVenta(): void {
+    this.completarVenta();
+  }
+  // ----------------------------------
+
   private normalizarTexto(texto: string | undefined | null): string {
     if (!texto) return '';
     return texto
@@ -115,8 +164,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     this.cargandoProductos = true;
     this.productoService.getAll('', true, 1, 10000).subscribe({
       next: (resp) => {
-        // PRE-INDEXACIÓN (Enterprise Standard): 
-        // Creamos una "super cadena" limpia una sola vez al cargar la página
         this.productosCache = resp.data.map(p => ({
           ...p,
           _searchIndex: this.normalizarTexto(`${p.nombre} ${p.codigo_barra} ${p.codigo_proveedor} ${p.categoria}`)
@@ -135,7 +182,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Se dispara cada vez que el usuario teclea algo
   buscar(termino: string) {
     this.busqueda = termino; 
     if (termino.trim().length < 2) {
@@ -145,7 +191,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     this.searchSubject.next(termino);
   }
 
-  // --- LÓGICA CORE DE BÚSQUEDA EMPRESARIAL ---
   private ejecutarBusquedaInteligente(termino: string) {
     const terminoSaneado = this.normalizarTexto(termino);
     const palabrasBuscadas = terminoSaneado.split(' ').filter(p => p.length > 0);
@@ -156,37 +201,29 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // 1. FILTRADO SÚPER RÁPIDO (O(N) usando la cadena pre-indexada)
     let resultados = this.productosCache.filter(p => 
       palabrasBuscadas.every(palabra => p._searchIndex.includes(palabra))
     );
 
-    // 2. SISTEMA DE RELEVANCIA (Scoring)
-    // El primer término tipeado es el más importante para el usuario
     const terminoPrincipal = palabrasBuscadas[0];
 
     resultados.sort((a, b) => {
       const nombreA = this.normalizarTexto(a.nombre);
       const nombreB = this.normalizarTexto(b.nombre);
 
-      // Prioridad 1: Match exacto del código de barras (Si tipeó el código con teclado)
       if (a.codigo_barra === terminoSaneado) return -1;
       if (b.codigo_barra === terminoSaneado) return 1;
 
-      // Prioridad 2: El nombre EMPIEZA con la primera palabra que escribieron
       const aEmpieza = nombreA.startsWith(terminoPrincipal) ? 1 : 0;
       const bEmpieza = nombreB.startsWith(terminoPrincipal) ? 1 : 0;
       
       if (aEmpieza !== bEmpieza) {
-        return bEmpieza - aEmpieza; // El que empieza con la palabra sube en la lista
+        return bEmpieza - aEmpieza; 
       }
 
-      // Prioridad 3: Si ambos tienen la palabra, priorizamos el nombre más corto 
-      // (Ej: "Taza" le gana a "Taza de cerámica importada grande")
       return nombreA.length - nombreB.length;
     });
 
-    // Para evitar saturar el DOM en el frontend si hay muchas coincidencias, limitamos a los top 30 mejores resultados
     this.productosEncontrados = resultados.slice(0, 30);
     this.cd.detectChanges();
   }
@@ -212,7 +249,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     const codigoLimpio = (this.codigoLeido || '').trim();
     if (!codigoLimpio) return;
 
-    // Aquí también aprovechamos el _searchIndex para el escáner rápido si se tipea el código de proveedor
     const productoEncontrado = this.productosCache.find(p => 
       (p.codigo_barra || '').trim() === codigoLimpio ||
       (p.codigo_proveedor || '').trim().toLowerCase() === codigoLimpio.toLowerCase()
@@ -241,15 +277,16 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     this.onScannerEnter(); 
   }
 
-  agregarAlCarrito(producto: Producto) {
-    const itemExistente = this.carrito.find(item => item.id === producto.id);
+  agregarAlCarrito(producto: Producto | ProductoIndexado) {
+    // Adaptado a la nueva estructura anidada (item.producto.id)
+    const itemExistente = this.carrito.find(item => item.producto.id === producto.id);
     
     if (itemExistente) {
-      itemExistente.cantidadCarrito += 1;
+      itemExistente.cantidad += 1;
     } else {
       const nuevoItem: ProductoCarrito = {
-        ...producto,
-        cantidadCarrito: 1,
+        producto: producto,
+        cantidad: 1,
         precioUnitarioAplicado: 0, 
         subtotal: 0
       };
@@ -262,10 +299,10 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 
   modificarCantidad(index: number, delta: number) {
     const item = this.carrito[index];
-    const nuevaCantidad = item.cantidadCarrito + delta;
+    const nuevaCantidad = item.cantidad + delta;
     
     if (nuevaCantidad > 0) {
-      item.cantidadCarrito = nuevaCantidad;
+      item.cantidad = nuevaCantidad;
       this.calcularTotales();
     }
   }
@@ -282,22 +319,25 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 
   calcularTotales() {
     this.totalVenta = 0;
+    this.total = 0; // Sincronizamos la variable que lee el HTML
     this.totalArticulos = 0;
 
     this.carrito.forEach(item => {
-      let precioAplicado = item.precio_efectivo || 0;
+      // Ahora accedemos al precio a través de item.producto
+      let precioAplicado = item.producto.precio_efectivo || 0;
 
       if (this.metodoPago === 'TARJETA_LOCAL') {
-        precioAplicado = item.precio_tarjeta_local || 0;
+        precioAplicado = item.producto.precio_tarjeta_local || 0;
       } else if (this.metodoPago === 'TARJETA') {
-        precioAplicado = item.precio_tarjeta || 0;
+        precioAplicado = item.producto.precio_tarjeta || 0;
       }
 
       item.precioUnitarioAplicado = precioAplicado;
-      item.subtotal = precioAplicado * item.cantidadCarrito;
+      item.subtotal = precioAplicado * item.cantidad;
 
       this.totalVenta += item.subtotal;
-      this.totalArticulos += item.cantidadCarrito;
+      this.total += item.subtotal; // Sincronizamos
+      this.totalArticulos += item.cantidad;
     });
   }
 
@@ -322,12 +362,11 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     if (confirm('¿Confirmar el cierre de esta venta?')) {
       this.procesando = true;
 
-      // Armamos el Payload exactamente como lo pide tu interfaz VentaRequest
       const payload: VentaRequest = {
         metodo_pago: this.metodoPago,
-        items: this.carrito.map(item => ({   // <-- Cambiamos "detalles" por "items"
-          id_producto: item.id!,
-          cantidad: item.cantidadCarrito,
+        items: this.carrito.map(item => ({
+          id_producto: item.producto.id!, // Adaptado a la nueva estructura anidada
+          cantidad: item.cantidad,
           precio_unitario: item.precioUnitarioAplicado,
           subtotal: item.subtotal
         }))

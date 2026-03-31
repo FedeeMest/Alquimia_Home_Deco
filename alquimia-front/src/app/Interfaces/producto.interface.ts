@@ -13,7 +13,6 @@ export interface Producto {
   tiene_iva: boolean;
   precio_costo: number;
   ganancia: number;
-  
 
   // Ajustes
   ajuste_efectivo_tipo: TipoAjuste;

@@ -34,6 +34,9 @@ export interface Producto {
   stock: number;
   stock_minimo: number;
   stock_camion?: number;
+
+  imagenUrl?: string;
+  publicarEnWeb?: boolean;
   
   fecha_creacion?: Date;
   fecha_actualizacion?: Date;

@@ -93,7 +93,7 @@
 
         <button 
             type="button"
-            (click)="mostrarFiltros = !mostrarFiltros"
+            (click)="toggleFiltros()"
             class="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl hover:bg-slate-50 focus:outline-none transition-all shadow-sm font-medium text-sm w-full md:w-auto"
             [ngClass]="{'bg-slate-100 border-slate-300': mostrarFiltros}"
         >

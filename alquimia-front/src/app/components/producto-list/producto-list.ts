@@ -67,11 +67,13 @@ export class ProductoList implements OnInit {
         this.crearDocumentoPdf(resp.data);
         this.loading = false;
         this.notificationService.show('PDF descargado con éxito', 'success');
+        this.cd.detectChanges();
       },
       error: (err) => {
         console.error(err);
         this.loading = false;
         this.notificationService.show('Error al generar el PDF', 'error');
+        this.cd.detectChanges();
       }
     });
   }

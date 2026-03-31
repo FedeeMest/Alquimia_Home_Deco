@@ -66,6 +66,23 @@ categorias = [
   'Difusores',
   'Otros'
 ];
+
+proveedoresFrecuentes = [
+  'ALLEGRA',
+  'ALQUIMIA',
+  'AMBER CANDLES',
+  'BLUME',
+  'BORLAS CHIC',
+  'BOTON',
+  'BRODERI',
+  'CURA TE ALMA',
+  'ELSATA',
+  'JUNKO SRL',
+  'LUMME',
+  'ORAKKE',
+  'PAQUE & COCO',
+  'PETRIS SRL'
+];
   tiposAjuste = ['DESCUENTO', 'RECARGO', 'NINGUNO'];
 
   showPrintModal = false;

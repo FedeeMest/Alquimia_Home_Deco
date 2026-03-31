@@ -48,9 +48,18 @@
           </div>
 
           <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-1">Proveedor</label>
-              <input formControlName="proveedor" type="text" class="w-full rounded-lg border-slate-300 bg-slate-200 focus:bg-white focus:border-slate-500 focus:ring-slate-500 shadow-md transition-all p-2.5" placeholder="Ej: Distribuidora Sol">
-          </div>
+    <label class="block text-sm font-semibold text-slate-700 mb-1">Proveedor</label>
+    
+    <input formControlName="proveedor" 
+           list="lista-proveedores" 
+           type="text" 
+           class="w-full rounded-lg border-slate-300 bg-slate-200 focus:bg-white focus:border-slate-500 focus:ring-slate-500 shadow-md transition-all p-2.5" 
+           placeholder="Ej: Distribuidora Sol">
+    
+    <datalist id="lista-proveedores">
+        <option *ngFor="let prov of proveedoresFrecuentes" [value]="prov"></option>
+    </datalist>
+</div>
       </div>
 
       <hr class="border-slate-100">

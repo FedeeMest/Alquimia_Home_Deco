@@ -9,11 +9,11 @@
         </p>
     </div>
 
-    <div class="flex flex-col md:flex-row gap-8 lg:gap-12 items-start" *ngIf="!cargando && productosOriginales.length > 0">
+    <div class="flex flex-col md:flex-row gap-8 lg:gap-10 items-start" *ngIf="!cargando && productosOriginales.length > 0">
 
-        <aside class="w-full md:w-64 lg:w-[300px] shrink-0 md:sticky md:top-24 z-30">
+        <aside class="w-full md:w-64 lg:w-[280px] shrink-0 md:sticky md:top-24 z-30">
             
-            <div class="bg-slate-50/80 p-5 lg:p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-200/60 backdrop-blur-md space-y-7">
+            <div class="bg-white p-5 lg:p-6 rounded-[2rem] shadow-xl shadow-slate-200/60 border border-slate-200 space-y-7">
                 
                 <div>
                     <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-3 ml-1">Búsqueda</h3>
@@ -24,24 +24,24 @@
                             </svg>
                         </div>
                         <input type="text" [(ngModel)]="terminoBusqueda" (keyup)="aplicarFiltros()" placeholder="Ej: Difusor..." 
-                            class="w-full pl-11 pr-10 py-3 rounded-2xl border border-white bg-white focus:bg-white focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 shadow-[0_2px_10px_rgb(0,0,0,0.04)] text-sm font-medium text-slate-700 transition-all placeholder:text-slate-300">
-                        <button *ngIf="terminoBusqueda" (click)="limpiarBusqueda()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-300 hover:text-slate-600 transition-colors">
+                            class="w-full pl-11 pr-10 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 text-sm font-medium text-slate-700 transition-all placeholder:text-slate-400">
+                        <button *ngIf="terminoBusqueda" (click)="limpiarBusqueda()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" /></svg>
                         </button>
                     </div>
                 </div>
 
-                <div class="w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent opacity-60"></div>
+                <div class="w-full h-px bg-slate-100"></div>
 
                 <div>
                     <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-3 ml-1">Ordenar Por</h3>
                     <select [(ngModel)]="ordenSeleccionado" (change)="aplicarFiltros()"
-                        class="w-full rounded-2xl border border-white bg-white py-3 px-4 text-sm font-bold text-slate-700 shadow-[0_2px_10px_rgb(0,0,0,0.04)] focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 cursor-pointer transition-all hover:border-slate-300 appearance-none">
-                        <option value="defecto">✨ Novedades</option>
-                        <option value="precio_asc">📉 Menor Precio</option>
-                        <option value="precio_desc">📈 Mayor Precio</option>
-                        <option value="nombre_asc">🔤 Nombre (A-Z)</option>
-                        <option value="nombre_desc">🔠 Nombre (Z-A)</option>
+                        class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 px-4 text-sm font-bold text-slate-700 focus:bg-white focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 cursor-pointer transition-all hover:border-slate-300 appearance-none">
+                        <option value="defecto">Novedades</option>
+                        <option value="precio_asc">Menor Precio</option>
+                        <option value="precio_desc">Mayor Precio</option>
+                        <option value="nombre_asc">Nombre (A-Z)</option>
+                        <option value="nombre_desc">Nombre (Z-A)</option>
                     </select>
                 </div>
 
@@ -51,14 +51,14 @@
                         
                         <button (click)="seleccionarCategoria('')" 
                             class="text-left px-5 py-3 rounded-2xl text-sm transition-all duration-300 flex items-center justify-between border"
-                            [ngClass]="categoriaSeleccionada === '' ? 'bg-slate-800 text-white font-extrabold border-slate-800 shadow-md transform scale-[1.02]' : 'bg-transparent text-slate-600 font-semibold border-transparent hover:bg-white hover:border-white hover:shadow-sm'">
+                            [ngClass]="categoriaSeleccionada === '' ? 'bg-slate-800 text-white font-extrabold border-slate-800 shadow-md transform scale-[1.02]' : 'bg-transparent text-slate-600 font-medium border-transparent hover:bg-slate-50 hover:border-slate-200'">
                             <span>Todas las categorías</span>
                             <svg *ngIf="categoriaSeleccionada === ''" class="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
                         </button>
                         
                         <button *ngFor="let cat of categoriasDisponibles" (click)="seleccionarCategoria(cat)" 
                             class="text-left px-5 py-3 rounded-2xl text-sm transition-all duration-300 flex items-center justify-between border group"
-                            [ngClass]="categoriaSeleccionada === cat ? 'bg-white text-emerald-700 font-extrabold border-emerald-100 shadow-md ring-1 ring-emerald-500/20 transform scale-[1.02]' : 'bg-transparent text-slate-600 font-semibold border-transparent hover:bg-white hover:border-white hover:shadow-sm'">
+                            [ngClass]="categoriaSeleccionada === cat ? 'bg-emerald-50 text-emerald-800 font-extrabold border-emerald-200 shadow-sm ring-1 ring-emerald-500/20 transform scale-[1.02]' : 'bg-transparent text-slate-600 font-medium border-transparent hover:bg-slate-50 hover:border-slate-200'">
                             <span class="truncate pr-2 group-hover:text-slate-900 transition-colors">{{ cat }}</span>
                             <div *ngIf="categoriaSeleccionada === cat" class="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse"></div>
                         </button>
@@ -75,12 +75,12 @@
                 <h2 class="text-2xl font-extrabold text-slate-800">
                     {{ categoriaSeleccionada ? categoriaSeleccionada : 'Todos los productos' }}
                 </h2>
-                <span class="text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg w-fit">
+                <span class="text-sm font-bold text-slate-500 bg-white border border-slate-200 shadow-sm px-4 py-1.5 rounded-xl w-fit">
                     {{ productosFiltrados.length }} resultados
                 </span>
             </div>
 
-            <div *ngIf="!cargando && productosFiltrados.length === 0" class="bg-slate-50 border border-dashed border-slate-200 rounded-3xl py-20 flex flex-col items-center justify-center">
+            <div *ngIf="!cargando && productosFiltrados.length === 0" class="bg-white border border-slate-200 shadow-xl shadow-slate-200/40 rounded-[2rem] py-20 flex flex-col items-center justify-center">
                 <svg class="w-16 h-16 text-slate-300 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                 </svg>
@@ -91,36 +91,36 @@
                 </button>
             </div>
 
-            <div *ngIf="!cargando && productosVisibles.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+            <div *ngIf="!cargando && productosVisibles.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 text-left">
                 
-                <div *ngFor="let p of productosVisibles" class="bg-white rounded-3xl shadow-[0_2px_15px_rgb(0,0,0,0.04)] hover:shadow-[0_10px_25px_rgb(0,0,0,0.08)] transition-all duration-300 border border-slate-100 overflow-hidden flex flex-col group relative">
+                <div *ngFor="let p of productosVisibles" class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-slate-200/60 transition-all duration-300 border border-slate-200 overflow-hidden flex flex-col group relative">
                     
-                    <div (click)="abrirModal(p)" class="h-64 bg-slate-100 relative overflow-hidden flex items-center justify-center cursor-pointer">
+                    <div (click)="abrirModal(p)" class="h-64 bg-slate-50 relative overflow-hidden flex items-center justify-center cursor-pointer border-b border-slate-100">
                         <img *ngIf="p.imagenUrl" [src]="p.imagenUrl" [alt]="p.nombre" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                         <svg *ngIf="!p.imagenUrl" class="w-16 h-16 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                         </svg>
                         
-                        <div *ngIf="!p.disponible" class="absolute top-3 right-3 bg-red-500/90 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">Agotado</div>
-                        </div>
+                        <div *ngIf="!p.disponible" class="absolute top-4 right-4 bg-red-500/95 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">Agotado</div>
+                    </div>
 
-                    <div class="p-5 flex flex-col flex-1">
-                        <h3 (click)="abrirModal(p)" class="font-bold text-slate-800 text-lg mb-1 line-clamp-2 leading-tight cursor-pointer hover:text-emerald-600 transition-colors" [title]="p.nombre">
+                    <div class="p-6 flex flex-col flex-1">
+                        <h3 (click)="abrirModal(p)" class="font-extrabold text-slate-800 text-lg mb-2 line-clamp-2 leading-tight cursor-pointer hover:text-emerald-600 transition-colors" [title]="p.nombre">
                             {{ p.nombre }}
                         </h3>
-                        <div class="text-2xl font-black text-emerald-600 mb-6 mt-auto">
+                        <div class="text-[1.35rem] font-black text-emerald-600 mb-6 mt-auto">
                             {{ p.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}
                         </div>
                         
-                        <div class="flex gap-2 w-full">
-                            <button (click)="abrirModal(p)" class="p-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-2xl transition-colors shrink-0 flex items-center justify-center group/btn" title="Ver detalles">
+                        <div class="flex gap-2 w-full mt-auto">
+                            <button (click)="abrirModal(p)" class="p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-colors shrink-0 flex items-center justify-center group/btn shadow-sm" title="Ver detalles">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 group-hover/btn:scale-110 transition-transform">
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                 </svg>
                             </button>
                             
-                            <button (click)="agregarAlCarrito(p)" [disabled]="!p.disponible" class="flex-1 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold py-3.5 rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                            <button (click)="agregarAlCarrito(p)" [disabled]="!p.disponible" class="flex-1 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:border-transparent text-white font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md hover:shadow-lg border border-slate-900">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                                 </svg>
@@ -130,11 +130,13 @@
                     </div>
                 </div>
 
-            </div> <div *ngIf="productosVisibles.length < productosFiltrados.length" class="mt-12 mb-4 flex flex-col items-center w-full">
+            </div> 
+
+            <div *ngIf="productosVisibles.length < productosFiltrados.length" class="mt-12 mb-4 flex flex-col items-center w-full">
                 <p class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-widest">
                     Viendo {{ productosVisibles.length }} de {{ productosFiltrados.length }} productos
                 </p>
-                <button (click)="cargarMas()" class="bg-white border-2 border-slate-200 text-slate-700 hover:border-emerald-500 hover:text-emerald-600 font-extrabold text-lg py-3 px-10 rounded-full transition-all hover:shadow-lg flex items-center gap-3">
+                <button (click)="cargarMas()" class="bg-white border border-slate-200 shadow-md hover:shadow-lg text-slate-700 hover:text-emerald-600 font-extrabold text-lg py-4 px-10 rounded-full transition-all flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 animate-bounce">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3" />
                     </svg>
@@ -149,24 +151,28 @@
                 </p>
             </div>
 
-        </main> </div> </div> <div *ngIf="productoSeleccionado" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        </main> 
+    </div> 
+</div> 
+
+<div *ngIf="productoSeleccionado" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
     
     <div (click)="cerrarModal()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-fade-in"></div>
     
     <div (click)="$event.stopPropagation()" class="bg-white w-full max-w-5xl rounded-[2rem] shadow-2xl relative z-10 flex flex-col md:flex-row overflow-hidden transform transition-all animate-scale-up max-h-[90vh]">
         
-        <button (click)="cerrarModal()" class="absolute top-4 right-4 z-20 p-2 bg-white/80 backdrop-blur-md hover:bg-white text-slate-500 hover:text-slate-800 rounded-full shadow-sm transition-all">
+        <button (click)="cerrarModal()" class="absolute top-4 right-4 z-20 p-2 bg-white/80 backdrop-blur-md hover:bg-white text-slate-500 hover:text-slate-800 rounded-full shadow-sm transition-all border border-slate-100">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
 
-        <div class="w-full md:w-1/2 bg-slate-100 flex items-center justify-center min-h-[300px] md:min-h-[500px] relative shrink-0">
+        <div class="w-full md:w-1/2 bg-slate-50 flex items-center justify-center min-h-[300px] md:min-h-[500px] relative shrink-0 border-r border-slate-100">
             <img *ngIf="productoSeleccionado.imagenUrl" [src]="productoSeleccionado.imagenUrl" [alt]="productoSeleccionado.nombre" class="w-full h-full object-cover">
             
             <div *ngIf="!productoSeleccionado.imagenUrl" class="flex flex-col items-center text-slate-300">
                 <svg class="w-24 h-24 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             </div>
             
-            <div *ngIf="productoSeleccionado.categoria" class="absolute top-6 left-6 bg-white/90 backdrop-blur text-slate-800 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-md">
+            <div *ngIf="productoSeleccionado.categoria" class="absolute top-6 left-6 bg-white/95 backdrop-blur text-slate-800 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-md border border-slate-100">
                 {{ productoSeleccionado.categoria }}
             </div>
         </div>
@@ -179,10 +185,10 @@
                 </h2>
                 
                 <div class="flex items-center gap-3">
-                    <span *ngIf="productoSeleccionado.disponible" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider">
+                    <span *ngIf="productoSeleccionado.disponible" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-wider">
                         <div class="w-2 h-2 rounded-full bg-emerald-500"></div> Disponible
                     </span>
-                    <span *ngIf="!productoSeleccionado.disponible" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-red-50 text-red-700 text-xs font-bold uppercase tracking-wider">
+                    <span *ngIf="!productoSeleccionado.disponible" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-red-50 border border-red-100 text-red-700 text-xs font-bold uppercase tracking-wider">
                         <div class="w-2 h-2 rounded-full bg-red-500"></div> Agotado
                     </span>
                 </div>
@@ -194,10 +200,10 @@
                     {{ productoSeleccionado.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}
                 </div>
                 
-                <div *ngIf="productoSeleccionado.precio_tarjeta" class="mt-3 flex items-center gap-2 text-sm font-medium text-slate-500 bg-slate-50 w-fit px-4 py-2 rounded-xl border border-slate-200">
+                <!-- <div *ngIf="productoSeleccionado.precio_tarjeta" class="mt-4 flex items-center gap-2 text-sm font-medium text-slate-500 bg-white shadow-sm w-fit px-4 py-2.5 rounded-xl border border-slate-200">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg>
-                    Precio de Lista (Tarjetas): <span class="font-bold text-slate-700">{{ productoSeleccionado.precio_tarjeta | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
-                </div>
+                    Precio con Tarjeta: <span class="font-bold text-slate-700">{{ productoSeleccionado.precio_tarjeta | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+                </div> -->
             </div>
 
             <div class="prose prose-slate prose-sm text-slate-600 mb-8 border-t border-b border-slate-100 py-6">
@@ -211,7 +217,7 @@
 
             <div class="mt-auto pt-4">
                 <button (click)="agregarAlCarrito(productoSeleccionado)" [disabled]="!productoSeleccionado.disponible" 
-                    class="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 text-white font-extrabold text-lg py-4 rounded-2xl transition-all active:scale-[0.98] shadow-xl hover:shadow-2xl flex items-center justify-center gap-3">
+                    class="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-lg py-4 rounded-2xl transition-all active:scale-[0.98] shadow-xl hover:shadow-2xl flex items-center justify-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                     </svg>
@@ -222,4 +228,3 @@
         </div>
     </div>
 </div>
-

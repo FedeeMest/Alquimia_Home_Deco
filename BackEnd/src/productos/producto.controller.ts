@@ -41,6 +41,7 @@ function inputS(req: Request, res: Response, next: NextFunction) {
 
         imagenUrl: req.body.imagenUrl,
         publicarEnWeb: req.body.publicarEnWeb,
+        descripcion: req.body.descripcion
     };
 
     // Eliminar campos no definidos (undefined) para no sobreescribir con nulls accidentalmente
@@ -386,7 +387,8 @@ async function getPublicCatalog(req: Request, res: Response) {
         precio_tarjeta: p.precio_tarjeta,
         imagenUrl: p.imagenUrl,
         // Ocultamos el número real, solo decimos si hay disponibilidad
-        disponible: (p.stock || 0) > 0 
+        disponible: (p.stock || 0) > 0,
+        descripcion: p.descripcion
       }));
 
       res.status(200).json({ data: catalogoSeguro });

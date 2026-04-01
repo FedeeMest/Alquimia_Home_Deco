@@ -203,50 +203,7 @@ proveedoresFrecuentes = [
     event.target.value = '';
   }
 
-    /* onFileSelected(event: any) {
-    const file: File = event.target.files[0];
-    if (file) {
-      this.imagenCargando = true;
-      
-      this.productoService.subirImagen(file).subscribe({
-        next: (res) => {
-          // Obligamos a Angular a procesar esto adentro de su zona de dibujado
-          this.ngZone.run(() => {
-            this.productoForm.patchValue({ imagenUrl: res.url });
-            this.imagenCargando = false;
-            this.notificationService.show('Imagen subida y optimizada con éxito', 'success');
-          });
-        },
-        error: (err) => {
-          this.ngZone.run(() => {
-            console.error(err);
-            this.imagenCargando = false;
-            this.notificationService.show('Error al subir la imagen a Cloudinary', 'error');
-          });
-        }
-      });
-    }
-  } */
-  /* onFileSelected(event: any) {
-    const file: File = event.target.files[0];
-    if (file) {
-      this.imagenCargando = true;
-      this.productoService.subirImagen(file).subscribe({
-        next: (res) => {
-          this.productoForm.patchValue({ imagenUrl: res.url });
-          this.imagenCargando = false;
-          this.notificationService.show('Imagen subida y optimizada con éxito', 'success');
-          this.cd.detectChanges();
-        },
-        error: (err) => {
-          console.error(err);
-          this.imagenCargando = false;
-          this.notificationService.show('Error al subir la imagen a Cloudinary', 'error');
-          this.cd.detectChanges();
-        }
-      });
-    }
-  } */
+
 
   suscribirCambios() {
     this.productoForm.valueChanges.subscribe(() => {
@@ -319,7 +276,11 @@ proveedoresFrecuentes = [
     this.loading = true;
     this.productoService.getOne(id).subscribe({
       next: (producto) => {
-        this.productoForm.patchValue(producto);
+        const productoData = {
+            ...producto,
+            descripcion: producto.descripcion || '' // <--- Asignamos la descripción aquí
+        };
+        this.productoForm.patchValue(productoData);
         this.calcularPrecios(); // Recalcula las previews con los datos cargados
         this.loading = false;
       },
@@ -459,3 +420,50 @@ proveedoresFrecuentes = [
   }
 
 }
+
+
+
+    /* onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.imagenCargando = true;
+      
+      this.productoService.subirImagen(file).subscribe({
+        next: (res) => {
+          // Obligamos a Angular a procesar esto adentro de su zona de dibujado
+          this.ngZone.run(() => {
+            this.productoForm.patchValue({ imagenUrl: res.url });
+            this.imagenCargando = false;
+            this.notificationService.show('Imagen subida y optimizada con éxito', 'success');
+          });
+        },
+        error: (err) => {
+          this.ngZone.run(() => {
+            console.error(err);
+            this.imagenCargando = false;
+            this.notificationService.show('Error al subir la imagen a Cloudinary', 'error');
+          });
+        }
+      });
+    }
+  } */
+  /* onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.imagenCargando = true;
+      this.productoService.subirImagen(file).subscribe({
+        next: (res) => {
+          this.productoForm.patchValue({ imagenUrl: res.url });
+          this.imagenCargando = false;
+          this.notificationService.show('Imagen subida y optimizada con éxito', 'success');
+          this.cd.detectChanges();
+        },
+        error: (err) => {
+          console.error(err);
+          this.imagenCargando = false;
+          this.notificationService.show('Error al subir la imagen a Cloudinary', 'error');
+          this.cd.detectChanges();
+        }
+      });
+    }
+  } */

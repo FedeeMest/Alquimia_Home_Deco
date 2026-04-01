@@ -102,6 +102,9 @@ export class Producto {
     @Property({ default: false })
     publicarEnWeb!: boolean;
 
+    @Property({ type: 'text', nullable: true }) // 
+    descripcion?: string;
+
 
     @BeforeCreate()
     @BeforeUpdate()

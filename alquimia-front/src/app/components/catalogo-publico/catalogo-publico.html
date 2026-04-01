@@ -156,8 +156,12 @@
                 </div>
             </div>
 
-            <div class="prose prose-slate prose-sm text-slate-500 mb-8 border-t border-b border-slate-100 py-6">
-                <p>
+            <div class="prose prose-slate prose-sm text-slate-600 mb-8 border-t border-b border-slate-100 py-6">
+                <p *ngIf="productoSeleccionado.descripcion" class="whitespace-pre-line leading-relaxed">
+                    {{ productoSeleccionado.descripcion }}
+                </p>
+                
+                <p *ngIf="!productoSeleccionado.descripcion" class="leading-relaxed italic text-slate-400">
                     Dale un toque único a tus espacios con este artículo seleccionado. Su diseño versátil permite adaptarlo a distintos estilos de decoración, convirtiéndose en el complemento ideal para tu hogar.
                 </p>
             </div>

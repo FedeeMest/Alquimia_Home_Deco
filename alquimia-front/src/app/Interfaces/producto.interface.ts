@@ -36,6 +36,7 @@ export interface Producto {
 
   imagenUrl?: string;
   publicarEnWeb?: boolean;
+  descripcion?: string;
   
   fecha_creacion?: Date;
   fecha_actualizacion?: Date;

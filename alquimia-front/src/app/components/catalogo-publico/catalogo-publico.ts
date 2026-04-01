@@ -144,11 +144,10 @@ export class CatalogoPublicoComponent implements OnInit {
 
   agregarAlCarrito(producto: any) {
     this.carrito.push(producto);
+    // Si agregó el producto desde el modal (vista en detalle), cerramos el modal
     if (this.productoSeleccionado) {
       this.cerrarModal();
     }
-    // Abrimos el carrito automáticamente para que vea que se agregó
-    this.abrirCarrito();
   }
 
   eliminarDelCarrito(index: number) {
@@ -166,9 +165,9 @@ export class CatalogoPublicoComponent implements OnInit {
     if (this.carrito.length === 0) return;
 
     // REEMPLAZÁ CON EL NÚMERO DE ALQUIMIA
-    const numeroWa = '549XXXXXXXXX'; 
+    const numeroWa = '5493401408588'; 
     
-    let mensaje = '¡Hola Alquimia! ✨ Estoy interesado en adquirir estos productos:\n\n';
+    let mensaje = '¡Hola Alquimia! ✨ Estoy interesado en estos productos:\n\n';
 
     this.carrito.forEach((prod, index) => {
       mensaje += `${index + 1}. *${prod.nombre}* - $${prod.precio}\n`;
@@ -182,7 +181,7 @@ export class CatalogoPublicoComponent implements OnInit {
   }
 
   consultarPorWhatsApp(producto: any) {
-    const numeroWa = '549XXXXXXXXX'; 
+    const numeroWa = '5493401408588'; 
     const mensaje = `¡Hola Alquimia! Quería hacer una consulta sobre el producto: *${producto.nombre}*`;
     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, '_blank');

@@ -347,4 +347,54 @@ async function update(req: Request, res: Response) {
     }
 }
 
-export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada, update };
+const getEstadisticas = async (req: Request, res: Response) => {
+  try {
+    const { fechaDesde, fechaHasta } = req.query;
+    const em = orm.em.fork();
+
+    // Iniciamos el QueryBuilder sobre la tabla DetalleVenta (que es la que vincula producto con la venta)
+    const qb = em.createQueryBuilder(DetalleVenta, 'dv');
+
+    // Seleccionamos el nombre del producto, sumamos cantidades y sumamos el dinero
+    qb.select([
+      'p.nombre as nombre',
+      'SUM(dv.cantidad) as cantidad',
+      'SUM(dv.subtotal) as recaudado' // Asegurate de que tu campo se llame subtotal en DetalleVenta
+    ])
+    .join('dv.producto', 'p') // Relación hacia Producto
+    .join('dv.venta', 'v')    // Relación hacia Venta
+    .groupBy('p.id')          // Agrupamos por el ID del producto
+    .orderBy({ cantidad: 'DESC' }); // Ordenamos de mayor a menor según unidades
+
+    // Si el front nos mandó fechas, aplicamos el filtro a la fecha de la venta
+    if (fechaDesde && fechaHasta) {
+      // Ajustá "fechaEmision" al nombre exacto de la columna de fecha en tu VentaEntity
+      qb.andWhere({
+        'v.fechaEmision': { 
+          $gte: new Date(`${fechaDesde}T00:00:00.000Z`), 
+          $lte: new Date(`${fechaHasta}T23:59:59.999Z`) 
+        }
+      });
+    }
+
+    const resultados = await qb.execute();
+
+    // Formateamos los números (porque SQL a veces devuelve strings en los SUM)
+    const estadisticas = resultados.map((row: any) => ({
+      nombre: row.nombre,
+      cantidad: Number(row.cantidad),
+      recaudado: Number(row.recaudado)
+    }));
+
+    return res.status(200).json({
+      message: 'Estadísticas calculadas con éxito',
+      data: estadisticas
+    });
+
+  } catch (error: any) {
+    console.error('Error calculando estadísticas:', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada, update, getEstadisticas };

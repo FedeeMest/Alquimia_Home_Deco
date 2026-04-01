@@ -167,7 +167,7 @@ export class CatalogoPublicoComponent implements OnInit {
     // REEMPLAZÁ CON EL NÚMERO DE ALQUIMIA
     const numeroWa = '5493401408588'; 
     
-    let mensaje = '¡Hola Alquimia! ✨ Estoy interesado en estos productos:\n\n';
+    let mensaje = '¡Hola Alquimia!  Estoy interesado en estos productos:\n\n';
 
     this.carrito.forEach((prod, index) => {
       mensaje += `${index + 1}. *${prod.nombre}* - $${prod.precio}\n`;

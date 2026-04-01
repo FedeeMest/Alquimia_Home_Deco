@@ -41,7 +41,7 @@ export class LoginComponent {
       .subscribe({
         next: () => {
           this.notif.show('Bienvenido!', 'success');
-          this.router.navigate(['/productos']);
+          this.router.navigate(['/admin/productos']);
         },
         error: (err) => {
           console.error('Login fallido:', err);

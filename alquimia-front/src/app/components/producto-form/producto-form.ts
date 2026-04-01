@@ -287,7 +287,7 @@ proveedoresFrecuentes = [
       error: (err) => {
         this.notificationService.show('Error al cargar producto', 'error');
         this.loading = false;
-        this.router.navigate(['/productos']);
+        this.router.navigate(['/admin/productos']);
       }
     });
   }
@@ -306,7 +306,7 @@ proveedoresFrecuentes = [
       this.productoService.update(this.productId, productoData).subscribe({
         next: () => {
           this.notificationService.show('Producto actualizado', 'success');
-          this.router.navigate(['/productos']);
+          this.router.navigate(['/admin/productos']);
         },
         error: () => {
           this.notificationService.show('Error al actualizar', 'error');
@@ -317,7 +317,7 @@ proveedoresFrecuentes = [
       this.productoService.create(productoData).subscribe({
         next: () => {
           this.notificationService.show('Producto creado', 'success');
-          this.router.navigate(['/productos']);
+          this.router.navigate(['/admin/productos']);
         },
         error: () => {
           this.notificationService.show('Error al crear', 'error');

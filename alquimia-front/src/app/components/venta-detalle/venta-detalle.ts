@@ -25,7 +25,7 @@ export class VentaDetalleComponent implements OnInit {
   notasCache = '';
 
   // Variables para la navegación dinámica
-  volverUrl = '/ventas'; 
+  volverUrl = '/admin/ventas'; 
   volverTexto = 'Volver al listado';
 
   ngOnInit() {
@@ -33,7 +33,7 @@ export class VentaDetalleComponent implements OnInit {
     const origen = this.route.snapshot.queryParamMap.get('origen');
     
     if (origen === 'dashboard') {
-        this.volverUrl = '/metricas'; // URL del Dashboard (Home)
+        this.volverUrl = '/admin/metricas'; // URL del Dashboard (Home)
         this.volverTexto = 'Volver al Dashboard';
     }
 

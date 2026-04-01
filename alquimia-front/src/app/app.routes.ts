@@ -3,14 +3,16 @@ import { authGuard } from './guards/auth.guard';
 import { MainLayoutComponent } from './components/layout/main-layout/main-layout';
 import { CatalogoPublicoComponent } from './components/catalogo-publico/catalogo-publico';
 import { PublicLayoutComponent } from './components/layout/public-layout/public-layout';
+import { HomeComponent } from './components/home/home';
 
 export const routes: Routes = [
     // RUTAS PÚBLICAS
     {
-    path: 'catalogo',
+    path: '',
     component: PublicLayoutComponent,
     children: [
-      { path: '', component: CatalogoPublicoComponent }
+      { path: '', component: HomeComponent, pathMatch: 'full' }, // La página principal
+      { path: 'catalogo', component: CatalogoPublicoComponent } // El catálogo
     ]
     },
 
@@ -22,13 +24,10 @@ export const routes: Routes = [
 
     // 2. RUTAS PROTEGIDAS (Todas con Lazy Loading)
     { 
-        path: '', 
+        path: 'admin', 
         component: MainLayoutComponent, // <--- ¡AQUÍ ESTÁ LA CLAVE! 
         canActivate: [authGuard],       // El guardián protege el acceso a todo este bloque
         children: [
-
-            { path: '', redirectTo: 'productos', pathMatch: 'full' },
-
             // Productos
             { path: 'productos', loadComponent: () => import('./components/producto-list/producto-list').then(m => m.ProductoList) },
             { path: 'productos/nuevo', loadComponent: () => import('./components/producto-form/producto-form').then(m => m.ProductoForm) },
@@ -51,5 +50,5 @@ export const routes: Routes = [
         ]
     },
     
-    { path: '**', redirectTo: 'catalogo' }
+    { path: '**', redirectTo: '' }
 ];

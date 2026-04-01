@@ -86,7 +86,7 @@
 
         <div class="flex justify-between items-center mb-5">
             <h3 class="text-lg font-extrabold text-slate-800 tracking-tight">Últimos Movimientos</h3>
-            <a routerLink="/ventas" class="text-sm font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1">
+            <a routerLink="/admin/ventas" class="text-sm font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1">
                 Ver historial
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
             </a>
@@ -139,7 +139,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <a [routerLink]="['/ventas', v.id]" 
+                                <a [routerLink]="['/admin/ventas', v.id]" 
                                    [queryParams]="{ origen: 'dashboard' }"
                                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
                                    title="Ver Detalle">

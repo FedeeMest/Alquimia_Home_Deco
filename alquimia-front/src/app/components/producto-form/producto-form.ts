@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ElementRef, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -24,6 +24,7 @@ export class ProductoForm implements OnInit {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
   private cd = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
   @ViewChild('etiquetaCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   // Variable del formulario (En el HTML se llamaba 'form', aquí unificamos a 'productoForm')
@@ -163,7 +164,31 @@ proveedoresFrecuentes = [
     });
   }
 
-  onFileSelected(event: any) {
+    onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.imagenCargando = true;
+      
+      this.productoService.subirImagen(file).subscribe({
+        next: (res) => {
+          // Obligamos a Angular a procesar esto adentro de su zona de dibujado
+          this.ngZone.run(() => {
+            this.productoForm.patchValue({ imagenUrl: res.url });
+            this.imagenCargando = false;
+            this.notificationService.show('Imagen subida y optimizada con éxito', 'success');
+          });
+        },
+        error: (err) => {
+          this.ngZone.run(() => {
+            console.error(err);
+            this.imagenCargando = false;
+            this.notificationService.show('Error al subir la imagen a Cloudinary', 'error');
+          });
+        }
+      });
+    }
+  }
+  /* onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (file) {
       this.imagenCargando = true;
@@ -182,7 +207,7 @@ proveedoresFrecuentes = [
         }
       });
     }
-  }
+  } */
 
   suscribirCambios() {
     this.productoForm.valueChanges.subscribe(() => {

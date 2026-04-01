@@ -60,6 +60,20 @@ export class CatalogoPublicoComponent implements OnInit {
     });
   }
 
+  consultarPorWhatsApp(producto: any) {
+    // REEMPLAZÁ LAS "X" POR TU NÚMERO REAL
+    const numeroWa = '5493401408588'; 
+    
+    // Armamos el mensaje dinámico
+    const mensaje = `¡Hola Alquimia! Quería hacer una consulta sobre el producto: *${producto.nombre}*`;
+    
+    // encodeURIComponent formatea los espacios y caracteres especiales para que la URL sea válida
+    const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
+    
+    // Abre WhatsApp en una pestaña nueva
+    window.open(url, '_blank');
+  }
+
   extraerCategorias() {
     const categoriasSet = new Set<string>();
     this.productosOriginales.forEach(p => {

@@ -41,11 +41,11 @@
                     <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-3 ml-1">Ordenar Por</h3>
                     <select [(ngModel)]="ordenSeleccionado" (change)="aplicarFiltros()"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 px-4 text-sm font-bold text-slate-700 focus:bg-white focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 cursor-pointer transition-all hover:border-slate-300 appearance-none">
-                        <option value="defecto">Novedades</option>
-                        <option value="precio_asc">Menor Precio</option>
-                        <option value="precio_desc">Mayor Precio</option>
-                        <option value="nombre_asc">Nombre (A-Z)</option>
-                        <option value="nombre_desc">Nombre (Z-A)</option>
+                        <option value="defecto">✨ Novedades</option>
+                        <option value="precio_asc">📉 Menor Precio</option>
+                        <option value="precio_desc">📈 Mayor Precio</option>
+                        <option value="nombre_asc">🔤 Nombre (A-Z)</option>
+                        <option value="nombre_desc">🔠 Nombre (Z-A)</option>
                     </select>
                 </div>
 
@@ -251,7 +251,6 @@
         </div>
     </div>
 </div>
-
 <!-- <div class="container mx-auto p-4 lg:p-8 mt-2 lg:mt-4 animate-fade-in relative z-10">
     
     <div class="flex flex-col md:flex-row gap-8 lg:gap-10 items-start" *ngIf="!cargando && productosOriginales.length > 0">

@@ -163,8 +163,47 @@ proveedoresFrecuentes = [
       publicarEnWeb: [false]
     });
   }
+  // --- NUEVA FUNCIÓN DE SUBIDA BLINDADA DEFINITIVA ---
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (!file) return;
 
-    onFileSelected(event: any) {
+    // 1. Iniciamos la carga forzando la sincronización visual inmediata
+    this.ngZone.run(() => {
+      this.imagenCargando = true;
+      this.cd.detectChanges(); // Dibuja el botón "Subiendo..."
+    });
+
+    // 2. Llamada asíncrona al backend
+    this.productoService.subirImagen(file).subscribe({
+      next: (res) => {
+        // 3. LA MAGIA: setTimeout a 0 ms lo convierte en una "Macro-tarea"
+        // Esto es 100% infalible contra el congelamiento del explorador de archivos
+        setTimeout(() => {
+          this.productoForm.patchValue({ imagenUrl: res.url });
+          this.imagenCargando = false;
+          this.notificationService.show('Imagen subida y optimizada con éxito', 'success');
+          
+          // 4. Orden explícita al componente para que dibuje la foto y libere el botón
+          this.cd.detectChanges(); 
+        }, 0);
+      },
+      error: (err) => {
+        setTimeout(() => {
+          console.error('Error Cloudinary:', err);
+          this.imagenCargando = false;
+          this.notificationService.show('Error al subir la imagen', 'error');
+          this.cd.detectChanges();
+        }, 0);
+      }
+    });
+
+    // 5. Vaciamos el input nativo. Esto permite que el evento (change) 
+    // vuelva a funcionar si el usuario vuelve a seleccionar el mismo archivo.
+    event.target.value = '';
+  }
+
+    /* onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (file) {
       this.imagenCargando = true;
@@ -187,7 +226,7 @@ proveedoresFrecuentes = [
         }
       });
     }
-  }
+  } */
   /* onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (file) {

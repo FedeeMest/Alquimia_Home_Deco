@@ -19,6 +19,11 @@ export class CatalogoPublicoComponent implements OnInit {
   categoriasDisponibles: string[] = [];
   cargando = true;
 
+  //(PAGINACIÓN FRONT-END)
+  productosVisibles: any[] = []; 
+  paginaActual: number = 1;
+  itemsPorPagina: number = 12; // Cantidad ideal para grillas de 3 o 4 columnas
+
   // Estado de los filtros
   terminoBusqueda: string = '';
   categoriaSeleccionada: string = '';
@@ -38,6 +43,7 @@ export class CatalogoPublicoComponent implements OnInit {
         this.productosOriginales = data;
         this.productosFiltrados = [...this.productosOriginales];
         this.extraerCategorias();
+        this.actualizarProductosVisibles();
         this.cargando = false;
         this.cd.detectChanges();
       },
@@ -47,6 +53,18 @@ export class CatalogoPublicoComponent implements OnInit {
         this.cd.detectChanges();
       }
     });
+  }
+
+  actualizarProductosVisibles() {
+    // Cortamos el array total desde el inicio hasta el límite de la página actual
+    const limite = this.paginaActual * this.itemsPorPagina;
+    this.productosVisibles = this.productosFiltrados.slice(0, limite);
+    this.cd.detectChanges();
+  }
+
+  cargarMas() {
+    this.paginaActual++;
+    this.actualizarProductosVisibles();
   }
 
   extraerCategorias() {

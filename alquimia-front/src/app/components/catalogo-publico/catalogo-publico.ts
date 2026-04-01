@@ -118,7 +118,9 @@ export class CatalogoPublicoComponent implements OnInit {
     }
 
     this.productosFiltrados = resultado;
-    this.cd.detectChanges(); 
+    // Al filtrar, volvemos a la página 1 y calculamos los visibles
+    this.paginaActual = 1;
+    this.actualizarProductosVisibles();
   }
 
   // --- FUNCIONES DEL MODAL ---

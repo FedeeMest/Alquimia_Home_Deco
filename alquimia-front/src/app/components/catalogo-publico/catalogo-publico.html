@@ -1,14 +1,5 @@
 <div class="container mx-auto p-4 lg:p-8 mt-2 lg:mt-4 animate-fade-in relative z-10">
     
-    <div class="text-center mb-10">
-        <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight mb-3">
-            Catálogo Online
-        </h1>
-        <p class="text-lg text-slate-500 max-w-2xl mx-auto">
-            Descubrí nuestros productos destacados para tu hogar.
-        </p>
-    </div>
-
     <div *ngIf="cargando" class="flex flex-col md:flex-row gap-8 lg:gap-10 items-start">
         <div class="w-full md:w-64 lg:w-[280px] h-96 bg-white rounded-[2rem] border border-slate-200 animate-pulse shrink-0"></div>
         <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -73,13 +64,16 @@
 
         <main class="flex-1 w-full min-w-0">
             
-            <div class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 border-b border-slate-200 pb-4" *ngIf="productosOriginales.length > 0">
-                <h2 class="text-2xl font-extrabold text-slate-800">
+            <div class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-slate-200 pb-5" *ngIf="productosOriginales.length > 0">
+                
+                <h2 class="text-xl md:text-2xl font-black text-slate-800 bg-white border border-slate-200 shadow-sm px-6 py-2.5 rounded-2xl w-fit m-0">
                     {{ categoriaSeleccionada ? categoriaSeleccionada : 'Todos los productos' }}
                 </h2>
-                <span class="text-sm font-bold text-slate-500 bg-white border border-slate-200 shadow-sm px-4 py-1.5 rounded-xl w-fit">
+                
+                <span class="text-sm font-bold text-slate-500 bg-white border border-slate-200 shadow-sm px-4 py-2 rounded-xl w-fit flex items-center">
                     {{ productosFiltrados.length }} resultados
                 </span>
+                
             </div>
 
             <div *ngIf="productosFiltrados.length === 0" class="bg-white border border-slate-200 shadow-xl shadow-slate-200/40 rounded-[2rem] py-20 flex flex-col items-center justify-center">

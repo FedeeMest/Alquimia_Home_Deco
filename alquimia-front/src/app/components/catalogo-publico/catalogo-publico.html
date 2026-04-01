@@ -7,7 +7,7 @@
             <div class="bg-white p-5 lg:p-6 rounded-[2rem] shadow-xl shadow-slate-200/60 border border-slate-200 space-y-7">
                 
                 <div>
-                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-3 ml-1">Búsqueda</h3>
+                    <h3 class="text-[11px] font-black  uppercase tracking-[0.15em] mb-3 ml-1">Búsqueda</h3>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <svg class="h-4 w-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -25,7 +25,7 @@
                 <div class="w-full h-px bg-slate-100"></div>
 
                 <div>
-                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-3 ml-1">Ordenar Por</h3>
+                    <h3 class="text-[11px] font-black  uppercase tracking-[0.15em] mb-3 ml-1">Ordenar Por</h3>
                     <select [(ngModel)]="ordenSeleccionado" (change)="aplicarFiltros()"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 px-4 text-sm font-bold text-slate-700 focus:bg-white focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 cursor-pointer transition-all hover:border-slate-300 appearance-none">
                         <option value="defecto">Novedades</option>
@@ -37,7 +37,7 @@
                 </div>
 
                 <div *ngIf="categoriasDisponibles.length > 0">
-                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-4 ml-1">Categorías</h3>
+                    <h3 class="text-[11px] font-black  uppercase tracking-[0.15em] mb-4 ml-1">Categorías</h3>
                     <div class="flex flex-col gap-2">
                         
                         <button (click)="seleccionarCategoria('')" 

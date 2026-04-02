@@ -4,19 +4,36 @@
             <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=2000&auto=format&fit=crop" alt="Decoración" class="w-full h-full object-cover">
         </div>
         
-        <div class="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center">
-            <span class="text-white font-bold tracking-[0.2em] uppercase text-sm mb-4 block">Alquimia Home Deco</span>
-            <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight">
-                Transformá tu casa en <br/><span class="text-white bg-clip-text bg-gradient-to-r">tu lugar favorito.</span>
+        <div class="relative w-full h-[70vh] md:h-[80vh] min-h-[500px] overflow-hidden rounded-[2rem] shadow-2xl mt-2 mb-12 group">
+        
+        <video 
+            autoplay 
+            muted 
+            loop 
+            playsinline 
+            class="absolute inset-0 w-full h-full object-cover scale-105 transition-transform duration-1000 group-hover:scale-100"
+        >
+            <source src="assets/videos/background_deco.mp4" type="video/mp4">
+        </video>
+
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"></div>
+
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4 animate-fade-in">
+            
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-black text-white tracking-tighter mb-4 drop-shadow-lg">
+                La esencia de tu casa.
             </h1>
-            <p class="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl font-light">
-                Descubrí nuestra exclusiva selección de aromas, textiles y decoración pensada para darle alma a tus espacios.
+            
+            <p class="text-lg md:text-xl font-medium text-slate-100 max-w-2xl mx-auto mb-10 drop-shadow-md opacity-90">
+                Diseñamos fragancias y textiles para transformar cada rincón en un refugio único y personal.
             </p>
-            <a routerLink="/catalogo" class="bg-white hover:bg-slate-100 text-slate-900 font-bold text-lg py-4 px-10 rounded-full transition-all hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-2">
-                Explorar Colección
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" /></svg>
+            
+            <a routerLink="/catalogo" class="bg-white hover:bg-slate-100 text-black px-10 py-4 rounded-full font-black uppercase tracking-[0.15em] transition-all transform hover:scale-105 hover:shadow-xl active:scale-95 shadow-2xl">
+                Ver Catálogo
             </a>
+
         </div>
+    </div>
     </div>
 
     <div class="bg-slate-100 py-6">
@@ -31,12 +48,7 @@
             </div>
         </div>
     </div>
-    
-    <div class="py-20 text-center">
-         <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Conocé nuestros productos</h2>
-         <p class="text-slate-500 mb-8">Diseño y calidez para cada rincón.</p>
-         <a routerLink="/catalogo" class="text-slate-800 font-bold hover:underline">Ver catálogo completo &rarr;</a>
-    </div>
+
     <div class="bg-white py-20 lg:py-28 border-t border-slate-200 mt-10">
         <div class="container mx-auto px-4 lg:px-8 max-w-6xl">
             

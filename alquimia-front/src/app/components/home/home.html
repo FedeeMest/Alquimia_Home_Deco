@@ -1,6 +1,6 @@
 <div class="animate-fade-in">
-    <div class="relative w-full h-[70vh] bg-slate-900 flex items-center justify-center overflow-hidden">        
-        <div class="relative w-full h-[70vh] md:h-[80vh] min-h-[500px] overflow-hidden rounded-[2rem] shadow-2xl mt-2 mb-12 group">
+    
+    <div class="relative w-full h-[70vh] md:h-[80vh] min-h-[500px] overflow-hidden rounded-[2rem] shadow-2xl mt-2 mb-12 group bg-slate-900 flex items-center justify-center">
         
         <video 
             autoplay 
@@ -9,12 +9,12 @@
             playsinline 
             class="absolute inset-0 w-full h-full object-cover scale-105 transition-transform duration-1000 group-hover:scale-100"
         >
-            <source src="assets/videos/background_deco.mp4" type="video/mp4">
+            <source src="/assets/videos/background_deco.mp4" type="video/mp4">
         </video>
 
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"></div>
 
-        <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4 animate-fade-in">
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4 animate-fade-in z-10">
             
             <h1 class="text-4xl md:text-6xl lg:text-7xl font-black text-white tracking-tighter mb-4 drop-shadow-lg">
                 La esencia de tu casa.
@@ -30,9 +30,8 @@
 
         </div>
     </div>
-    </div>
 
-    <div class="bg-slate-100 py-6">
+    <div class="bg-slate-100 py-6 rounded-[2rem] mb-16">
         <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-slate-300">
             <div class="flex flex-col items-center justify-center pt-4 md:pt-0">
                 <svg class="w-8 h-8 text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
@@ -45,7 +44,7 @@
         </div>
     </div>
 
-    <div class="bg-white py-20 lg:py-28 border-t border-slate-200 mt-10">
+    <div class="bg-white py-12 lg:py-16 border-t border-slate-200">
         <div class="container mx-auto px-4 lg:px-8 max-w-6xl">
             
             <div class="text-center mb-16">
@@ -57,7 +56,7 @@
                 
                 <div class="flex flex-col gap-6 justify-center">
                     
-                    <div class="p-8 rounded-[2rem] bg-slate-200 border border-slate-200 shadow-[0_2px_15px_rgb(0,0,0,0.03)] hover:shadow-[0_10px_25px_rgb(0,0,0,0.06)] hover:border-slate-300 transition-all duration-300">
+                    <div class="p-8 rounded-[2rem] bg-slate-50 border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300">
                         <div class="flex flex-col sm:flex-row items-start gap-5">
                             <div class="p-3.5 bg-black text-white rounded-2xl shrink-0 shadow-md">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -65,7 +64,7 @@
                             <div>
                                 <h3 class="text-xl font-black text-black mb-2 tracking-tight">Mercado Don Bosco</h3>
                                 <p class="text-slate-600 mb-1 text-sm"><span class="font-bold text-slate-900">Dirección:</span> Hipólito Yrigoyen 2958, Funes</p>
-                                <p class="text-slate-600 mb-4 text-sm"><span class="font-bold text-slate-900">Horarios:</span> a Definir</p> <!-- Lun a Dom de 10:00 a 22:00hs -->
+                                <p class="text-slate-600 mb-4 text-sm"><span class="font-bold text-slate-900">Horarios:</span> a Definir</p>
             
                                 <a href="https://www.google.com/maps/dir/?api=1&destination=-32.92893,-60.8125" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-extrabold text-slate-500 hover:text-black transition-colors group">
                                     Ver indicaciones 
@@ -75,7 +74,7 @@
                         </div>
                     </div>
 
-                    <div class="p-8 rounded-[2rem] bg-slate-200 border border-slate-200 shadow-[0_2px_15px_rgb(0,0,0,0.03)] hover:shadow-[0_10px_25px_rgb(0,0,0,0.06)] hover:border-slate-300 transition-all duration-300">
+                    <div class="p-8 rounded-[2rem] bg-slate-50 border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300">
                         <div class="flex flex-col sm:flex-row items-start gap-5">
                             <div class="p-3.5 bg-black text-white rounded-2xl shrink-0 shadow-md">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -83,7 +82,7 @@
                             <div>
                                 <h3 class="text-xl font-black text-black mb-2 tracking-tight">Al Volo</h3>
                                 <p class="text-slate-600 mb-1 text-sm"><span class="font-bold text-slate-900">Dirección:</span> Schweitzer 9020, Rosario</p>
-                                <p class="text-slate-600 mb-4 text-sm"><span class="font-bold text-slate-900">Horarios:</span> a Definir </p> <!-- Lun a Dom de 10:00 a 22:00hs -->
+                                <p class="text-slate-600 mb-4 text-sm"><span class="font-bold text-slate-900">Horarios:</span> a Definir</p>
             
                                 <a href="https://www.google.com/maps/dir/?api=1&destination=-32.91438,-60.76021" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-extrabold text-slate-500 hover:text-black transition-colors group">
                                     Ver indicaciones 
@@ -115,10 +114,3 @@
         </div>
     </div>
 </div>
-
-
-
-
-
-
-                            

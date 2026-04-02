@@ -1,10 +1,12 @@
-<div> <div class="relative w-full h-[70vh] md:h-[80vh] min-h-[500px] overflow-hidden rounded-[2rem] shadow-2xl mt-2 mb-12 group bg-slate-900 flex items-center justify-center animate-fade-in-up opacity-0" style="animation-delay: 100ms;">
+<div> <div class="relative w-full h-[70vh] md:h-[80vh] min-h-[500px] overflow-hidden group bg-slate-900 flex items-center justify-center animate-fade-in-up opacity-0" style="animation-delay: 100ms;">
         
         <video 
             autoplay 
-            muted 
             loop 
+            muted
+            [muted]="true"
             playsinline 
+            oncanplay="this.play()"
             class="absolute inset-0 w-full h-full object-cover scale-105 transition-transform duration-1000 group-hover:scale-100"
         >
             <source src="/assets/videos/background_deco.mp4" type="video/mp4">

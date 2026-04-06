@@ -12,6 +12,8 @@ import { ProductoService } from '../../services/producto.service';
 export class CatalogoPublicoComponent implements OnInit {
   private productoService = inject(ProductoService);
   private cd = inject(ChangeDetectorRef);
+
+  imagenAmpliada: string | null = null;
   
   // Listas de datos
   productosOriginales: any[] = [];
@@ -185,6 +187,16 @@ export class CatalogoPublicoComponent implements OnInit {
     const mensaje = `¡Hola Alquimia! Quería hacer una consulta sobre el producto: *${producto.nombre}*`;
     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, '_blank');
+  }
+
+  abrirImagenAmpliada(url: string | undefined) {
+    if (url) {
+      this.imagenAmpliada = url;
+    }
+  }
+
+  cerrarImagenAmpliada() {
+    this.imagenAmpliada = null;
   }
 }
 

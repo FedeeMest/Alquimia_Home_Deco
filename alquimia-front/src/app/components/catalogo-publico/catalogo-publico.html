@@ -139,8 +139,11 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
 
-        <div class="w-full md:w-1/2 bg-slate-50 flex items-center justify-center h-[40vh] md:h-auto md:min-h-[500px] relative shrink-0 border-b md:border-b-0 md:border-r border-slate-100 p-8">
-            <img *ngIf="productoSeleccionado.imagenUrl" [src]="productoSeleccionado.imagenUrl" [alt]="productoSeleccionado.nombre" class="w-full h-full object-contain mix-blend-multiply">
+        <div class="w-full md:w-1/2 bg-slate-50 flex items-center justify-center h-[40vh] md:h-auto md:min-h-[500px] relative shrink-0 border-b md:border-b-0 md:border-r border-slate-100 p-8 group/zoom cursor-pointer" 
+             (click)="abrirImagenAmpliada(productoSeleccionado.imagenUrl)" 
+             title="Hacer clic para ampliar">
+            
+            <img *ngIf="productoSeleccionado.imagenUrl" [src]="productoSeleccionado.imagenUrl" [alt]="productoSeleccionado.nombre" class="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover/zoom:scale-105">
             
             <div *ngIf="!productoSeleccionado.imagenUrl" class="flex flex-col items-center text-slate-300">
                 <svg class="w-24 h-24 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -148,6 +151,11 @@
             
             <div *ngIf="productoSeleccionado.categoria" class="absolute top-6 left-6 bg-white/95 backdrop-blur text-slate-800 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-md border border-slate-100">
                 {{ productoSeleccionado.categoria }}
+            </div>
+
+            <div *ngIf="productoSeleccionado.imagenUrl" class="absolute bottom-6 right-6 bg-white/90 backdrop-blur text-slate-800 p-3 rounded-full shadow-lg border border-slate-200 opacity-0 group-hover/zoom:opacity-100 transition-opacity duration-300 flex items-center gap-2 pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" /></svg>
+                <span class="text-[10px] font-black uppercase tracking-widest hidden sm:block">Ampliar</span>
             </div>
         </div>
 
@@ -201,6 +209,19 @@
     </div>
     <span class="font-extrabold pr-2 hidden sm:block">Ver pedido</span>
 </button>
+
+<div *ngIf="imagenAmpliada" class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/95 backdrop-blur-md animate-fade-in p-4 md:p-10" (click)="cerrarImagenAmpliada()">
+    
+    <button class="absolute top-6 right-6 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors z-10" title="Cerrar (Esc)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+    </button>
+
+    <img [src]="imagenAmpliada" class="max-w-full max-h-full object-contain drop-shadow-2xl animate-scale-up" (click)="$event.stopPropagation()">
+    
+    <div class="absolute bottom-6 text-white/50 text-xs font-bold tracking-widest uppercase pointer-events-none">
+        Hacé clic en cualquier lugar para cerrar
+    </div>
+</div>
 
 <div *ngIf="isCarritoOpen" class="fixed inset-0 z-[110] overflow-hidden">
     <div (click)="cerrarCarrito()" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity animate-fade-in"></div>

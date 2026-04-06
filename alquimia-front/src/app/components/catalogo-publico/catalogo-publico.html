@@ -90,8 +90,8 @@
                      class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-slate-200/60 transition-all duration-300 border border-slate-200 overflow-hidden flex flex-col group relative animate-fade-in-up opacity-0"
                      [style.animation-delay]="(i * 100) + 'ms'">
                     
-                    <div (click)="abrirModal(p)" class="h-64 bg-slate-50 relative overflow-hidden flex items-center justify-center cursor-pointer border-b border-slate-100">
-                        <img *ngIf="p.imagenUrl" [src]="p.imagenUrl" [alt]="p.nombre" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                    <div (click)="abrirModal(p)" class="h-72 bg-slate-50 relative overflow-hidden flex items-center justify-center cursor-pointer border-b border-slate-100 p-4">
+                        <img *ngIf="p.imagenUrl" [src]="p.imagenUrl" [alt]="p.nombre" loading="lazy" class="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-700">
                         <svg *ngIf="!p.imagenUrl" class="w-16 h-16 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
                         <div *ngIf="!p.disponible" class="absolute top-4 right-4 bg-red-500/95 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">Agotado</div>
                     </div>
@@ -139,11 +139,13 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
 
-        <div class="w-full md:w-1/2 bg-slate-50 flex items-center justify-center min-h-[300px] md:min-h-[500px] relative shrink-0 border-r border-slate-100">
-            <img *ngIf="productoSeleccionado.imagenUrl" [src]="productoSeleccionado.imagenUrl" [alt]="productoSeleccionado.nombre" class="w-full h-full object-cover">
+        <div class="w-full md:w-1/2 bg-slate-50 flex items-center justify-center h-[40vh] md:h-auto md:min-h-[500px] relative shrink-0 border-b md:border-b-0 md:border-r border-slate-100 p-8">
+            <img *ngIf="productoSeleccionado.imagenUrl" [src]="productoSeleccionado.imagenUrl" [alt]="productoSeleccionado.nombre" class="w-full h-full object-contain mix-blend-multiply">
+            
             <div *ngIf="!productoSeleccionado.imagenUrl" class="flex flex-col items-center text-slate-300">
                 <svg class="w-24 h-24 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             </div>
+            
             <div *ngIf="productoSeleccionado.categoria" class="absolute top-6 left-6 bg-white/95 backdrop-blur text-slate-800 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-md border border-slate-100">
                 {{ productoSeleccionado.categoria }}
             </div>

@@ -43,6 +43,7 @@ export class ProductoForm implements OnInit {
   croppedImage: SafeUrl | string = '';
   croppedBlob: Blob | null | undefined = null;
   showCropperModal = false;
+  fileInputTarget: any = null;
 
   // --- VARIABLES DE PREVIEW ---
   previewCosto: number = 0;
@@ -131,7 +132,9 @@ export class ProductoForm implements OnInit {
     if (event.target.files && event.target.files.length) {
       this.imageChangedEvent = event;
       this.showCropperModal = true;
-      event.target.value = ''; // Reseteamos el input
+      
+      // Guardamos el input en memoria, PERO NO LO VACIAMOS TODAVÍA
+      this.fileInputTarget = event.target; 
     }
   }
 
@@ -150,6 +153,12 @@ export class ProductoForm implements OnInit {
     this.imageChangedEvent = '';
     this.croppedImage = '';
     this.croppedBlob = null;
+    
+    // RECIÉN ACÁ VACIAR EL INPUT (Para que puedas volver a elegir la misma foto si te equivocás)
+    if (this.fileInputTarget) {
+      this.fileInputTarget.value = '';
+      this.fileInputTarget = null;
+    }
   }
 
   // 3. LA SUBIDA REAL (Ejecuta tu lógica original de ngZone)

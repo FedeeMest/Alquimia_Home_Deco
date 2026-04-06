@@ -13,6 +13,8 @@ export class CatalogoPublicoComponent implements OnInit {
   private productoService = inject(ProductoService);
   private cd = inject(ChangeDetectorRef);
 
+  cantidadModal: number = 1;
+
   imagenAmpliada: string | null = null;
   
   // Listas de datos
@@ -36,7 +38,7 @@ export class CatalogoPublicoComponent implements OnInit {
   productoSeleccionado: any = null;
   
   // --- VARIABLES DEL CARRITO ---
-  carrito: any[] = [];
+  carrito: { producto: any, cantidad: number }[] = [];
   isCarritoOpen: boolean = false;
 
   ngOnInit() {
@@ -119,8 +121,14 @@ export class CatalogoPublicoComponent implements OnInit {
   }
 
   // --- MODAL PRODUCTO ---
+  /* abrirModal(producto: any) {
+    this.productoSeleccionado = producto;
+    document.body.style.overflow = 'hidden'; 
+  } */
+
   abrirModal(producto: any) {
     this.productoSeleccionado = producto;
+    this.cantidadModal = 1; // Reinicia el contador al abrir
     document.body.style.overflow = 'hidden'; 
   }
 
@@ -144,9 +152,35 @@ export class CatalogoPublicoComponent implements OnInit {
     }
   }
 
-  agregarAlCarrito(producto: any) {
+  /* agregarAlCarrito(producto: any) {
     this.carrito.push(producto);
     // Si agregó el producto desde el modal (vista en detalle), cerramos el modal
+    if (this.productoSeleccionado) {
+      this.cerrarModal();
+    }
+  } */
+
+  agregarAlCarrito(producto: any, cantidadSeleccionada: number = 1) {
+    // Validamos stock (asumiendo que producto.stock viene del backend)
+    const stockDisponible = producto.stock || 0;
+    
+    // Buscamos si el producto ya está en el carrito
+    const itemExistente = this.carrito.find(item => item.producto.id === producto.id);
+    
+    if (itemExistente) {
+      if (itemExistente.cantidad + cantidadSeleccionada > stockDisponible) {
+         alert(`Solo quedan ${stockDisponible} unidades disponibles de este producto.`);
+         return;
+      }
+      itemExistente.cantidad += cantidadSeleccionada;
+    } else {
+      if (cantidadSeleccionada > stockDisponible) {
+         alert(`Solo quedan ${stockDisponible} unidades disponibles de este producto.`);
+         return;
+      }
+      this.carrito.push({ producto: producto, cantidad: cantidadSeleccionada });
+    }
+
     if (this.productoSeleccionado) {
       this.cerrarModal();
     }
@@ -159,11 +193,19 @@ export class CatalogoPublicoComponent implements OnInit {
     }
   }
 
-  get totalCarrito(): number {
-    return this.carrito.reduce((total, prod) => total + prod.precio, 0);
+  get cantidadItemsCarrito(): number {
+    return this.carrito.reduce((total, item) => total + item.cantidad, 0);
   }
 
-  enviarPedidoWhatsApp() {
+  /* get totalCarrito(): number {
+    return this.carrito.reduce((total, prod) => total + prod.precio, 0);
+  } */
+
+  get totalCarrito(): number {
+    return this.carrito.reduce((total, item) => total + (item.producto.precio * item.cantidad), 0);
+  }
+
+  /* enviarPedidoWhatsApp() {
     if (this.carrito.length === 0) return;
 
     // REEMPLAZÁ CON EL NÚMERO DE ALQUIMIA
@@ -177,6 +219,23 @@ export class CatalogoPublicoComponent implements OnInit {
 
     mensaje += `\n*Total aproximado: $${this.totalCarrito}*\n\n`;
     mensaje += '¿Me podrían confirmar si tienen stock?';
+
+    const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank');
+  } */
+
+    enviarPedidoWhatsApp() {
+    if (this.carrito.length === 0) return;
+
+    const numeroWa = '5493401408588'; 
+    let mensaje = '¡Hola Alquimia! Estoy interesado en estos productos:\n\n';
+
+    this.carrito.forEach((item, index) => {
+      // Modificamos para mostrar la cantidad multiplicada
+      mensaje += `${index + 1}. *${item.producto.nombre}* (x${item.cantidad}) - $${item.producto.precio * item.cantidad}\n`;
+    });
+
+    mensaje += `\n*Total: $${this.totalCarrito}*\n\n`;
 
     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, '_blank');

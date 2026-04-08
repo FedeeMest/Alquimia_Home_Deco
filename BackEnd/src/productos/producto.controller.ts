@@ -386,6 +386,7 @@ async function getPublicCatalog(req: Request, res: Response) {
         precio: p.precio_efectivo, // Precio principal de venta
         precio_tarjeta: p.precio_tarjeta,
         imagenUrl: p.imagenUrl,
+        codigo_barra: p.codigo_barra,
         // Ocultamos el número real, solo decimos si hay disponibilidad
         disponible: (p.stock || 0) > 0,
         descripcion: p.descripcion

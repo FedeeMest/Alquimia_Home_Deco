@@ -41,7 +41,7 @@ export class CatalogoPublicoComponent implements OnInit {
   
   precioMin: number | null = null;
   precioMax: number | null = null;
-  mostrarPrecio: boolean = true; // Controla el acordeón
+  mostrarPrecio: boolean = false; // Controla el acordeón
 
   // Modales y Carrito
   productoSeleccionado: any = null;

@@ -56,6 +56,15 @@ export class CatalogoPublicoComponent implements OnInit {
     this.cargarCatalogo();
   }
 
+  getCantidadDisponible(producto: any): number {
+    if (!producto) return 0;
+    const stockTotal = producto.stock || 0;
+    const itemEnCarrito = this.carrito.find(item => item.producto.id === producto.id);
+    const cantidadEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad : 0;
+    
+    return stockTotal - cantidadEnCarrito;
+  }
+
   cargarCatalogo() {
     this.productoService.getPublicCatalog().subscribe({
       next: (res: any) => {
@@ -174,7 +183,7 @@ export class CatalogoPublicoComponent implements OnInit {
   // --- MODAL PRODUCTO ---
   abrirModal(producto: any) {
     this.productoSeleccionado = producto;
-    this.cantidadModal = 1;
+    this.cantidadModal = this.getCantidadDisponible(producto) > 0 ? 1 : 0;
     document.body.style.overflow = 'hidden'; 
   }
 
@@ -199,28 +208,63 @@ export class CatalogoPublicoComponent implements OnInit {
   }
 
   agregarAlCarrito(producto: any, cantidadSeleccionada: number = 1) {
-    const stockDisponible = producto.stock || 0;
+    if (cantidadSeleccionada <= 0) return; 
+
+    const stockTotal = producto.stock || 0;
     const itemExistente = this.carrito.find(item => item.producto.id === producto.id);
+    const cantidadEnCarrito = itemExistente ? itemExistente.cantidad : 0;
     
+    const stockRestante = stockTotal - cantidadEnCarrito;
+
+    // Si intenta agregar más de lo que sobra...
+    if (cantidadSeleccionada > stockRestante) {
+        if (cantidadEnCarrito > 0) {
+             // MENSAJE CLARO 1: Ya tiene en el carrito
+             this.notificationService.error(`Ya tenés ${cantidadEnCarrito} en el carrito. Solo podés agregar ${stockRestante} más.`);
+        } else {
+             // MENSAJE CLARO 2: No tiene en el carrito, pero pide de más
+             this.notificationService.error(`Solo tenemos ${stockTotal} unidades en stock.`);
+        }
+        return;
+    }
+
+    // Si está todo bien, lo agregamos
     if (itemExistente) {
-      if (itemExistente.cantidad + cantidadSeleccionada > stockDisponible) {
-         this.notificationService.error(`Solo quedan ${stockDisponible} unidades disponibles.`);
-         return;
-      }
       itemExistente.cantidad += cantidadSeleccionada;
     } else {
-      if (cantidadSeleccionada > stockDisponible) {
-         this.notificationService.error(`Solo quedan ${stockDisponible} unidades disponibles.`);
-         return;
-      }
       this.carrito.push({ producto: producto, cantidad: cantidadSeleccionada });
     }
+
     this.notificationService.success(`Agregaste ${cantidadSeleccionada}x ${producto.nombre} al carrito.`);
 
     if (this.productoSeleccionado) {
       this.cerrarModal();
     }
   }
+
+  // agregarAlCarrito(producto: any, cantidadSeleccionada: number = 1) {
+  //   const stockDisponible = producto.stock || 0;
+  //   const itemExistente = this.carrito.find(item => item.producto.id === producto.id);
+    
+  //   if (itemExistente) {
+  //     if (itemExistente.cantidad + cantidadSeleccionada > stockDisponible) {
+  //        this.notificationService.error(`Solo quedan ${stockDisponible} unidades disponibles.`);
+  //        return;
+  //     }
+  //     itemExistente.cantidad += cantidadSeleccionada;
+  //   } else {
+  //     if (cantidadSeleccionada > stockDisponible) {
+  //        this.notificationService.error(`Solo quedan ${stockDisponible} unidades disponibles.`);
+  //        return;
+  //     }
+  //     this.carrito.push({ producto: producto, cantidad: cantidadSeleccionada });
+  //   }
+  //   this.notificationService.success(`Agregaste ${cantidadSeleccionada}x ${producto.nombre} al carrito.`);
+
+  //   if (this.productoSeleccionado) {
+  //     this.cerrarModal();
+  //   }
+  // }
 
   eliminarDelCarrito(index: number) {
     this.carrito.splice(index, 1);

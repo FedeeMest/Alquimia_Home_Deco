@@ -193,8 +193,42 @@
                 <div class="text-4xl font-light text-slate-900 mb-6">
                     {{ productoSeleccionado.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}
                 </div>
-
                 <div class="mb-6">
+                    <p class="text-sm font-semibold text-slate-900 mb-2">Cantidad:</p>
+                    
+                    <div class="flex items-center gap-4" *ngIf="getCantidadDisponible(productoSeleccionado) > 0">
+                        <div class="flex items-center border border-slate-300 rounded-md bg-white w-fit">
+                            <button (click)="cantidadModal = cantidadModal > 1 ? cantidadModal - 1 : 1" class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all duration-100 active:scale-90">-</button>
+                            
+                            <span class="w-8 text-center font-semibold text-slate-900">{{ cantidadModal }}</span>
+                            
+                            <button (click)="cantidadModal = cantidadModal < getCantidadDisponible(productoSeleccionado) ? cantidadModal + 1 : cantidadModal" 
+                                    [disabled]="cantidadModal >= getCantidadDisponible(productoSeleccionado)"
+                                    class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-all duration-100 active:scale-90">+</button>
+                        </div>
+                        
+                        <span class="text-sm text-slate-500 font-medium">({{ getCantidadDisponible(productoSeleccionado) }} disponibles adicionales)</span>
+                    </div>
+
+                    <div *ngIf="productoSeleccionado.disponible && getCantidadDisponible(productoSeleccionado) === 0" class="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-2.5 rounded-md text-sm font-medium flex items-center gap-2 mt-2 animate-fade-in-up">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Ya tenés todo el stock disponible en tu carrito.
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3 mt-auto">
+                    <button (click)="agregarAlCarrito(productoSeleccionado, cantidadModal)" 
+                            [disabled]="!productoSeleccionado.disponible || getCantidadDisponible(productoSeleccionado) === 0" 
+                            class="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 text-white font-semibold py-3.5 rounded-md transition-all duration-200 active:scale-[0.98] shadow-sm text-center">
+                        {{ !productoSeleccionado.disponible ? 'Producto sin stock' : (getCantidadDisponible(productoSeleccionado) === 0 ? 'Sin stock adicional' : 'Agregar al carrito') }}
+                    </button>
+                    
+                    <button (click)="consultarPorWhatsApp(productoSeleccionado)" class="w-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold py-3.5 rounded-md transition-all duration-200 active:scale-[0.98] text-center">
+                        Consultar por WhatsApp
+                    </button>
+                </div>
+
+                <!-- <div class="mb-6">
                     <p class="text-sm font-semibold text-slate-900 mb-2">Cantidad:</p>
                     <div class="flex items-center gap-4">
                         <div class="flex items-center border border-slate-300 rounded-md bg-white w-fit">
@@ -215,7 +249,7 @@
                     <button (click)="consultarPorWhatsApp(productoSeleccionado)" class="w-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold py-3.5 rounded-md transition-all duration-200 active:scale-[0.98] text-center">
                         Consultar por WhatsApp
                     </button>
-                </div>
+                </div> -->
             </div>
         </div>
 

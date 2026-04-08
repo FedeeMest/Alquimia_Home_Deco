@@ -33,7 +33,9 @@ export class CatalogoPublicoComponent implements OnInit {
   
   categoriasDisponibles: string[] = [];
   categoriaSeleccionada: string = '';
-  mostrarCategorias: boolean = true; // Controla el acordeón
+  mostrarCategorias: boolean = false; // Controla el acordeón
+
+  cargandoMas: boolean = false;
 
   proveedoresDisponibles: string[] = [];
   proveedorSeleccionado: string = '';
@@ -157,10 +159,16 @@ export class CatalogoPublicoComponent implements OnInit {
   }
 
   cargarMas() {
-    this.paginaActual++;
-    this.actualizarProductosVisibles();
+    this.cargandoMas = true;
+    
+    // Simulamos un tiempito de carga para mostrar el spinner
+    setTimeout(() => {
+      this.paginaActual++;
+      this.actualizarProductosVisibles();
+      this.cargandoMas = false;
+      this.cd.detectChanges();
+    }, 500); 
   }
-
   // --- MODAL PRODUCTO ---
   abrirModal(producto: any) {
     this.productoSeleccionado = producto;
@@ -257,6 +265,10 @@ export class CatalogoPublicoComponent implements OnInit {
 
   cerrarImagenAmpliada() {
     this.imagenAmpliada = null;
+  }
+
+  trackById(index: number, item: any): number {
+    return item.id;
   }
 }
 // import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';

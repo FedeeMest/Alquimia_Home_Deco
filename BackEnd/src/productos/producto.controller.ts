@@ -373,30 +373,89 @@ async function findByBarcode(req: Request, res: Response) {
   }
 }
 
-async function getPublicCatalog(req: Request, res: Response) {
+async function getPublicCatalog(req: Request, res: Response){
     try {
-      // Buscamos SOLO los que están marcados para publicar en la web
-      const productos = await orm.em.find(Producto, { publicarEnWeb: true });
+        const em = orm.em.fork();
+        
+        // 1. Buscamos usando los nombres exactos de tu entidad
+        const productos = await em.find(Producto, 
+            { publicarEnWeb: true, activo: true },
+            { 
+                // Seleccionamos los campos exactos declarados en producto.entity.ts
+                fields: [
+                    'id', 
+                    'nombre', 
+                    'codigo_barra', 
+                    'precio_efectivo', // Usamos el precio de contado para la web
+                    'imagenUrl', 
+                    'categoria', 
+                    'proveedor', 
+                    'stock', 
+                    'stock_camion'
+                ] 
+            }
+        );
 
-      // Filtramos y "limpiamos" los datos antes de enviarlos al frontend
-      const catalogoSeguro = productos.map(p => ({
-        id: p.id,
-        nombre: p.nombre,
-        categoria: p.categoria,
-        precio: p.precio_efectivo, // Precio principal de venta
-        precio_tarjeta: p.precio_tarjeta,
-        imagenUrl: p.imagenUrl,
-        codigo_barra: p.codigo_barra,
-        // Ocultamos el número real, solo decimos si hay disponibilidad
-        disponible: (p.stock || 0) > 0,
-        descripcion: p.descripcion
-      }));
+        // 2. Formateamos el catálogo y aplicamos tu lógica de resta
+        const catalogo = productos.map(p => {
+            
+            // LÓGICA DE STOCK SEGURO: Stock general menos Stock en Camión
+            const stockGeneral = p.stock || 0;
+            const stockCamion = p.stock_camion || 0; 
+            let stockDisponible = stockGeneral - stockCamion;
 
-      res.status(200).json({ data: catalogoSeguro });
+            // Por seguridad, evitamos stocks negativos
+            if (stockDisponible < 0) {
+                stockDisponible = 0;
+            }
+
+            return {
+                id: p.id,
+                nombre: p.nombre,
+                codigo_barra: p.codigo_barra,
+                // Mapeamos el precio interno de tu BD a 'precio' para que el frontend lo lea igual
+                precio: p.precio_efectivo, 
+                imagenUrl: p.imagenUrl,
+                categoria: p.categoria,
+                proveedor: p.proveedor,
+                stock: stockDisponible, 
+                disponible: stockDisponible > 0, 
+            };
+        });
+
+        res.status(200).json({
+            message: 'Catálogo cargado con éxito',
+            data: catalogo
+        });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+        res.status(500).json({ message: error.message });
     }
-  }
+};
+
+// async function getPublicCatalog(req: Request, res: Response) {
+//     try {
+//       // Buscamos SOLO los que están marcados para publicar en la web
+//       const productos = await orm.em.find(Producto, { publicarEnWeb: true });
+
+//       // Filtramos y "limpiamos" los datos antes de enviarlos al frontend
+//       const catalogoSeguro = productos.map(p => ({
+//         id: p.id,
+//         nombre: p.nombre,
+//         categoria: p.categoria,
+//         precio: p.precio_efectivo, // Precio principal de venta
+//         precio_tarjeta: p.precio_tarjeta,
+//         imagenUrl: p.imagenUrl,
+//         codigo_barra: p.codigo_barra,
+//         // Ocultamos el número real, solo decimos si hay disponibilidad
+//         disponible: (p.stock || 0) > 0,
+//         descripcion: p.descripcion
+//       }));
+
+//       res.status(200).json({ data: catalogoSeguro });
+//     } catch (error: any) {
+//       res.status(500).json({ message: error.message });
+//     }
+//   }
 
 
 

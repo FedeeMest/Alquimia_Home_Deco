@@ -14,7 +14,6 @@ export class CatalogoPublicoComponent implements OnInit {
   private cd = inject(ChangeDetectorRef);
 
   cantidadModal: number = 1;
-
   imagenAmpliada: string | null = null;
   
   // Listas de datos
@@ -26,18 +25,26 @@ export class CatalogoPublicoComponent implements OnInit {
   paginaActual: number = 1;
   itemsPorPagina: number = 12;
 
-  categoriasDisponibles: string[] = [];
   cargando = true;
 
-  // Filtros
+  // --- VARIABLES DE FILTROS ---
   terminoBusqueda: string = '';
-  categoriaSeleccionada: string = '';
   ordenSeleccionado: string = 'defecto';
+  
+  categoriasDisponibles: string[] = [];
+  categoriaSeleccionada: string = '';
+  mostrarCategorias: boolean = true; // Controla el acordeón
+
+  proveedoresDisponibles: string[] = [];
+  proveedorSeleccionado: string = '';
+  mostrarProveedores: boolean = false; // Controla el acordeón
+  
+  precioMin: number | null = null;
+  precioMax: number | null = null;
+  mostrarPrecio: boolean = true; // Controla el acordeón
 
   // Modales y Carrito
   productoSeleccionado: any = null;
-  
-  // --- VARIABLES DEL CARRITO ---
   carrito: { producto: any, cantidad: number }[] = [];
   isCarritoOpen: boolean = false;
 
@@ -51,7 +58,10 @@ export class CatalogoPublicoComponent implements OnInit {
         const data = res.data ? res.data : res; 
         this.productosOriginales = data;
         this.productosFiltrados = [...this.productosOriginales];
-        this.extraerCategorias();
+        
+        // Extraemos categorías y ahora también proveedores
+        this.extraerFiltros(); 
+        
         this.actualizarProductosVisibles();
         this.cargando = false;
         this.cd.detectChanges();
@@ -64,12 +74,17 @@ export class CatalogoPublicoComponent implements OnInit {
     });
   }
 
-  extraerCategorias() {
+  extraerFiltros() {
     const categoriasSet = new Set<string>();
+    const proveedoresSet = new Set<string>();
+    
     this.productosOriginales.forEach(p => {
       if (p.categoria) categoriasSet.add(p.categoria);
+      if (p.proveedor) proveedoresSet.add(p.proveedor);
     });
+    
     this.categoriasDisponibles = Array.from(categoriasSet).sort();
+    this.proveedoresDisponibles = Array.from(proveedoresSet).sort();
   }
 
   seleccionarCategoria(cat: string) {
@@ -77,26 +92,52 @@ export class CatalogoPublicoComponent implements OnInit {
     this.aplicarFiltros();
   }
 
+  seleccionarProveedor(prov: string) {
+    this.proveedorSeleccionado = this.proveedorSeleccionado === prov ? '' : prov;
+    this.aplicarFiltros();
+  }
+
   limpiarBusqueda() {
     this.terminoBusqueda = '';
+    this.categoriaSeleccionada = '';
+    this.proveedorSeleccionado = '';
+    this.precioMin = null;
+    this.precioMax = null;
     this.aplicarFiltros();
   }
 
   aplicarFiltros() {
     let resultado = [...this.productosOriginales];
 
+    // Búsqueda por texto (Busca en nombre, categoría o proveedor)
     if (this.terminoBusqueda.trim()) {
       const termino = this.terminoBusqueda.toLowerCase().trim();
       resultado = resultado.filter(p => 
         p.nombre.toLowerCase().includes(termino) || 
-        (p.categoria && p.categoria.toLowerCase().includes(termino))
+        (p.categoria && p.categoria.toLowerCase().includes(termino)) ||
+        (p.proveedor && p.proveedor.toLowerCase().includes(termino))
       );
     }
 
+    // Filtro Categoría
     if (this.categoriaSeleccionada) {
       resultado = resultado.filter(p => p.categoria === this.categoriaSeleccionada);
     }
 
+    // Filtro Proveedor
+    if (this.proveedorSeleccionado) {
+      resultado = resultado.filter(p => p.proveedor === this.proveedorSeleccionado);
+    }
+
+    // Filtro Rango de Precio
+    if (this.precioMin !== null && this.precioMin >= 0) {
+      resultado = resultado.filter(p => p.precio >= this.precioMin!);
+    }
+    if (this.precioMax !== null && this.precioMax >= 0) {
+      resultado = resultado.filter(p => p.precio <= this.precioMax!);
+    }
+
+    // Ordenamiento
     switch (this.ordenSeleccionado) {
       case 'precio_asc': resultado.sort((a, b) => a.precio - b.precio); break;
       case 'precio_desc': resultado.sort((a, b) => b.precio - a.precio); break;
@@ -121,14 +162,9 @@ export class CatalogoPublicoComponent implements OnInit {
   }
 
   // --- MODAL PRODUCTO ---
-  /* abrirModal(producto: any) {
-    this.productoSeleccionado = producto;
-    document.body.style.overflow = 'hidden'; 
-  } */
-
   abrirModal(producto: any) {
     this.productoSeleccionado = producto;
-    this.cantidadModal = 1; // Reinicia el contador al abrir
+    this.cantidadModal = 1;
     document.body.style.overflow = 'hidden'; 
   }
 
@@ -152,19 +188,8 @@ export class CatalogoPublicoComponent implements OnInit {
     }
   }
 
-  /* agregarAlCarrito(producto: any) {
-    this.carrito.push(producto);
-    // Si agregó el producto desde el modal (vista en detalle), cerramos el modal
-    if (this.productoSeleccionado) {
-      this.cerrarModal();
-    }
-  } */
-
   agregarAlCarrito(producto: any, cantidadSeleccionada: number = 1) {
-    // Validamos stock (asumiendo que producto.stock viene del backend)
     const stockDisponible = producto.stock || 0;
-    
-    // Buscamos si el producto ya está en el carrito
     const itemExistente = this.carrito.find(item => item.producto.id === producto.id);
     
     if (itemExistente) {
@@ -197,41 +222,17 @@ export class CatalogoPublicoComponent implements OnInit {
     return this.carrito.reduce((total, item) => total + item.cantidad, 0);
   }
 
-  /* get totalCarrito(): number {
-    return this.carrito.reduce((total, prod) => total + prod.precio, 0);
-  } */
-
   get totalCarrito(): number {
     return this.carrito.reduce((total, item) => total + (item.producto.precio * item.cantidad), 0);
   }
 
-  /* enviarPedidoWhatsApp() {
-    if (this.carrito.length === 0) return;
-
-    // REEMPLAZÁ CON EL NÚMERO DE ALQUIMIA
-    const numeroWa = '5493401408588'; 
-    
-    let mensaje = '¡Hola Alquimia!  Estoy interesado en estos productos:\n\n';
-
-    this.carrito.forEach((prod, index) => {
-      mensaje += `${index + 1}. *${prod.nombre}* - $${prod.precio}\n`;
-    });
-
-    mensaje += `\n*Total aproximado: $${this.totalCarrito}*\n\n`;
-    mensaje += '¿Me podrían confirmar si tienen stock?';
-
-    const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank');
-  } */
-
-    enviarPedidoWhatsApp() {
+  enviarPedidoWhatsApp() {
     if (this.carrito.length === 0) return;
 
     const numeroWa = '5493401408588'; 
     let mensaje = '¡Hola Alquimia! Estoy interesado en estos productos:\n\n';
 
     this.carrito.forEach((item, index) => {
-      // Modificamos para mostrar la cantidad multiplicada
       mensaje += `${index + 1}. *${item.producto.nombre}* (x${item.cantidad}) - $${item.producto.precio * item.cantidad}\n`;
     });
 
@@ -258,7 +259,6 @@ export class CatalogoPublicoComponent implements OnInit {
     this.imagenAmpliada = null;
   }
 }
-
 // import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 // import { CommonModule } from '@angular/common';
 // import { FormsModule } from '@angular/forms';
@@ -273,27 +273,34 @@ export class CatalogoPublicoComponent implements OnInit {
 // export class CatalogoPublicoComponent implements OnInit {
 //   private productoService = inject(ProductoService);
 //   private cd = inject(ChangeDetectorRef);
+
+//   cantidadModal: number = 1;
+
+//   imagenAmpliada: string | null = null;
   
 //   // Listas de datos
 //   productosOriginales: any[] = [];
 //   productosFiltrados: any[] = [];
   
-//   // --- NUEVAS VARIABLES PARA ESCALABILIDAD (PAGINACIÓN FRONT-END) ---
+//   // Paginación
 //   productosVisibles: any[] = []; 
 //   paginaActual: number = 1;
-//   itemsPorPagina: number = 12; // Cantidad ideal para grillas de 3 o 4 columnas
-//   // ------------------------------------------------------------------
+//   itemsPorPagina: number = 12;
 
 //   categoriasDisponibles: string[] = [];
 //   cargando = true;
 
-//   // Estado de los filtros
+//   // Filtros
 //   terminoBusqueda: string = '';
 //   categoriaSeleccionada: string = '';
 //   ordenSeleccionado: string = 'defecto';
 
-//   // Estado del Modal
+//   // Modales y Carrito
 //   productoSeleccionado: any = null;
+  
+//   // --- VARIABLES DEL CARRITO ---
+//   carrito: { producto: any, cantidad: number }[] = [];
+//   isCarritoOpen: boolean = false;
 
 //   ngOnInit() {
 //     this.cargarCatalogo();
@@ -306,10 +313,7 @@ export class CatalogoPublicoComponent implements OnInit {
 //         this.productosOriginales = data;
 //         this.productosFiltrados = [...this.productosOriginales];
 //         this.extraerCategorias();
-        
-//         // Inicializamos la vista paginada
 //         this.actualizarProductosVisibles();
-
 //         this.cargando = false;
 //         this.cd.detectChanges();
 //       },
@@ -321,26 +325,10 @@ export class CatalogoPublicoComponent implements OnInit {
 //     });
 //   }
 
-//   consultarPorWhatsApp(producto: any) {
-//     // REEMPLAZÁ LAS "X" POR TU NÚMERO REAL
-//     const numeroWa = '5493401408588'; 
-    
-//     // Armamos el mensaje dinámico
-//     const mensaje = `¡Hola Alquimia! Quería hacer una consulta sobre el producto: *${producto.nombre}*`;
-    
-//     // encodeURIComponent formatea los espacios y caracteres especiales para que la URL sea válida
-//     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
-    
-//     // Abre WhatsApp en una pestaña nueva
-//     window.open(url, '_blank');
-//   }
-
 //   extraerCategorias() {
 //     const categoriasSet = new Set<string>();
 //     this.productosOriginales.forEach(p => {
-//       if (p.categoria) {
-//         categoriasSet.add(p.categoria);
-//       }
+//       if (p.categoria) categoriasSet.add(p.categoria);
 //     });
 //     this.categoriasDisponibles = Array.from(categoriasSet).sort();
 //   }
@@ -358,7 +346,6 @@ export class CatalogoPublicoComponent implements OnInit {
 //   aplicarFiltros() {
 //     let resultado = [...this.productosOriginales];
 
-//     // 1. Filtro por Búsqueda de Texto
 //     if (this.terminoBusqueda.trim()) {
 //       const termino = this.terminoBusqueda.toLowerCase().trim();
 //       resultado = resultado.filter(p => 
@@ -367,39 +354,23 @@ export class CatalogoPublicoComponent implements OnInit {
 //       );
 //     }
 
-//     // 2. Filtro por Categoría
 //     if (this.categoriaSeleccionada) {
 //       resultado = resultado.filter(p => p.categoria === this.categoriaSeleccionada);
 //     }
 
-//     // 3. Ordenamiento
 //     switch (this.ordenSeleccionado) {
-//       case 'precio_asc':
-//         resultado.sort((a, b) => a.precio - b.precio);
-//         break;
-//       case 'precio_desc':
-//         resultado.sort((a, b) => b.precio - a.precio);
-//         break;
-//       case 'nombre_asc':
-//         resultado.sort((a, b) => a.nombre.localeCompare(b.nombre));
-//         break;
-//       case 'nombre_desc':
-//         resultado.sort((a, b) => b.nombre.localeCompare(a.nombre));
-//         break;
+//       case 'precio_asc': resultado.sort((a, b) => a.precio - b.precio); break;
+//       case 'precio_desc': resultado.sort((a, b) => b.precio - a.precio); break;
+//       case 'nombre_asc': resultado.sort((a, b) => a.nombre.localeCompare(b.nombre)); break;
+//       case 'nombre_desc': resultado.sort((a, b) => b.nombre.localeCompare(a.nombre)); break;
 //     }
 
 //     this.productosFiltrados = resultado;
-    
-//     // --- MAGIA DE ESCALABILIDAD: REINICIAR Y REDIBUJAR ---
-//     // Al filtrar, volvemos a la página 1 y calculamos los visibles
 //     this.paginaActual = 1;
 //     this.actualizarProductosVisibles();
-//     // -----------------------------------------------------
 //   }
 
-//   // --- NUEVAS FUNCIONES PARA CARGAR MÁS PRODUCTOS ---
 //   actualizarProductosVisibles() {
-//     // Cortamos el array total desde el inicio hasta el límite de la página actual
 //     const limite = this.paginaActual * this.itemsPorPagina;
 //     this.productosVisibles = this.productosFiltrados.slice(0, limite);
 //     this.cd.detectChanges();
@@ -409,24 +380,143 @@ export class CatalogoPublicoComponent implements OnInit {
 //     this.paginaActual++;
 //     this.actualizarProductosVisibles();
 //   }
-//   // --------------------------------------------------
 
-//   // --- FUNCIONES DEL MODAL ---
+//   // --- MODAL PRODUCTO ---
+//   /* abrirModal(producto: any) {
+//     this.productoSeleccionado = producto;
+//     document.body.style.overflow = 'hidden'; 
+//   } */
+
 //   abrirModal(producto: any) {
 //     this.productoSeleccionado = producto;
+//     this.cantidadModal = 1; // Reinicia el contador al abrir
 //     document.body.style.overflow = 'hidden'; 
 //   }
 
 //   cerrarModal() {
 //     this.productoSeleccionado = null;
-//     document.body.style.overflow = 'auto'; 
+//     if (!this.isCarritoOpen) {
+//         document.body.style.overflow = 'auto'; 
+//     }
 //   }
 
-//   // --- CARRITO ---
-//   agregarAlCarrito(producto: any) {
-//     alert(`¡Agregaste ${producto.nombre} al carrito!`);
+//   // --- LÓGICA DEL CARRITO ---
+//   abrirCarrito() {
+//     this.isCarritoOpen = true;
+//     document.body.style.overflow = 'hidden';
+//   }
+
+//   cerrarCarrito() {
+//     this.isCarritoOpen = false;
+//     if (!this.productoSeleccionado) {
+//         document.body.style.overflow = 'auto';
+//     }
+//   }
+
+//   /* agregarAlCarrito(producto: any) {
+//     this.carrito.push(producto);
+//     // Si agregó el producto desde el modal (vista en detalle), cerramos el modal
+//     if (this.productoSeleccionado) {
+//       this.cerrarModal();
+//     }
+//   } */
+
+//   agregarAlCarrito(producto: any, cantidadSeleccionada: number = 1) {
+//     // Validamos stock (asumiendo que producto.stock viene del backend)
+//     const stockDisponible = producto.stock || 0;
+    
+//     // Buscamos si el producto ya está en el carrito
+//     const itemExistente = this.carrito.find(item => item.producto.id === producto.id);
+    
+//     if (itemExistente) {
+//       if (itemExistente.cantidad + cantidadSeleccionada > stockDisponible) {
+//          alert(`Solo quedan ${stockDisponible} unidades disponibles de este producto.`);
+//          return;
+//       }
+//       itemExistente.cantidad += cantidadSeleccionada;
+//     } else {
+//       if (cantidadSeleccionada > stockDisponible) {
+//          alert(`Solo quedan ${stockDisponible} unidades disponibles de este producto.`);
+//          return;
+//       }
+//       this.carrito.push({ producto: producto, cantidad: cantidadSeleccionada });
+//     }
+
 //     if (this.productoSeleccionado) {
 //       this.cerrarModal();
 //     }
 //   }
+
+//   eliminarDelCarrito(index: number) {
+//     this.carrito.splice(index, 1);
+//     if (this.carrito.length === 0) {
+//         this.cerrarCarrito();
+//     }
+//   }
+
+//   get cantidadItemsCarrito(): number {
+//     return this.carrito.reduce((total, item) => total + item.cantidad, 0);
+//   }
+
+//   /* get totalCarrito(): number {
+//     return this.carrito.reduce((total, prod) => total + prod.precio, 0);
+//   } */
+
+//   get totalCarrito(): number {
+//     return this.carrito.reduce((total, item) => total + (item.producto.precio * item.cantidad), 0);
+//   }
+
+//   /* enviarPedidoWhatsApp() {
+//     if (this.carrito.length === 0) return;
+
+//     // REEMPLAZÁ CON EL NÚMERO DE ALQUIMIA
+//     const numeroWa = '5493401408588'; 
+    
+//     let mensaje = '¡Hola Alquimia!  Estoy interesado en estos productos:\n\n';
+
+//     this.carrito.forEach((prod, index) => {
+//       mensaje += `${index + 1}. *${prod.nombre}* - $${prod.precio}\n`;
+//     });
+
+//     mensaje += `\n*Total aproximado: $${this.totalCarrito}*\n\n`;
+//     mensaje += '¿Me podrían confirmar si tienen stock?';
+
+//     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
+//     window.open(url, '_blank');
+//   } */
+
+//     enviarPedidoWhatsApp() {
+//     if (this.carrito.length === 0) return;
+
+//     const numeroWa = '5493401408588'; 
+//     let mensaje = '¡Hola Alquimia! Estoy interesado en estos productos:\n\n';
+
+//     this.carrito.forEach((item, index) => {
+//       // Modificamos para mostrar la cantidad multiplicada
+//       mensaje += `${index + 1}. *${item.producto.nombre}* (x${item.cantidad}) - $${item.producto.precio * item.cantidad}\n`;
+//     });
+
+//     mensaje += `\n*Total: $${this.totalCarrito}*\n\n`;
+
+//     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
+//     window.open(url, '_blank');
+//   }
+
+//   consultarPorWhatsApp(producto: any) {
+//     const numeroWa = '5493401408588'; 
+//     const mensaje = `¡Hola Alquimia! Quería hacer una consulta sobre el producto: *${producto.nombre}*`;
+//     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
+//     window.open(url, '_blank');
+//   }
+
+//   abrirImagenAmpliada(url: string | undefined) {
+//     if (url) {
+//       this.imagenAmpliada = url;
+//     }
+//   }
+
+//   cerrarImagenAmpliada() {
+//     this.imagenAmpliada = null;
+//   }
 // }
+

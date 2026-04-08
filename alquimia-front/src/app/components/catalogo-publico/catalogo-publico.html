@@ -122,7 +122,7 @@
                 <span class="text-xs text-slate-400 mb-2">Nuevo | {{ productoSeleccionado.categoria }}</span>
                 <h2 class="text-2xl font-semibold text-slate-900 mb-1 leading-tight">{{ productoSeleccionado.nombre }}</h2>
                 
-                <span class="text-xs text-slate-400 mb-5">Código: #{{ productoSeleccionado.id || 'GEN' }}</span>
+                <span class="text-xs text-slate-400 mb-5">Código: {{ productoSeleccionado.codigo_barra || 'Sin código' }}</span>
 
                 <div class="text-4xl font-light text-slate-900 mb-6">
                     {{ productoSeleccionado.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}

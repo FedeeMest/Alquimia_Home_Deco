@@ -204,18 +204,18 @@ export class CatalogoPublicoComponent implements OnInit {
     
     if (itemExistente) {
       if (itemExistente.cantidad + cantidadSeleccionada > stockDisponible) {
-         this.notificationService.show(`Solo quedan ${stockDisponible} unidades disponibles.`);
+         this.notificationService.error(`Solo quedan ${stockDisponible} unidades disponibles.`);
          return;
       }
       itemExistente.cantidad += cantidadSeleccionada;
     } else {
       if (cantidadSeleccionada > stockDisponible) {
-         this.notificationService.show(`Solo quedan ${stockDisponible} unidades disponibles.`);
+         this.notificationService.error(`Solo quedan ${stockDisponible} unidades disponibles.`);
          return;
       }
       this.carrito.push({ producto: producto, cantidad: cantidadSeleccionada });
     }
-    this.notificationService.show(`Agregaste ${cantidadSeleccionada}x ${producto.nombre} al carrito.`);
+    this.notificationService.success(`Agregaste ${cantidadSeleccionada}x ${producto.nombre} al carrito.`);
 
     if (this.productoSeleccionado) {
       this.cerrarModal();

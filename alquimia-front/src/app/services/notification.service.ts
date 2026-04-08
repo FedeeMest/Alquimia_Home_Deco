@@ -28,6 +28,18 @@ export class NotificationService {
     }, 3000);
   }
 
+  success(message: string) {
+    this.show(message, 'success');
+  }
+
+  error(message: string) {
+    this.show(message, 'error');
+  }
+
+  info(message: string) {
+    this.show(message, 'info');
+  }
+
   remove(id: number) {
     this.toasts.update(current => current.filter(t => t.id !== id));
   }

@@ -7,7 +7,7 @@ import { NotificationService } from '../../../services/notification.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none">
+    <div class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none">
       @for (toast of notificationService.toasts(); track toast.id) {
         <div 
           class="pointer-events-auto transform transition-all duration-300 animate-slide-in shadow-lg rounded-lg p-4 text-white min-w-[300px] flex justify-between items-center"

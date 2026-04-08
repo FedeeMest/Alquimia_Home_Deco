@@ -2,6 +2,7 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../services/producto.service';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-catalogo-publico',
@@ -12,6 +13,7 @@ import { ProductoService } from '../../services/producto.service';
 export class CatalogoPublicoComponent implements OnInit {
   private productoService = inject(ProductoService);
   private cd = inject(ChangeDetectorRef);
+  private notificationService = inject(NotificationService);
 
   cantidadModal: number = 1;
   imagenAmpliada: string | null = null;
@@ -202,17 +204,18 @@ export class CatalogoPublicoComponent implements OnInit {
     
     if (itemExistente) {
       if (itemExistente.cantidad + cantidadSeleccionada > stockDisponible) {
-         alert(`Solo quedan ${stockDisponible} unidades disponibles de este producto.`);
+         this.notificationService.show(`Solo quedan ${stockDisponible} unidades disponibles.`);
          return;
       }
       itemExistente.cantidad += cantidadSeleccionada;
     } else {
       if (cantidadSeleccionada > stockDisponible) {
-         alert(`Solo quedan ${stockDisponible} unidades disponibles de este producto.`);
+         this.notificationService.show(`Solo quedan ${stockDisponible} unidades disponibles.`);
          return;
       }
       this.carrito.push({ producto: producto, cantidad: cantidadSeleccionada });
     }
+    this.notificationService.show(`Agregaste ${cantidadSeleccionada}x ${producto.nombre} al carrito.`);
 
     if (this.productoSeleccionado) {
       this.cerrarModal();

@@ -41,7 +41,7 @@ export class CatalogoPublicoComponent implements OnInit {
 
   proveedoresDisponibles: string[] = [];
   proveedorSeleccionado: string = '';
-  mostrarProveedores: boolean = false; // Controla el acordeón
+  // mostrarProveedores: boolean = false; // Controla el acordeón
   
   precioMin: number | null = null;
   precioMax: number | null = null;
@@ -51,6 +51,7 @@ export class CatalogoPublicoComponent implements OnInit {
   productoSeleccionado: any = null;
   carrito: { producto: any, cantidad: number }[] = [];
   isCarritoOpen: boolean = false;
+  isFiltrosMobileOpen: boolean = false;
 
   ngOnInit() {
     this.cargarCatalogo();
@@ -240,6 +241,7 @@ export class CatalogoPublicoComponent implements OnInit {
     if (this.productoSeleccionado) {
       this.cerrarModal();
     }
+
   }
 
   // agregarAlCarrito(producto: any, cantidadSeleccionada: number = 1) {
@@ -316,6 +318,33 @@ export class CatalogoPublicoComponent implements OnInit {
 
   trackById(index: number, item: any): number {
     return item.id;
+  }
+
+  actualizarBodyOverflow() {
+    if (this.productoSeleccionado || this.isCarritoOpen || this.isFiltrosMobileOpen || this.imagenAmpliada) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = 'auto';
+    }
+  }
+
+  abrirFiltrosMobile() {
+    this.isFiltrosMobileOpen = true;
+    this.actualizarBodyOverflow();
+  }
+
+  cerrarFiltrosMobile() {
+    this.isFiltrosMobileOpen = false;
+    this.actualizarBodyOverflow();
+  }
+
+  get cantidadFiltrosActivos(): number {
+    let contador = 0;
+    if (this.categoriaSeleccionada) contador++;
+    if (this.proveedorSeleccionado) contador++;
+    if (this.precioMin !== null || this.precioMax !== null) contador++;
+    if (this.terminoBusqueda) contador++;
+    return contador;
   }
 }
 // import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';

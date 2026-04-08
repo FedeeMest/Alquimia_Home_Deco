@@ -1,5 +1,298 @@
 <div class="min-h-screen bg-[#ebebeb] py-6 sm:py-10">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 relative z-10">
+    <div class="w-full max-w-[1600px] mx-auto px-4 lg:px-8 relative z-10">
+        
+        <div *ngIf="cargando" class="flex flex-col md:flex-row gap-6 items-start">
+            <div class="w-full md:w-[260px] h-96 bg-white rounded-md border border-slate-200 animate-pulse shrink-0"></div>
+            <div class="flex-1 w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div *ngFor="let item of [1,2,3,4,5,6,7,8]" class="bg-white rounded-md h-80 animate-pulse border border-slate-200"></div>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-6 lg:gap-8 items-start" *ngIf="!cargando">
+
+            <aside class="w-full md:w-[260px] shrink-0 md:sticky md:top-24 z-30" *ngIf="productosOriginales.length > 0">
+                <h1 class="text-2xl font-semibold text-slate-900 mb-6">
+                    {{ categoriaSeleccionada ? categoriaSeleccionada : 'Todos los productos' }}
+                    <span class="block text-sm font-normal text-slate-500 mt-1">{{ productosFiltrados.length }} resultados</span>
+                </h1>
+
+                <div class="space-y-5">
+                    <div class="relative group">
+                        <input type="text" [(ngModel)]="terminoBusqueda" (keyup)="aplicarFiltros()" placeholder="Buscar producto..." 
+                            class="w-full pl-4 pr-10 py-2.5 rounded-md border border-slate-300 bg-white focus:border-slate-500 focus:ring-1 focus:ring-slate-500 text-sm shadow-sm transition-all">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+                        </div>
+                    </div>
+
+                    <button *ngIf="terminoBusqueda || categoriaSeleccionada || proveedorSeleccionado || precioMin || precioMax" 
+                            (click)="limpiarBusqueda()" 
+                            class="w-full text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-200 hover:bg-slate-300 py-2 rounded-md transition-colors text-center">
+                        Limpiar todos los filtros
+                    </button>
+
+                    <div class="pt-2">
+                        <h3 class="text-sm font-semibold text-slate-900 mb-2">Ordenar por</h3>
+                        <select [(ngModel)]="ordenSeleccionado" (change)="aplicarFiltros()"
+                            class="w-full rounded-md border border-slate-300 bg-white py-2 px-3 text-sm text-slate-700 shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 cursor-pointer appearance-none">
+                            <option value="defecto">Más relevantes</option>
+                            <option value="precio_asc">Menor precio</option>
+                            <option value="precio_desc">Mayor precio</option>
+                        </select>
+                    </div>
+
+                    <div class="border-t border-slate-200 pt-4">
+                        <button (click)="mostrarPrecio = !mostrarPrecio" class="flex items-center justify-between w-full text-left">
+                            <h3 class="text-sm font-semibold text-slate-900">Precio</h3>
+                            <svg [class.rotate-180]="!mostrarPrecio" class="w-4 h-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                        <div *ngIf="mostrarPrecio" class="flex items-center gap-2 mt-3 animate-fade-in">
+                            <input type="number" [(ngModel)]="precioMin" placeholder="Mín." class="w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500">
+                            <span class="text-slate-400">-</span>
+                            <input type="number" [(ngModel)]="precioMax" placeholder="Máx." class="w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500">
+                            <button (click)="aplicarFiltros()" class="p-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-md transition-colors shadow-sm" title="Aplicar filtro">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div *ngIf="categoriasDisponibles.length > 0" class="border-t border-slate-200 pt-4">
+                        <button (click)="mostrarCategorias = !mostrarCategorias" class="flex items-center justify-between w-full text-left">
+                            <h3 class="text-sm font-semibold text-slate-900">Categorías</h3>
+                            <svg [class.rotate-180]="!mostrarCategorias" class="w-4 h-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                        <ul *ngIf="mostrarCategorias" class="flex flex-col gap-2.5 mt-4 animate-fade-in max-h-52 overflow-y-auto pr-2">
+                            <li>
+                                <button (click)="categoriaSeleccionada = ''; aplicarFiltros()" 
+                                    class="text-sm transition-colors text-left w-full"
+                                    [ngClass]="categoriaSeleccionada === '' ? 'text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-800'">
+                                    Todas
+                                </button>
+                            </li>
+                            <li *ngFor="let cat of categoriasDisponibles">
+                                <button (click)="seleccionarCategoria(cat)" 
+                                    class="text-sm transition-colors text-left w-full"
+                                    [ngClass]="categoriaSeleccionada === cat ? 'text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-800'">
+                                    {{ cat }}
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div *ngIf="proveedoresDisponibles.length > 0" class="border-t border-slate-200 pt-4">
+                        <button (click)="mostrarProveedores = !mostrarProveedores" class="flex items-center justify-between w-full text-left">
+                            <h3 class="text-sm font-semibold text-slate-900">Marcas</h3>
+                            <svg [class.rotate-180]="!mostrarProveedores" class="w-4 h-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                        <ul *ngIf="mostrarProveedores" class="flex flex-col gap-2.5 mt-4 animate-fade-in max-h-52 overflow-y-auto pr-2">
+                            <li>
+                                <button (click)="proveedorSeleccionado = ''; aplicarFiltros()" 
+                                    class="text-sm transition-colors text-left w-full"
+                                    [ngClass]="proveedorSeleccionado === '' ? 'text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-800'">
+                                    Todas
+                                </button>
+                            </li>
+                            <li *ngFor="let prov of proveedoresDisponibles">
+                                <button (click)="seleccionarProveedor(prov)" 
+                                    class="text-sm transition-colors text-left w-full"
+                                    [ngClass]="proveedorSeleccionado === prov ? 'text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-800'">
+                                    {{ prov }}
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="flex-1 w-full min-w-0">
+                <div *ngIf="productosFiltrados.length === 0" class="bg-white rounded-md shadow-sm p-10 flex flex-col items-center justify-center text-center">
+                    <svg class="w-16 h-16 text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-1">No hay publicaciones que coincidan con tu búsqueda.</h3>
+                    <p class="text-slate-500 text-sm">Revisá los filtros aplicados o la ortografía de la palabra.</p>
+                </div>
+
+                <div *ngIf="productosVisibles.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 text-left">
+                    <div *ngFor="let p of productosVisibles" 
+                         class="bg-white rounded-md shadow-sm hover:shadow-lg transition-shadow duration-200 border border-slate-200/60 overflow-hidden flex flex-col group relative cursor-pointer"
+                         (click)="abrirModal(p)">
+                        
+                        <div class="aspect-square bg-white relative p-4 flex items-center justify-center border-b border-slate-100">
+                            <img *ngIf="p.imagenUrl" [src]="p.imagenUrl" [alt]="p.nombre" loading="lazy" class="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300">
+                            <svg *ngIf="!p.imagenUrl" class="w-12 h-12 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </div>
+
+                        <div class="p-4 flex flex-col flex-1 bg-white">
+                            <div class="text-2xl font-normal text-slate-900 mb-1">
+                                {{ p.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                            </div>
+                            <p class="text-sm font-light text-slate-600 line-clamp-2 leading-snug mt-1">
+                                {{ p.nombre }}
+                            </p>
+                            
+                            <div class="mt-auto pt-3">
+                                <span *ngIf="!p.disponible" class="text-[10px] font-semibold text-red-500 uppercase tracking-wide">Sin stock</span>
+                                <span *ngIf="p.disponible && p.stock > 0 && p.stock <= 3" class="text-[10px] font-semibold text-orange-500 uppercase tracking-wide">¡Últimas {{p.stock}}!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+
+                <div *ngIf="productosVisibles.length < productosFiltrados.length" class="mt-10 mb-4 flex justify-center w-full">
+                    <button (click)="cargarMas()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm py-2 px-6 rounded-md transition-colors shadow-sm">
+                        Cargar más productos
+                    </button>
+                </div>
+            </main> 
+        </div> 
+    </div>
+</div> 
+
+<div *ngIf="productoSeleccionado" class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-hidden">
+    <div (click)="cerrarModal()" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+    
+    <div class="bg-white w-full sm:max-w-5xl sm:rounded-lg shadow-2xl relative z-10 flex flex-col h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-y-auto animate-fade-in-up sm:animate-scale-up">
+        
+        <button (click)="cerrarModal()" class="fixed sm:absolute top-4 right-4 z-50 p-2 bg-white/90 hover:bg-slate-100 text-slate-700 rounded-full transition-all shadow-md sm:shadow-sm sm:border sm:border-slate-200">
+            <svg class="w-6 h-6 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+
+        <div class="flex flex-col md:flex-row border-b border-slate-200">
+            
+            <div class="w-full md:w-1/2 h-[45vh] md:h-auto md:min-h-[400px] p-0 flex justify-center items-center bg-white border-b md:border-b-0 md:border-r border-slate-200 relative group/zoom overflow-hidden cursor-zoom-in shrink-0"
+                 (click)="abrirImagenAmpliada(productoSeleccionado.imagenUrl)">
+                 
+                <img *ngIf="productoSeleccionado.imagenUrl" 
+                     [src]="productoSeleccionado.imagenUrl" 
+                     class="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 origin-center group-hover/zoom:scale-[1.3]">
+                
+                <svg *ngIf="!productoSeleccionado.imagenUrl" class="w-32 h-32 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                
+                <div *ngIf="productoSeleccionado.imagenUrl" class="absolute bottom-4 right-4 bg-white/90 backdrop-blur text-slate-800 p-2.5 rounded-full shadow-lg border border-slate-200 opacity-0 md:group-hover/zoom:opacity-100 transition-opacity duration-300 pointer-events-none hidden md:block">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" /></svg>
+                </div>
+            </div>
+
+            <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center bg-white shrink-0">
+                <span class="text-xs text-slate-400 mb-2">Nuevo | {{ productoSeleccionado.categoria }}</span>
+                <h2 class="text-2xl font-semibold text-slate-900 mb-1 leading-tight">{{ productoSeleccionado.nombre }}</h2>
+                
+                <span class="text-xs text-slate-400 mb-5">Código: {{ productoSeleccionado.codigo_barra || 'Sin código' }}</span>
+
+                <div class="text-4xl font-light text-slate-900 mb-6">
+                    {{ productoSeleccionado.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                </div>
+
+                <div class="mb-6">
+                    <p class="text-sm font-semibold text-slate-900 mb-2">Cantidad:</p>
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center border border-slate-300 rounded-md bg-white w-fit">
+                            <button (click)="cantidadModal = cantidadModal > 1 ? cantidadModal - 1 : 1" class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">-</button>
+                            <span class="w-8 text-center font-semibold text-slate-900">{{ cantidadModal }}</span>
+                            <button (click)="cantidadModal = cantidadModal < productoSeleccionado.stock ? cantidadModal + 1 : cantidadModal" 
+                                    [disabled]="cantidadModal >= productoSeleccionado.stock"
+                                    class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors">+</button>
+                        </div>
+                        <span class="text-sm text-slate-500" *ngIf="productoSeleccionado.disponible">({{ productoSeleccionado.stock }} disponibles)</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3 mt-auto">
+                    <button (click)="agregarAlCarrito(productoSeleccionado, cantidadModal)" [disabled]="!productoSeleccionado.disponible" class="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 text-white font-semibold py-3.5 rounded-md transition-colors text-center">
+                        {{ productoSeleccionado.disponible ? 'Agregar al carrito' : 'Producto sin stock' }}
+                    </button>
+                    <button (click)="consultarPorWhatsApp(productoSeleccionado)" class="w-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold py-3.5 rounded-md transition-colors text-center">
+                        Consultar por WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 md:p-10 bg-white">
+            <h3 class="text-xl font-normal text-slate-900 mb-6 border-b border-slate-100 pb-4">Descripción</h3>
+            <p *ngIf="productoSeleccionado.descripcion" class="text-slate-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
+                {{ productoSeleccionado.descripcion }}
+            </p>
+            <p *ngIf="!productoSeleccionado.descripcion" class="text-slate-400 italic text-sm">
+                No hay descripción disponible para este producto.
+            </p>
+        </div>
+    </div>
+</div>
+
+<button *ngIf="!isCarritoOpen && !productoSeleccionado" 
+        (click)="abrirCarrito()" 
+        class="fixed bottom-6 right-6 z-40 bg-slate-900 text-white p-4 rounded-full shadow-xl hover:scale-105 transition-all flex items-center gap-3">
+    <div class="relative">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+        <span class="absolute -top-2 -right-2 bg-emerald-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+            {{ cantidadItemsCarrito }}
+        </span>
+    </div>
+</button>
+
+<div *ngIf="isCarritoOpen" class="fixed inset-0 z-[110] overflow-hidden">
+    <div (click)="cerrarCarrito()" class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"></div>
+    <div class="absolute inset-y-0 right-0 max-w-md w-full flex">
+        <div class="w-full h-full bg-white shadow-2xl flex flex-col">
+            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-slate-900">Tu Carrito</h2>
+                <button (click)="cerrarCarrito()" class="p-2 text-slate-400 hover:text-slate-900 rounded-full transition-colors">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 bg-slate-50">
+                <div *ngIf="carrito.length === 0" class="h-full flex flex-col items-center justify-center text-center opacity-70">
+                    <div class="w-16 h-16 text-slate-300 mb-4 mx-auto">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
+                    </div>
+                    <p class="text-slate-500 font-semibold">Tu carrito está vacío.</p>
+                </div>
+                
+                <div *ngIf="carrito.length > 0" class="space-y-4">
+                    <div *ngFor="let item of carrito; let i = index" class="bg-white p-3 rounded-md shadow-sm border border-slate-200 flex items-center gap-4">
+                        
+                        <div class="w-16 h-16 rounded-md bg-slate-50 border border-slate-100 p-1 relative">
+                            <img *ngIf="item.producto?.imagenUrl" [src]="item.producto.imagenUrl" class="w-full h-full object-contain">
+                            
+                            <span class="absolute -top-2 -right-2 bg-slate-900 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm">{{ item.cantidad }}</span>
+                        </div>
+                        
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-semibold text-slate-800 truncate mb-1">{{ item.producto?.nombre }}</h4>
+                            <p class="text-sm font-normal text-slate-900">{{ item.producto?.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+                        </div>
+                        
+                        <button (click)="eliminarDelCarrito(i)" class="p-2 text-slate-400 hover:text-red-500 transition-colors">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 bg-white border-t border-slate-200">
+                <div class="flex items-end justify-between mb-5">
+                    <span class="text-sm font-semibold text-slate-500">Total Estimado</span>
+                    <span class="text-2xl font-semibold text-slate-900">{{ totalCarrito | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+                </div>
+                <button (click)="enviarPedidoWhatsApp()" [disabled]="carrito.length === 0" 
+                    class="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3.5 rounded-md transition-colors">
+                    Confirmar pedido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="imagenAmpliada" class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/95 backdrop-blur-md animate-fade-in p-4 md:p-10" (click)="cerrarImagenAmpliada()">
+    <button class="absolute top-6 right-6 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors z-10" title="Cerrar (Esc)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+    </button>
+    <img [src]="imagenAmpliada" class="max-w-full max-h-full object-contain drop-shadow-2xl animate-scale-up" (click)="$event.stopPropagation()">
+    <div class="absolute bottom-6 text-white/50 text-xs font-bold tracking-widest uppercase pointer-events-none">
+        Hacé clic en cualquier lugar para cerrar
+    </div>
+</div>
+<!-- <div class="min-h-screen bg-[#ebebeb] py-6 sm:py-10">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 relative z-10">
         
         <div *ngIf="cargando" class="flex flex-col md:flex-row gap-6 items-start">
             <div class="w-full md:w-64 h-96 bg-white rounded-md border border-slate-200 animate-pulse shrink-0"></div>
@@ -111,7 +404,7 @@
                     <p class="text-slate-500 text-sm">Revisá los filtros aplicados o la ortografía de la palabra.</p>
                 </div>
 
-                <div *ngIf="productosVisibles.length > 0" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 text-left">
+                <div *ngIf="productosVisibles.length > 0" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 text-left">
                     <div *ngFor="let p of productosVisibles" 
                          class="bg-white rounded-md shadow-sm hover:shadow-lg transition-shadow duration-200 border border-slate-200/60 overflow-hidden flex flex-col group relative cursor-pointer"
                          (click)="abrirModal(p)">
@@ -287,257 +580,6 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
     </button>
     <img [src]="imagenAmpliada" class="max-w-full max-h-full object-contain drop-shadow-2xl animate-scale-up" (click)="$event.stopPropagation()">
-    <div class="absolute bottom-6 text-white/50 text-xs font-bold tracking-widest uppercase pointer-events-none">
-        Hacé clic en cualquier lugar para cerrar
-    </div>
-</div>
-<!-- <div class="min-h-screen bg-[#ebebeb] py-6 sm:py-10">
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 relative z-10">
-        
-        <div *ngIf="cargando" class="flex flex-col md:flex-row gap-6 items-start">
-            <div class="w-full md:w-64 h-96 bg-white rounded-md border border-slate-200 animate-pulse shrink-0"></div>
-            <div class="flex-1 w-full grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                <div *ngFor="let item of [1,2,3,4,5,6,7,8]" class="bg-white rounded-md h-72 animate-pulse border border-slate-200"></div>
-            </div>
-        </div>
-
-        <div class="flex flex-col md:flex-row gap-8 items-start" *ngIf="!cargando">
-
-            <aside class="w-full md:w-[240px] shrink-0 md:sticky md:top-24 z-30" *ngIf="productosOriginales.length > 0">
-                <h1 class="text-2xl font-semibold text-slate-900 mb-6">
-                    {{ categoriaSeleccionada ? categoriaSeleccionada : 'Todos los productos' }}
-                    <span class="block text-sm font-normal text-slate-500 mt-1">{{ productosFiltrados.length }} resultados</span>
-                </h1>
-
-                <div class="space-y-6">
-                    <div>
-                        <div class="relative group">
-                            <input type="text" [(ngModel)]="terminoBusqueda" (keyup)="aplicarFiltros()" placeholder="Buscar producto..." 
-                                class="w-full pl-4 pr-10 py-2.5 rounded-md border border-slate-300 bg-white focus:border-slate-500 focus:ring-1 focus:ring-slate-500 text-sm shadow-sm transition-all">
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="text-sm font-semibold text-slate-900 mb-3">Ordenar por</h3>
-                        <select [(ngModel)]="ordenSeleccionado" (change)="aplicarFiltros()"
-                            class="w-full rounded-md border border-slate-300 bg-white py-2 px-3 text-sm text-slate-700 shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 cursor-pointer appearance-none">
-                            <option value="defecto">Más relevantes</option>
-                            <option value="precio_asc">Menor precio</option>
-                            <option value="precio_desc">Mayor precio</option>
-                        </select>
-                    </div>
-
-                    <div *ngIf="categoriasDisponibles.length > 0">
-                        <h3 class="text-sm font-semibold text-slate-900 mb-3">Categorías</h3>
-                        <ul class="flex flex-col gap-2">
-                            <li>
-                                <button (click)="seleccionarCategoria('')" 
-                                    class="text-sm transition-colors text-left w-full"
-                                    [ngClass]="categoriaSeleccionada === '' ? 'text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-800'">
-                                    Todas las categorías
-                                </button>
-                            </li>
-                            <li *ngFor="let cat of categoriasDisponibles">
-                                <button (click)="seleccionarCategoria(cat)" 
-                                    class="text-sm transition-colors text-left w-full"
-                                    [ngClass]="categoriaSeleccionada === cat ? 'text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-800'">
-                                    {{ cat }}
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </aside>
-
-            <main class="flex-1 w-full min-w-0">
-                
-                <div *ngIf="productosFiltrados.length === 0" class="bg-white rounded-md shadow-sm p-10 flex flex-col items-center justify-center text-center">
-                    <svg class="w-16 h-16 text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
-                    <h3 class="text-lg font-semibold text-slate-900 mb-1">No hay publicaciones que coincidan con tu búsqueda.</h3>
-                    <p class="text-slate-500 text-sm">Revisá la ortografía de la palabra o usá términos más generales.</p>
-                </div>
-
-                <div *ngIf="productosVisibles.length > 0" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 text-left">
-                    <div *ngFor="let p of productosVisibles" 
-                         class="bg-white rounded-md shadow-sm hover:shadow-lg transition-shadow duration-200 border border-slate-200/60 overflow-hidden flex flex-col group relative cursor-pointer"
-                         (click)="abrirModal(p)">
-                        
-                        <div class="aspect-square bg-white relative p-4 flex items-center justify-center border-b border-slate-100">
-                            <img *ngIf="p.imagenUrl" [src]="p.imagenUrl" [alt]="p.nombre" loading="lazy" class="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300">
-                            <svg *ngIf="!p.imagenUrl" class="w-12 h-12 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        </div>
-
-                        <div class="p-4 flex flex-col flex-1 bg-white">
-                            <div class="text-xl sm:text-2xl font-normal text-slate-900 mb-1">
-                                {{ p.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}
-                            </div>
-                            <p class="text-xs sm:text-sm font-light text-slate-600 line-clamp-2 leading-snug mt-1">
-                                {{ p.nombre }}
-                            </p>
-                            
-                            <div class="mt-auto pt-3">
-                                <span *ngIf="!p.disponible" class="text-[10px] font-semibold text-red-500 uppercase tracking-wide">Sin stock</span>
-                                <span *ngIf="p.disponible && p.stock <= 3" class="text-[10px] font-semibold text-orange-500 uppercase tracking-wide">¡Últimas {{p.stock}}!</span>
-                            </div>
-                        </div>
-                    </div>
-                </div> 
-
-                <div *ngIf="productosVisibles.length < productosFiltrados.length" class="mt-10 mb-4 flex justify-center w-full">
-                    <button (click)="cargarMas()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm py-2 px-6 rounded-md transition-colors shadow-sm">
-                        Cargar más productos
-                    </button>
-                </div>
-            </main> 
-        </div> 
-    </div>
-</div> 
-
-<div *ngIf="productoSeleccionado" class="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-6 overflow-hidden">
-    <div (click)="cerrarModal()" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
-    
-    <div class="bg-white w-full sm:max-w-5xl sm:rounded-lg shadow-2xl relative z-10 flex flex-col h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto animate-fade-in-up">
-        <button (click)="cerrarModal()" class="absolute top-4 right-4 z-20 p-2 bg-white/80 hover:bg-slate-100 text-slate-500 rounded-full transition-all border border-slate-200">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-        </button>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 border-b border-slate-200 min-h-[400px]">
-            
-            <div class="p-0 flex justify-center items-center bg-white border-b md:border-b-0 md:border-r border-slate-200 relative group/zoom overflow-hidden cursor-zoom-in"
-                 (click)="abrirImagenAmpliada(productoSeleccionado.imagenUrl)">
-                 
-                <img *ngIf="productoSeleccionado.imagenUrl" 
-                     [src]="productoSeleccionado.imagenUrl" 
-                     class="w-full h-full min-h-[400px] object-contain mix-blend-multiply transition-transform duration-500 origin-center group-hover/zoom:scale-[1.3]">
-                
-                <svg *ngIf="!productoSeleccionado.imagenUrl" class="w-32 h-32 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                
-                <div *ngIf="productoSeleccionado.imagenUrl" class="absolute bottom-4 right-4 bg-white/90 backdrop-blur text-slate-800 p-2.5 rounded-full shadow-lg border border-slate-200 opacity-0 group-hover/zoom:opacity-100 transition-opacity duration-300 pointer-events-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" /></svg>
-                </div>
-            </div>
-
-            <div class="p-6 md:p-8 flex flex-col justify-center bg-white">
-                <span class="text-xs text-slate-400 mb-2">Nuevo | {{ productoSeleccionado.categoria }}</span>
-                <h2 class="text-2xl font-semibold text-slate-900 mb-1 leading-tight">{{ productoSeleccionado.nombre }}</h2>
-                
-                <span class="text-xs text-slate-400 mb-5">Código: {{ productoSeleccionado.codigo_barra || 'Sin código' }}</span>
-
-                <div class="text-4xl font-light text-slate-900 mb-6">
-                    {{ productoSeleccionado.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}
-                </div>
-
-                <div class="mb-6">
-                    <p class="text-sm font-semibold text-slate-900 mb-2">Cantidad:</p>
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center border border-slate-300 rounded-md bg-white w-fit">
-                            <button (click)="cantidadModal = cantidadModal > 1 ? cantidadModal - 1 : 1" class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">-</button>
-                            <span class="w-8 text-center font-semibold text-slate-900">{{ cantidadModal }}</span>
-                            <button (click)="cantidadModal = cantidadModal < productoSeleccionado.stock ? cantidadModal + 1 : cantidadModal" 
-                                    [disabled]="cantidadModal >= productoSeleccionado.stock"
-                                    class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors">+</button>
-                        </div>
-                        <span class="text-sm text-slate-500" *ngIf="productoSeleccionado.disponible">({{ productoSeleccionado.stock }} disponibles)</span>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-3 mt-auto">
-                    <button (click)="agregarAlCarrito(productoSeleccionado, cantidadModal)" [disabled]="!productoSeleccionado.disponible" class="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 text-white font-semibold py-3.5 rounded-md transition-colors text-center">
-                        {{ productoSeleccionado.disponible ? 'Agregar al carrito' : 'Producto sin stock' }}
-                    </button>
-                    <button (click)="consultarPorWhatsApp(productoSeleccionado)" class="w-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold py-3.5 rounded-md transition-colors text-center">
-                        Consultar por WhatsApp
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="p-6 md:p-10 bg-white">
-            <h3 class="text-xl font-normal text-slate-900 mb-6 border-b border-slate-100 pb-4">Descripción</h3>
-            <p *ngIf="productoSeleccionado.descripcion" class="text-slate-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
-                {{ productoSeleccionado.descripcion }}
-            </p>
-            <p *ngIf="!productoSeleccionado.descripcion" class="text-slate-400 italic text-sm">
-                No hay descripción disponible para este producto.
-            </p>
-        </div>
-    </div>
-</div>
-
-<button *ngIf="!isCarritoOpen && !productoSeleccionado" 
-        (click)="abrirCarrito()" 
-        class="fixed bottom-6 right-6 z-40 bg-slate-900 text-white p-4 rounded-full shadow-xl hover:scale-105 transition-all flex items-center gap-3">
-    <div class="relative">
-        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
-        <span class="absolute -top-2 -right-2 bg-emerald-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
-            {{ cantidadItemsCarrito }}
-        </span>
-    </div>
-</button>
-
-<div *ngIf="isCarritoOpen" class="fixed inset-0 z-[110] overflow-hidden">
-    <div (click)="cerrarCarrito()" class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"></div>
-    <div class="absolute inset-y-0 right-0 max-w-md w-full flex">
-        <div class="w-full h-full bg-white shadow-2xl flex flex-col">
-            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-slate-900">Tu Carrito</h2>
-                <button (click)="cerrarCarrito()" class="p-2 text-slate-400 hover:text-slate-900 rounded-full transition-colors">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-            </div>
-            <div class="flex-1 overflow-y-auto p-6 bg-slate-50">
-                <div *ngIf="carrito.length === 0" class="h-full flex flex-col items-center justify-center text-center opacity-70">
-                    <div class="w-16 h-16 text-slate-300 mb-4 mx-auto">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
-                    </div>
-                    <p class="text-slate-500 font-semibold">Tu carrito está vacío.</p>
-                </div>
-                
-                <div *ngIf="carrito.length > 0" class="space-y-4">
-                    <div *ngFor="let item of carrito; let i = index" class="bg-white p-3 rounded-md shadow-sm border border-slate-200 flex items-center gap-4">
-                        
-                        <div class="w-16 h-16 rounded-md bg-slate-50 border border-slate-100 p-1 relative">
-                            <img *ngIf="item.producto?.imagenUrl" [src]="item.producto.imagenUrl" class="w-full h-full object-contain">
-                            
-                            <span class="absolute -top-2 -right-2 bg-slate-900 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm">{{ item.cantidad }}</span>
-                        </div>
-                        
-                        <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-semibold text-slate-800 truncate mb-1">{{ item.producto?.nombre }}</h4>
-                            <p class="text-sm font-normal text-slate-900">{{ item.producto?.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
-                        </div>
-                        
-                        <button (click)="eliminarDelCarrito(i)" class="p-2 text-slate-400 hover:text-red-500 transition-colors">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="p-6 bg-white border-t border-slate-200">
-                <div class="flex items-end justify-between mb-5">
-                    <span class="text-sm font-semibold text-slate-500">Total Estimado</span>
-                    <span class="text-2xl font-semibold text-slate-900">{{ totalCarrito | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
-                </div>
-                <button (click)="enviarPedidoWhatsApp()" [disabled]="carrito.length === 0" 
-                    class="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3.5 rounded-md transition-colors">
-                    Confirmar pedido
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div *ngIf="imagenAmpliada" class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/95 backdrop-blur-md animate-fade-in p-4 md:p-10" (click)="cerrarImagenAmpliada()">
-    
-    <button class="absolute top-6 right-6 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors z-10" title="Cerrar (Esc)">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-    </button>
-
-    <img [src]="imagenAmpliada" class="max-w-full max-h-full object-contain drop-shadow-2xl animate-scale-up" (click)="$event.stopPropagation()">
-    
     <div class="absolute bottom-6 text-white/50 text-xs font-bold tracking-widest uppercase pointer-events-none">
         Hacé clic en cualquier lugar para cerrar
     </div>

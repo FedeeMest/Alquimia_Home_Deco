@@ -22,9 +22,7 @@ export interface PaginatedResponse<T> {
 export interface VentaRequest {
   items: ItemVenta[];
   metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TARJETA_LOCAL';
-  cliente_nombre?: string;
-  cliente_cuit?: string;
-  cliente_direccion?: string;
+  cliente_id?: number | null;
   usuario_vendedor?: string;
   cuotas?: number;
   monto_descuento_recargo?: number;

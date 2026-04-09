@@ -163,6 +163,362 @@
             <span class="lg:hidden h-px flex-1 bg-slate-700"></span>
         </h2>
 
+        <div class="mb-4 lg:mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+            
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Asignar Cliente / Feria</h3>
+            </div>
+            
+            <div class="flex gap-2 relative">
+                <div class="relative flex-1">
+                    <select [(ngModel)]="clienteSeleccionadoId" class="w-full appearance-none pl-3 pr-8 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-inner cursor-pointer transition-colors">
+                        <option [ngValue]="null">Consumidor Final (Sin asignar)</option>
+                        <option *ngFor="let c of clientesDisponibles" [value]="c.id">
+                            {{ c.nombre }} {{ c.tipo !== 'Feria' ? '(' + c.tipo + ')' : '' }}
+                        </option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </div>
+                
+                <button (click)="abrirModalCliente()" type="button" class="w-11 h-[42px] flex-shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors flex items-center justify-center shadow-md active:scale-95" title="Registrar nuevo cliente o feria">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-6 bg-slate-800/50 p-1 rounded-xl flex border border-slate-700/50 relative">
+            <button (click)="estadoVenta = 'COBRADA'" 
+                class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all relative z-10 flex items-center justify-center gap-2"
+                [ngClass]="estadoVenta === 'COBRADA' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                Cobrar Ahora
+            </button>
+
+            <button (click)="estadoVenta = 'PENDIENTE'" 
+                class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all relative z-10 flex items-center justify-center gap-2"
+                [ngClass]="estadoVenta === 'PENDIENTE' ? 'bg-amber-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                Fiado / Pendiente
+            </button>
+        </div>
+
+        <div class="space-y-3 mb-6">
+            <label class="block text-sm font-medium text-slate-400">Método de Pago</label>
+            <div class="grid grid-cols-3 gap-2">
+                <button (click)="cambiarMetodoPago('EFECTIVO')"
+                    [class]="metodoPago === 'EFECTIVO' ? 'bg-emerald-600 text-white border-transparent' : 'bg-transparent border-slate-600 text-slate-400 hover:border-slate-400'"
+                    class="border-2 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all truncate">
+                    Efectivo
+                </button>
+                <button (click)="cambiarMetodoPago('TARJETA')"
+                    [class]="metodoPago === 'TARJETA' ? 'bg-slate-600 text-white border-transparent' : 'bg-transparent border-slate-600 text-slate-400 hover:border-slate-400'"
+                    class="border-2 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all truncate">
+                    T. Nac
+                </button>
+                <button (click)="cambiarMetodoPago('TARJETA_LOCAL')"
+                    [class]="metodoPago === 'TARJETA_LOCAL' ? 'bg-slate-500 text-white border-transparent' : 'bg-transparent border-slate-600 text-slate-400 hover:border-slate-400'"
+                    class="border-2 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all truncate">
+                    T. Loc
+                </button>
+            </div>
+
+            <div *ngIf="metodoPago !== 'EFECTIVO'" class="mt-4 animate-fade-in p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                
+                <label class="block text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
+                    Cantidad de Cuotas (1-12)
+                </label>
+                
+                <div class="flex items-center gap-2 bg-slate-900 p-1.5 rounded-lg border border-slate-700 shadow-inner">
+                    
+                    <button 
+                        (click)="datosVenta.cuotas = datosVenta.cuotas > 1 ? datosVenta.cuotas - 1 : 1"
+                        class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-md transition-all active:scale-90 border border-slate-600 shadow-sm"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6" />
+                        </svg>
+                    </button>
+
+                    <div class="flex-1 relative flex justify-center">
+                        <input 
+                            type="number" 
+                            [(ngModel)]="datosVenta.cuotas" 
+                            (change)="datosVenta.cuotas < 1 ? datosVenta.cuotas = 1 : (datosVenta.cuotas > 12 ? datosVenta.cuotas = 12 : null)"
+                            class="w-full bg-transparent text-center text-3xl font-bold text-white border-none focus:ring-0 p-0 appearance-none outline-none"
+                            min="1" 
+                            max="12"
+                        >
+                        
+                    </div>
+
+                    <button 
+                        (click)="datosVenta.cuotas = datosVenta.cuotas < 12 ? datosVenta.cuotas + 1 : 12"
+                        class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-md transition-all active:scale-90 border border-slate-600 shadow-sm"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
+                        </svg>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4 group animate-fade-in">
+            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider transition-colors group-focus-within:text-blue-400">
+                Observaciones / Notas
+            </label>
+            <div class="relative">
+                <textarea 
+                    [(ngModel)]="observaciones"
+                    rows="2"
+                    class="block w-full px-3 py-2.5 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 shadow-inner resize-none"
+                    placeholder="Ej: Retira mañana, pagó seña, etc..."
+                ></textarea>
+                
+                <div class="absolute right-2 top-2 text-slate-600 pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="hidden lg:block flex-1"></div>
+
+        <div class="mt-auto border-t border-slate-700 pt-4">
+            <div class="flex justify-between items-end mb-4">
+                <span class="text-xl lg:text-2xl font-light text-slate-400">Total</span>
+                <span class="text-4xl lg:text-5xl font-bold text-white tracking-tighter">
+                    {{ total | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                </span>
+            </div>
+
+            <button 
+                (click)="confirmarVenta()"
+                [disabled]="carrito.length === 0 || procesando"
+                class="w-full bg-white hover:bg-slate-200 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-slate-900 font-bold py-3 lg:py-4 rounded-xl text-lg lg:text-xl shadow-lg transition-all flex justify-center items-center gap-2"
+            >
+                <span *ngIf="!procesando">Cobrar Venta</span>
+                <span *ngIf="procesando">Procesando...</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="mostrarModalCliente" class="fixed inset-0 z-[150] flex items-center justify-center p-4">
+    <div (click)="cerrarModalCliente()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    
+    <div class="bg-white w-full max-w-md rounded-xl shadow-2xl relative z-10 animate-fade-in-up flex flex-col">
+        <div class="flex items-center justify-between p-5 border-b border-slate-100">
+            <h2 class="text-lg font-semibold text-slate-900">Nuevo Cliente / Feria</h2>
+            <button (click)="cerrarModalCliente()" class="text-slate-400 hover:text-slate-700 transition-colors">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        
+        <div class="p-5 space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Nombre / Identificador</label>
+                <input type="text" [(ngModel)]="nuevoClienteForm.nombre" placeholder="Ej. Feria Plaza San Martín" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500 text-sm shadow-sm outline-none text-slate-800">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tipo</label>
+                    <select [(ngModel)]="nuevoClienteForm.tipo" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500 text-sm shadow-sm outline-none cursor-pointer text-slate-800">
+                        <option value="Feria">Feria / Evento</option>
+                        <option value="Minorista">Minorista</option>
+                        <option value="Mayorista">Mayorista</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Teléfono (Opcional)</label>
+                    <input type="text" [(ngModel)]="nuevoClienteForm.telefono" placeholder="Ej. 3401..." class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500 text-sm shadow-sm outline-none text-slate-800">
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-xl">
+            <button (click)="cerrarModalCliente()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">Cancelar</button>
+            <button (click)="guardarNuevoCliente()" [disabled]="creandoCliente || !nuevoClienteForm.nombre" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white text-sm font-semibold rounded-md shadow-sm transition-all active:scale-95 flex items-center gap-2">
+                <svg *ngIf="creandoCliente" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Guardar
+            </button>
+        </div>
+    </div>
+</div>
+<!-- <div class="container mx-auto p-2 lg:p-4 flex flex-col lg:flex-row gap-4 lg:gap-6 h-auto lg:h-[calc(100vh-100px)]">
+    
+    <div class="w-full lg:flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-[50vh] lg:min-h-0">
+        
+        <div class="p-3 lg:p-4 border-b border-slate-100 bg-slate-50">
+            
+            <div *ngIf="mostrarCamara" class="mb-4 relative rounded-xl overflow-hidden bg-black shadow-lg border-2 border-slate-800 animate-fade-in">
+                <div class="h-48 sm:h-64 bg-black relative"> 
+                    <zxing-scanner
+                        [formats]="formatosAdmitidos"
+                        [tryHarder]="true"
+                        [device]="dispositivoActual" 
+                        (camerasFound)="onCamerasFound($event)"
+                        (scanSuccess)="onCodigoEscaneado($event)">
+                    </zxing-scanner>
+                    
+                    <button (click)="toggleCamara()" class="absolute top-2 right-2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-md z-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <div class="absolute bottom-2 left-0 right-0 text-center pointer-events-none">
+                        <span class="bg-black/60 text-white text-xs px-2 py-1 rounded-full">Apuntá al código</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative flex gap-2">
+                
+                <input 
+                    #inputBusqueda
+                    type="text" 
+                    [ngModel]="busqueda"
+                    (ngModelChange)="buscar($event)"
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()"
+                    (keyup.enter)="productosEncontrados.length > 0 ? agregarAlCarrito(productosEncontrados[0]) : null"
+                    placeholder="Escanear o buscar..." 
+                    class="flex-1 w-full pl-4 pr-4 py-2 lg:py-3 rounded-lg border-2 border-slate-300 focus:border-slate-500 focus:ring-0 text-base lg:text-lg shadow-inner text-slate-700"
+                    [disabled]="procesando"
+                >
+
+                <button 
+                    (click)="toggleCamara()"
+                    class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 lg:px-4 rounded-lg shadow-sm active:scale-95 transition-transform flex items-center justify-center border border-slate-300"
+                    title="Abrir Cámara"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                    </svg>
+                </button>
+
+                <button 
+                    (click)="productosEncontrados.length > 0 ? agregarAlCarrito(productosEncontrados[0]) : null"
+                    class="bg-slate-800 hover:bg-slate-700 text-white px-4 lg:px-5 rounded-lg shadow-md active:scale-95 transition-transform flex items-center justify-center"
+                    title="Agregar (Enter)"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </button>
+
+                <div *ngIf="productosEncontrados.length > 0 && mostrarSugerencias" class="absolute top-full left-0 right-0 bg-white border border-slate-200 shadow-xl rounded-b-lg z-20 max-h-60 overflow-y-auto mt-1">
+                    <div *ngFor="let p of productosEncontrados" (click)="agregarAlCarrito(p)" class="p-3 hover:bg-slate-100 cursor-pointer border-b border-slate-50 flex justify-between items-center">
+                        <div>
+                            <div class="font-bold text-slate-800">{{ p.nombre }}</div>
+                            <div class="text-xs text-slate-500">{{ p.codigo_barra }} | Stock: {{ p.stock }}</div>
+                        </div>
+                        <div class="font-mono font-bold text-slate-700">
+                            {{ (metodoPago === 'EFECTIVO' ? p.precio_efectivo : p.precio_tarjeta) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-1 lg:p-2">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-white text-slate-400 font-medium uppercase text-xs sticky top-0 z-10 shadow-sm">
+                    <tr>
+                        <th class="px-2 lg:px-4 py-2">Producto</th>
+                        <th class="px-2 lg:px-4 py-2 text-center">Cant</th>
+                        <th class="px-2 lg:px-4 py-2 text-right hidden sm:table-cell">Precio</th>
+                        <th class="px-2 lg:px-4 py-2 text-right">Subtotal</th>
+                        <th class="px-2 lg:px-4 py-2 w-8 lg:w-10"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <tr *ngFor="let item of carrito; let i = index" class="hover:bg-slate-50">
+                        <td class="px-2 lg:px-4 py-3 font-medium text-slate-800 break-words max-w-[120px] sm:max-w-none">
+                            {{ item.producto.nombre }}
+                            <div class="sm:hidden text-xs text-slate-400 font-normal mt-0.5">
+                                {{ (item.subtotal / item.cantidad) | currency:'ARS':'symbol-narrow':'1.0-0' }} x u.
+                            </div>
+                        </td>
+                        <td class="px-2 lg:px-4 py-3 text-center">
+                            <span class="font-bold bg-slate-200 px-2 py-1 rounded text-slate-700 text-xs lg:text-sm">{{ item.cantidad }}</span>
+                        </td>
+                        <td class="px-2 lg:px-4 py-3 text-right font-mono hidden sm:table-cell">
+                            {{ (item.subtotal / item.cantidad) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                        </td>
+                        <td class="px-2 lg:px-4 py-3 text-right font-bold text-slate-900 font-mono text-xs lg:text-sm">
+                            {{ item.subtotal | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                        </td>
+                        <td class="px-1 lg:px-4 py-3 text-center">
+                            <button (click)="quitarDelCarrito(i)" class="text-red-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="carrito.length === 0">
+                        <td colspan="5" class="py-10 text-center text-slate-400 px-4">
+                            <span class="block sm:inline">El carrito está vacío.</span>
+                            <span class="block sm:inline">Escanea un producto.</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="w-full lg:w-96 bg-slate-900 text-white rounded-xl shadow-lg p-4 lg:p-6 flex flex-col h-auto lg:h-full overflow-y-auto">
+
+        <h2 class="text-lg lg:text-xl font-bold mb-4 text-slate-300 uppercase tracking-widest flex items-center gap-2">
+            <span>Configuracion</span>
+            <span class="lg:hidden h-px flex-1 bg-slate-700"></span>
+        </h2>
+        <div class="mb-4 flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-slate-700 rounded-lg text-emerald-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z" />
+                    </svg>
+                </div>
+                <div>
+                    <span class="block text-sm font-bold text-slate-200">Escaneo Rápido</span>
+                    <span class="block text-xs text-slate-500">Agregar automático</span>
+                </div>
+            </div>
+            
+            <button 
+                (click)="autoEnter = !autoEnter"
+                class="relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                [class.bg-emerald-500]="autoEnter"
+                [class.bg-slate-700]="!autoEnter"
+            >
+                <span class="sr-only">Usar Auto-Enter</span>
+                <span 
+                    aria-hidden="true" 
+                    class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                    [class.translate-x-5]="autoEnter"
+                    [class.translate-x-0]="!autoEnter"
+                ></span>
+            </button>
+        </div>
+        
+        <h2 class="text-lg lg:text-xl font-bold mb-4 text-slate-300 uppercase tracking-widest flex items-center gap-2">
+            <span>Datos de la Venta</span>
+            <span class="lg:hidden h-px flex-1 bg-slate-700"></span>
+        </h2>
+
         <div class="mb-4 lg:mb-6 space-y-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 backdrop-blur-sm">
             
             <div class="flex items-center justify-between mb-2">
@@ -343,4 +699,4 @@
             </button>
         </div>
     </div>
-</div>
+</div> -->

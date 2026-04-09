@@ -16,9 +16,7 @@ export interface Venta {
     estado: string;
     
     // Campos opcionales (por si son ventas viejas o consumidores finales)
-    cliente_nombre?: string;
-    cliente_cuit?: string;
-    cliente_direccion?: string;
+    cliente_id?: number | null;
     usuario_vendedor?: string;
     numero_comprobante?: string;
     cuotas?: number;

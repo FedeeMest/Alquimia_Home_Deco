@@ -39,16 +39,17 @@ export class VentaService {
     return this.http.post(this.apiUrl, venta);
   }
 
-  getAll(page: number = 1, limit: number = 10, estado?: string, desde?: string, hasta?: string): Observable<PaginatedResponse<Venta>> {
+  getAll(page: number, limit: number, estado?: string, desde?: string, hasta?: string, cliente_id?: string): Observable<any> {
     let params = new HttpParams()
-      .set('page', page)
-      .set('limit', limit);
-
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+      
     if (estado) params = params.set('estado', estado);
     if (desde) params = params.set('desde', desde);
     if (hasta) params = params.set('hasta', hasta);
+    if (cliente_id) params = params.set('cliente_id', cliente_id); // Enviamos la feria a filtrar
 
-    return this.http.get<PaginatedResponse<Venta>>(this.apiUrl, { params });
+    return this.http.get(this.apiUrl, { params });
   }
 
   getOne(id: number): Observable<Venta> {

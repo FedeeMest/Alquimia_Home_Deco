@@ -10,9 +10,9 @@ import { cierreRouter } from './cierre/cierre.routes.js';
 import { authRouter } from './auth/auth.routes.js';
 import { usuarioRouter } from './usuario/usuario.routes.js'; // <--- AGREGADO: Faltaba importar esto
 import { initSemillas } from './shared/db/seeds.js';
-import { authMiddleware } from './shared/middleware/auth.middleware.js';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { clienteRouter } from './cliente/cliente.routes.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -62,6 +62,7 @@ app.use('/api/usuarios', usuarioRouter); // Rutas de usuario protegidas por auth
 app.use('/api/ventas', ventaRouter); // Rutas de ventas protegidas por authMiddleware dentro de venta.routes.ts
 app.use('/api/configuracion',configuracionRouter); // Rutas de configuración protegidas por authMiddleware dentro de configuracion.routes.ts
 app.use('/api/cierre_caja',cierreRouter); // Rutas de cierre de caja protegidas por authMiddleware dentro de cierre.routes.ts
+app.use('/api/clientes', clienteRouter);
 
 // Ruta Base (Health Check)
 app.get('/', (req, res) => {

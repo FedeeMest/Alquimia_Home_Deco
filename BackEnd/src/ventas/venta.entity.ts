@@ -1,5 +1,6 @@
-import { Entity, PrimaryKey, Property, OneToMany, Collection, Cascade, Index } from "@mikro-orm/core";
+import { Entity, PrimaryKey, Property, OneToMany, Collection, Cascade, Index, ManyToOne } from "@mikro-orm/core";
 import { DetalleVenta } from "../detalle_venta/detalle.entity.js"; // La crearemos abajo
+import { Cliente } from "../cliente/cliente.entity.js";
 
 @Entity()
 export class Venta {
@@ -16,15 +17,8 @@ export class Venta {
 
     // --- DATOS DEL CLIENTE (Consumidor Final o Factura) ---
     // Si no tienes una tabla de "Clientes", guárdalos como texto aquí.
-    @Property({ nullable: true })
-    cliente_nombre?: string; // Ej: "Juan Perez" o "Consumidor Final"
-
-    @Property({ nullable: true })
-    cliente_cuit?: string;   // Ej: "20-12345678-9" (DNI o CUIT)
-
-    @Property({ nullable: true })
-    cliente_direccion?: string; // Necesario para Factura A
-
+   @ManyToOne(() => Cliente, { nullable: true })
+    cliente?: Cliente;
     @Property({ type: 'text', nullable: true })
     observaciones?: string;
 

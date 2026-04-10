@@ -64,6 +64,10 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
   clientesTotales: any[] = [];
   clientesFiltrados: any[] = []; 
   clientesModalFiltrados: any[] = []; 
+
+  mostrarModalPrecio: boolean = false;
+  itemEditandoIndex: number = -1;
+  precioEdicionTemp: number | null = null;
   
   clienteSeleccionadoId: string = '';
   busquedaClienteInput: string = '';
@@ -565,6 +569,35 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
           this.notificationService.show('Error al registrar la venta en la base de datos', 'error');
         }
       });
+    }
+  }
+
+  abrirModalPrecio(index: number) {
+    this.itemEditandoIndex = index;
+    const item = this.carrito[index];
+    this.precioEdicionTemp = item.precioPersonalizado !== undefined ? item.precioPersonalizado : item.precioUnitarioAplicado;
+    this.mostrarModalPrecio = true;
+  }
+
+  cerrarModalPrecio() {
+    this.mostrarModalPrecio = false;
+    this.itemEditandoIndex = -1;
+    this.precioEdicionTemp = null;
+  }
+
+  guardarPrecioManual() {
+    if (this.itemEditandoIndex > -1 && this.precioEdicionTemp !== null && this.precioEdicionTemp >= 0) {
+      this.carrito[this.itemEditandoIndex].precioPersonalizado = Number(this.precioEdicionTemp);
+      this.calcularTotales();
+      this.cerrarModalPrecio();
+    }
+  }
+
+  restablecerPrecioModal() {
+    if (this.itemEditandoIndex > -1) {
+      this.carrito[this.itemEditandoIndex].precioPersonalizado = undefined;
+      this.calcularTotales();
+      this.cerrarModalPrecio();
     }
   }
 }

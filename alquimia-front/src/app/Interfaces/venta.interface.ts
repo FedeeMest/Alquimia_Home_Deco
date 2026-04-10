@@ -1,22 +1,24 @@
 import { Producto } from "./producto.interface";
+import { Cliente } from "./cliente.interface"; // <-- 1. Importar la interfaz Cliente
 
 export interface DetalleVenta {
     id: number;
     cantidad: number;
     precio_unitario_historico: number;
     subtotal: number;
-    producto: Producto; // El producto completo
+    producto: Producto;
 }
 
 export interface Venta {
     id: number;
-    fecha: string; // Vienen como string del JSON
+    fecha: string;
     total: number;
     metodo_pago: string;
     estado: string;
     
-    // Campos opcionales (por si son ventas viejas o consumidores finales)
     cliente_id?: number | null;
+    cliente?: Cliente; // <-- 2. Agregar la propiedad cliente (opcional)
+    
     usuario_vendedor?: string;
     numero_comprobante?: string;
     cuotas?: number;

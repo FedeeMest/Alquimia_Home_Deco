@@ -5,13 +5,14 @@ import { ProductoService } from '../../services/producto.service';
 import { VentaService, VentaRequest } from '../../services/venta.service';
 import { NotificationService } from '../../services/notification.service';
 import { ConfiguracionService } from '../../services/configuracion.service';
+// NUEVO: Importamos el servicio de clientes
+import { ClienteService } from '../../services/cliente.service'; 
 import { Producto } from '../../Interfaces/producto.interface';
 import { Router } from '@angular/router';
 import { finalize, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject, Subscription } from 'rxjs';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { BarcodeFormat } from '@zxing/library';
-import { ClienteService } from '../../services/cliente.service';
 
 interface ProductoIndexado extends Producto {
   _searchIndex: string;
@@ -35,7 +36,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
   private ventaService = inject(VentaService);
   private notificationService = inject(NotificationService);
   private configuracionService = inject(ConfiguracionService);
-  private clienteService = inject(ClienteService);
+  private clienteService = inject(ClienteService); // INYECTADO
   private router = inject(Router);
   private cd = inject(ChangeDetectorRef);
 
@@ -48,16 +49,31 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
   observaciones: string = '';
   total: number = 0; 
 
-  clientesDisponibles: any[] = [];
-  clienteSeleccionadoId: number | null = null;
-
-  mostrarModalCliente = false;
-  nuevoClienteForm = { nombre: '', telefono: '', tipo: 'Feria' };
-  creandoCliente = false;
+  datosCliente = {
+    nombre: '',
+    cuit: '',
+    direccion: ''
+  };
 
   datosVenta = {
     cuotas: 1
   };
+
+  // --- VARIABLES PARA LA LÓGICA DE CLIENTES (AUTOCOMPLETADO Y MODAL) ---
+  clientesTotales: any[] = [];
+  clientesFiltrados: any[] = []; 
+  clientesModalFiltrados: any[] = []; 
+  
+  clienteSeleccionadoId: string = '';
+  busquedaClienteInput: string = '';
+  
+  mostrarSugerenciasCliente: boolean = false;
+  mostrarModalClientes: boolean = false;
+  busquedaModal: string = '';
+  
+  creandoNuevoCliente: boolean = false;
+  nuevoClienteNombre: string = '';
+  // ---------------------------------------------------------------------
 
   productosCache: ProductoIndexado[] = [];
   productosEncontrados: ProductoIndexado[] = [];
@@ -90,7 +106,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.cargarConfiguracion();
     this.cargarTodosLosProductos();
-    this.cargarClientes();
+    this.cargarClientes(); // CARGAMOS LA LISTA DE CLIENTES AL INICIAR
 
     this.searchSubscription = this.searchSubject.pipe(
       debounceTime(250),
@@ -106,46 +122,97 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     }
   }
 
+  // =========================================================================
+  // LÓGICA DE CLIENTES (AUTOCOMPLETADO, MODAL Y CREACIÓN RÁPIDA)
+  // =========================================================================
   cargarClientes() {
     this.clienteService.getClientes().subscribe({
       next: (res: any) => {
-        this.clientesDisponibles = res.data;
+        this.clientesTotales = res.data;
+        this.clientesFiltrados = this.clientesTotales.slice(0, 5); // Sugerencias iniciales
+        this.clientesModalFiltrados = this.clientesTotales;
       },
-      error: (err) => console.error('Error cargando clientes:', err)
+      error: (err) => console.error('Error cargando clientes', err)
     });
   }
 
-  abrirModalCliente() {
-    this.mostrarModalCliente = true;
+  filtrarClientesRapido() {
+    // Si el usuario borra o cambia el nombre manualmente, desvinculamos el ID
+    if (this.clienteSeleccionadoId && this.busquedaClienteInput !== this.datosCliente.nombre) {
+        this.clienteSeleccionadoId = '';
+    }
+    this.datosCliente.nombre = this.busquedaClienteInput;
+
+    const term = this.normalizarTexto(this.busquedaClienteInput);
+    if (!term) {
+        this.clientesFiltrados = this.clientesTotales.slice(0, 5);
+        return;
+    }
+    this.clientesFiltrados = this.clientesTotales
+        .filter(c => this.normalizarTexto(c.nombre).includes(term))
+        .slice(0, 5); // Mostramos solo 5 en el autocompletado para no tapar la pantalla
   }
 
-  cerrarModalCliente() {
-    this.mostrarModalCliente = false;
-    this.nuevoClienteForm = { nombre: '', telefono: '', tipo: 'Feria' };
+  ocultarSugerenciasCliente() {
+    // Delay para permitir que el clic en la sugerencia se registre antes de ocultar
+    setTimeout(() => this.mostrarSugerenciasCliente = false, 200);
+  }
+
+  seleccionarCliente(cliente: any) {
+    this.clienteSeleccionadoId = cliente.id;
+    this.busquedaClienteInput = cliente.nombre;
+    
+    // Autocompletamos los demás campos
+    this.datosCliente.nombre = cliente.nombre;
+    this.datosCliente.cuit = cliente.cuit || cliente.telefono || ''; 
+    this.datosCliente.direccion = cliente.direccion || cliente.email || '';
+    
+    this.mostrarSugerenciasCliente = false;
+  }
+
+  abrirModalClientes() {
+    this.mostrarModalClientes = true;
+    this.busquedaModal = '';
+    this.clientesModalFiltrados = this.clientesTotales;
+  }
+
+  cerrarModalClientes() {
+    this.mostrarModalClientes = false;
+  }
+
+  filtrarClientesModal() {
+    const term = this.normalizarTexto(this.busquedaModal);
+    if (!term) {
+        this.clientesModalFiltrados = this.clientesTotales;
+        return;
+    }
+    this.clientesModalFiltrados = this.clientesTotales.filter(c => this.normalizarTexto(c.nombre).includes(term));
+  }
+
+  toggleNuevoCliente() {
+    this.creandoNuevoCliente = !this.creandoNuevoCliente;
+    this.nuevoClienteNombre = '';
   }
 
   guardarNuevoCliente() {
-    if (!this.nuevoClienteForm.nombre.trim()) {
-      this.notificationService.error('El nombre es obligatorio');
-      return;
-    }
-
-    this.creandoCliente = true;
-    this.clienteService.crearCliente(this.nuevoClienteForm).subscribe({
-      next: (res: any) => {
-        this.notificationService.success('Cliente creado con éxito');
-        this.cargarClientes(); 
-        this.clienteSeleccionadoId = res.data.id; 
-        this.cerrarModalCliente();
-        this.creandoCliente = false;
-      },
-      error: (err) => {
-  console.error('ERROR COMPLETO DEL BACKEND:', err.error); // <-- Te dirá el motivo exacto
-  this.notificationService.error(err.error?.message || 'Error al crear el cliente');
-  this.creandoCliente = false;
-}
+    if (!this.nuevoClienteNombre.trim()) return;
+    this.clienteService.crearCliente({ nombre: this.nuevoClienteNombre, tipo: 'Feria' }).subscribe({
+        next: (res: any) => {
+            const nuevoCli = res.data;
+            this.clientesTotales.push(nuevoCli);
+            this.clientesTotales.sort((a,b) => a.nombre.localeCompare(b.nombre));
+            
+            // Lo seleccionamos automáticamente
+            this.seleccionarCliente(nuevoCli);
+            
+            this.creandoNuevoCliente = false;
+            this.nuevoClienteNombre = '';
+            this.notificationService.show('Cliente/Feria registrado con éxito', 'success');
+        },
+        error: () => this.notificationService.show('Error al registrar cliente', 'error')
     });
   }
+  // =========================================================================
 
   onCamerasFound(devices: any[]): void {
     if (devices && devices.length > 0) {
@@ -212,7 +279,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error cargando productos:', err);
         this.cargandoProductos = false;
-        this.notificationService.error('Error al cargar la lista de productos');
+        this.notificationService.show('Error al cargar la lista de productos', 'error');
         this.cd.detectChanges();
       }
     });
@@ -293,7 +360,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     if (productoEncontrado) {
       this.agregarAlCarrito(productoEncontrado);
     } else {
-      this.notificationService.error(`No se encontró producto con código: ${codigoLimpio}`);
+      this.notificationService.show(`No se encontró producto con código: ${codigoLimpio}`, 'error');
     }
 
     this.codigoLeido = '';
@@ -329,7 +396,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     }
     
     this.calcularTotales();
-    this.notificationService.success('Producto agregado al ticket');
+    this.notificationService.show('Producto agregado al ticket', 'success');
 
     this.limpiarBusqueda(); 
     this.mostrarSugerencias = false; 
@@ -392,20 +459,21 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 
   completarVenta() {
     if (this.carrito.length === 0) {
-      this.notificationService.error('Agrega al menos un producto al carrito para vender');
+      this.notificationService.show('Agrega al menos un producto al carrito para vender', 'error');
       return;
     }
 
     if (confirm('¿Confirmar el cierre de esta venta?')) {
       this.procesando = true;
 
+      // Armamos el Payload (incluyendo el cliente_id)
       const payload: VentaRequest = {
         metodo_pago: this.metodoPago,
         items: this.carrito.map(item => ({
           id_producto: item.producto.id!, 
           cantidad: item.cantidad
         })),
-        cliente_id: this.clienteSeleccionadoId,
+        cliente_id: this.clienteSeleccionadoId ? Number(this.clienteSeleccionadoId) : undefined, // NUEVO
         estado: this.estadoVenta as 'COBRADA' | 'PENDIENTE',
         observaciones: this.observaciones ? this.observaciones : undefined,
         cuotas: this.metodoPago !== 'EFECTIVO' ? this.datosVenta.cuotas : 1
@@ -418,22 +486,26 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
         })
       ).subscribe({
         next: () => {
-          this.notificationService.success('¡Venta completada con éxito!');
+          this.notificationService.show('¡Venta completada con éxito!', 'success');
           
-          // Limpieza post-venta corregida
           this.carrito = [];
-          this.clienteSeleccionadoId = null; // <-- ESTA ERA LA LÍNEA QUE FALLABA
+          this.datosCliente = { nombre: '', cuit: '', direccion: '' };
           this.observaciones = '';
           this.estadoVenta = 'PENDIENTE';
           this.datosVenta.cuotas = 1;
           this.metodoPago = 'EFECTIVO';
           
+          // Limpiamos la info del cliente seleccionado
+          this.clienteSeleccionadoId = '';
+          this.busquedaClienteInput = '';
+          this.creandoNuevoCliente = false;
+
           this.calcularTotales();
           this.limpiarBusqueda();
         },
         error: (err) => {
           console.error('Error al guardar la venta:', err);
-          this.notificationService.error('Error al registrar la venta en la base de datos');
+          this.notificationService.show('Error al registrar la venta en la base de datos', 'error');
         }
       });
     }
@@ -454,12 +526,10 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 // import { BarcodeFormat } from '@zxing/library';
 // import { ClienteService } from '../../services/cliente.service';
 
-// // EXTENDEMOS LA INTERFAZ PARA INCLUIR EL INDEX DE BÚSQUEDA
 // interface ProductoIndexado extends Producto {
 //   _searchIndex: string;
 // }
 
-// // ADAPTADA PARA QUE HAGA MATCH CON EL HTML (item.producto.nombre y item.cantidad)
 // interface ProductoCarrito {
 //   producto: ProductoIndexado | Producto;
 //   cantidad: number;
@@ -484,13 +554,12 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 
 //   @ViewChild('scanInput') scanInput!: ElementRef;
 
-//   // --- VARIABLES NUEVAS REQUERIDAS POR EL HTML ---
 //   dispositivoActual: any;
 //   mostrarSugerencias: boolean = false;
 //   autoEnter: boolean = false;
 //   estadoVenta: 'PENDIENTE' | 'COBRADA' | string = 'PENDIENTE';
 //   observaciones: string = '';
-//   total: number = 0; // El HTML usa 'total' en lugar de 'totalVenta'
+//   total: number = 0; 
 
 //   clientesDisponibles: any[] = [];
 //   clienteSeleccionadoId: number | null = null;
@@ -502,7 +571,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   datosVenta = {
 //     cuotas: 1
 //   };
-//   // ------------------------------------------------
 
 //   productosCache: ProductoIndexado[] = [];
 //   productosEncontrados: ProductoIndexado[] = [];
@@ -537,7 +605,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     this.cargarTodosLosProductos();
 //     this.cargarClientes();
 
-//     // MOTOR DE BÚSQUEDA REACTIVO
 //     this.searchSubscription = this.searchSubject.pipe(
 //       debounceTime(250),
 //       distinctUntilChanged()
@@ -580,19 +647,19 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     this.clienteService.crearCliente(this.nuevoClienteForm).subscribe({
 //       next: (res: any) => {
 //         this.notificationService.success('Cliente creado con éxito');
-//         this.cargarClientes(); // Recargamos la lista
-//         this.clienteSeleccionadoId = res.data.id; // Lo autoseleccionamos
+//         this.cargarClientes(); 
+//         this.clienteSeleccionadoId = res.data.id; 
 //         this.cerrarModalCliente();
 //         this.creandoCliente = false;
 //       },
 //       error: (err) => {
-//         this.notificationService.error('Error al crear el cliente');
-//         this.creandoCliente = false;
-//       }
+//   console.error('ERROR COMPLETO DEL BACKEND:', err.error); // <-- Te dirá el motivo exacto
+//   this.notificationService.error(err.error?.message || 'Error al crear el cliente');
+//   this.creandoCliente = false;
+// }
 //     });
 //   }
 
-//   // --- EVENTOS DE INTERFAZ Y HTML ---
 //   onCamerasFound(devices: any[]): void {
 //     if (devices && devices.length > 0) {
 //       this.dispositivoActual = devices[0];
@@ -608,8 +675,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   }
 
 //   onInputBlur(): void {
-//     // Le damos un pequeño delay para que si el usuario hace clic en una sugerencia, 
-//     // registre el clic antes de ocultar el menú
 //     setTimeout(() => this.mostrarSugerencias = false, 200);
 //   }
 
@@ -620,7 +685,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   confirmarVenta(): void {
 //     this.completarVenta();
 //   }
-//   // ----------------------------------
 
 //   private normalizarTexto(texto: string | undefined | null): string {
 //     if (!texto) return '';
@@ -661,7 +725,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //       error: (err) => {
 //         console.error('Error cargando productos:', err);
 //         this.cargandoProductos = false;
-//         this.notificationService.show('Error al cargar la lista de productos', 'error');
+//         this.notificationService.error('Error al cargar la lista de productos');
 //         this.cd.detectChanges();
 //       }
 //     });
@@ -742,7 +806,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     if (productoEncontrado) {
 //       this.agregarAlCarrito(productoEncontrado);
 //     } else {
-//       this.notificationService.show(`No se encontró producto con código: ${codigoLimpio}`, 'error');
+//       this.notificationService.error(`No se encontró producto con código: ${codigoLimpio}`);
 //     }
 
 //     this.codigoLeido = '';
@@ -778,11 +842,10 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     }
     
 //     this.calcularTotales();
-//     this.notificationService.show('Producto agregado al ticket', 'success');
+//     this.notificationService.success('Producto agregado al ticket');
 
-//     // --- ESTO ES LO NUEVO ---
-//     this.limpiarBusqueda(); // Limpia el input de texto y vacía el array de encontrados
-//     this.mostrarSugerencias = false; // Oculta la ventanita de sugerencias
+//     this.limpiarBusqueda(); 
+//     this.mostrarSugerencias = false; 
 //   }
 
 //   modificarCantidad(index: number, delta: number) {
@@ -807,11 +870,10 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 
 //   calcularTotales() {
 //     this.totalVenta = 0;
-//     this.total = 0; // Sincronizamos la variable que lee el HTML
+//     this.total = 0; 
 //     this.totalArticulos = 0;
 
 //     this.carrito.forEach(item => {
-//       // Ahora accedemos al precio a través de item.producto
 //       let precioAplicado = item.producto.precio_efectivo || 0;
 
 //       if (this.metodoPago === 'TARJETA_LOCAL') {
@@ -824,7 +886,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //       item.subtotal = precioAplicado * item.cantidad;
 
 //       this.totalVenta += item.subtotal;
-//       this.total += item.subtotal; // Sincronizamos
+//       this.total += item.subtotal; 
 //       this.totalArticulos += item.cantidad;
 //     });
 //   }
@@ -843,23 +905,20 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 
 //   completarVenta() {
 //     if (this.carrito.length === 0) {
-//       this.notificationService.show('Agrega al menos un producto al carrito para vender', 'error');
+//       this.notificationService.error('Agrega al menos un producto al carrito para vender');
 //       return;
 //     }
 
 //     if (confirm('¿Confirmar el cierre de esta venta?')) {
 //       this.procesando = true;
 
-//       // Armamos el Payload con TODOS los datos del formulario
 //       const payload: VentaRequest = {
 //         metodo_pago: this.metodoPago,
 //         items: this.carrito.map(item => ({
 //           id_producto: item.producto.id!, 
 //           cantidad: item.cantidad
 //         })),
-//         // Agregamos los datos del cliente
 //         cliente_id: this.clienteSeleccionadoId,
-//         // Agregamos estado, observaciones y cuotas
 //         estado: this.estadoVenta as 'COBRADA' | 'PENDIENTE',
 //         observaciones: this.observaciones ? this.observaciones : undefined,
 //         cuotas: this.metodoPago !== 'EFECTIVO' ? this.datosVenta.cuotas : 1
@@ -872,11 +931,11 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //         })
 //       ).subscribe({
 //         next: () => {
-//           this.notificationService.show('¡Venta completada con éxito!', 'success');
+//           this.notificationService.success('¡Venta completada con éxito!');
           
-//           // Limpiamos todo el formulario para la siguiente venta
+//           // Limpieza post-venta corregida
 //           this.carrito = [];
-//           this.cliente_id = null;
+//           this.clienteSeleccionadoId = null; // <-- ESTA ERA LA LÍNEA QUE FALLABA
 //           this.observaciones = '';
 //           this.estadoVenta = 'PENDIENTE';
 //           this.datosVenta.cuotas = 1;
@@ -887,48 +946,9 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //         },
 //         error: (err) => {
 //           console.error('Error al guardar la venta:', err);
-//           this.notificationService.show('Error al registrar la venta en la base de datos', 'error');
+//           this.notificationService.error('Error al registrar la venta en la base de datos');
 //         }
 //       });
 //     }
 //   }
-
-  /* completarVenta() {
-    if (this.carrito.length === 0) {
-      this.notificationService.show('Agrega al menos un producto al carrito para vender', 'error');
-      return;
-    }
-
-    if (confirm('¿Confirmar el cierre de esta venta?')) {
-      this.procesando = true;
-
-      const payload: VentaRequest = {
-        metodo_pago: this.metodoPago,
-        items: this.carrito.map(item => ({
-          id_producto: item.producto.id!, // Adaptado a la nueva estructura anidada
-          cantidad: item.cantidad,
-          precio_unitario: item.precioUnitarioAplicado,
-          subtotal: item.subtotal
-        }))
-      };
-
-      this.ventaService.crear(payload).pipe(
-        finalize(() => {
-          this.procesando = false;
-          this.cd.detectChanges();
-        })
-      ).subscribe({
-        next: () => {
-          this.notificationService.show('¡Venta completada con éxito!', 'success');
-          this.carrito = [];
-          this.calcularTotales();
-          this.limpiarBusqueda();
-        },
-        error: (err) => {
-          console.error('Error al guardar la venta:', err);
-          this.notificationService.show('Error al registrar la venta en la base de datos', 'error');
-        }
-      });
-    }
-  } */
-
+// }

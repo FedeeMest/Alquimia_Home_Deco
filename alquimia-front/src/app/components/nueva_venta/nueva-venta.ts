@@ -22,6 +22,8 @@ interface ProductoCarrito {
   cantidad: number;
   precioUnitarioAplicado: number;
   subtotal: number;
+  precioPersonalizado?: number; // <-- NUEVO: Guarda el precio que tipeaste a mano
+  editandoPrecio?: boolean;     // <-- NUEVO: Controla si se ve el input o el texto
 }
 
 @Component({
@@ -443,13 +445,16 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     this.totalArticulos = 0;
 
     this.carrito.forEach(item => {
-      let precioAplicado = item.producto.precio_efectivo || 0;
-
+      // 1. Buscamos el precio base según el método de pago
+      let precioBase = item.producto.precio_efectivo || 0;
       if (this.metodoPago === 'TARJETA_LOCAL') {
-        precioAplicado = item.producto.precio_tarjeta_local || 0;
+        precioBase = item.producto.precio_tarjeta_local || 0;
       } else if (this.metodoPago === 'TARJETA') {
-        precioAplicado = item.producto.precio_tarjeta || 0;
+        precioBase = item.producto.precio_tarjeta || 0;
       }
+
+      // 2. Si el vendedor le puso un precio manual, lo usamos. Si no, usamos el base.
+      let precioAplicado = item.precioPersonalizado !== undefined ? item.precioPersonalizado : precioBase;
 
       item.precioUnitarioAplicado = precioAplicado;
       item.subtotal = precioAplicado * item.cantidad;
@@ -459,6 +464,44 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
       this.totalArticulos += item.cantidad;
     });
   }
+
+  fijarPrecioManual(index: number, nuevoPrecio: number | string) {
+    const val = Number(nuevoPrecio);
+    if (!isNaN(val) && val >= 0) {
+      this.carrito[index].precioPersonalizado = val;
+      this.carrito[index].editandoPrecio = false;
+      this.calcularTotales();
+    }
+  }
+
+  restablecerPrecio(index: number) {
+    this.carrito[index].precioPersonalizado = undefined;
+    this.carrito[index].editandoPrecio = false;
+    this.calcularTotales();
+  }
+
+  // calcularTotales() {
+  //   this.totalVenta = 0;
+  //   this.total = 0; 
+  //   this.totalArticulos = 0;
+
+  //   this.carrito.forEach(item => {
+  //     let precioAplicado = item.producto.precio_efectivo || 0;
+
+  //     if (this.metodoPago === 'TARJETA_LOCAL') {
+  //       precioAplicado = item.producto.precio_tarjeta_local || 0;
+  //     } else if (this.metodoPago === 'TARJETA') {
+  //       precioAplicado = item.producto.precio_tarjeta || 0;
+  //     }
+
+  //     item.precioUnitarioAplicado = precioAplicado;
+  //     item.subtotal = precioAplicado * item.cantidad;
+
+  //     this.totalVenta += item.subtotal;
+  //     this.total += item.subtotal; 
+  //     this.totalArticulos += item.cantidad;
+  //   });
+  // }
 
   cancelarVenta() {
     if (this.carrito.length > 0) {
@@ -486,7 +529,8 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
         metodo_pago: this.metodoPago,
         items: this.carrito.map(item => ({
           id_producto: item.producto.id!, 
-          cantidad: item.cantidad
+          cantidad: item.cantidad,
+          precio_modificado: item.precioPersonalizado // <-- SE ENVÍA AL BACKEND SOLO SI LO MODIFICASTE
         })),
         cliente_id: this.clienteSeleccionadoId ? Number(this.clienteSeleccionadoId) : undefined, 
         estado: this.estadoVenta as 'COBRADA' | 'PENDIENTE',

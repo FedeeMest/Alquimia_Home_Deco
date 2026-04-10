@@ -87,21 +87,53 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     <tr *ngFor="let item of carrito; let i = index" class="hover:bg-slate-50">
+                        
                         <td class="px-2 lg:px-4 py-3 font-medium text-slate-800 break-words max-w-[120px] sm:max-w-none">
                             {{ item.producto.nombre }}
-                            <div class="sm:hidden text-xs text-slate-400 font-normal mt-0.5">
-                                {{ (item.subtotal / item.cantidad) | currency:'ARS':'symbol-narrow':'1.0-0' }} x u.
+                            
+                            <div class="sm:hidden text-xs font-normal mt-0.5 flex items-center gap-1">
+                                <span [ngClass]="{'text-emerald-600 font-bold': item.precioPersonalizado !== undefined, 'text-slate-400': item.precioPersonalizado === undefined}">
+                                    {{ item.precioUnitarioAplicado | currency:'ARS':'symbol-narrow':'1.0-0' }} x u.
+                                </span>
+                                <button *ngIf="!item.editandoPrecio" (click)="item.editandoPrecio = true" class="text-slate-300 hover:text-blue-500 p-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
+                                </button>
                             </div>
                         </td>
+
                         <td class="px-2 lg:px-4 py-3 text-center">
                             <span class="font-bold bg-slate-100 border border-slate-200 px-2 py-1 rounded text-slate-700 text-xs lg:text-sm">{{ item.cantidad }}</span>
                         </td>
-                        <td class="px-2 lg:px-4 py-3 text-right font-mono hidden sm:table-cell">
-                            {{ (item.subtotal / item.cantidad) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+
+                        <td class="px-2 lg:px-4 py-3 text-right hidden sm:table-cell">
+                            
+                            <div *ngIf="!item.editandoPrecio" class="flex items-center justify-end gap-2 group cursor-pointer" (click)="item.editandoPrecio = true">
+                                <span [ngClass]="{'text-emerald-600 font-bold': item.precioPersonalizado !== undefined, 'font-mono text-slate-500': item.precioPersonalizado === undefined}">
+                                    {{ item.precioUnitarioAplicado | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                                </span>
+                                <button class="text-slate-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all" title="Modificar Precio">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
+                                </button>
+                            </div>
+
+                            <div *ngIf="item.editandoPrecio" class="flex items-center justify-end gap-1 animate-fade-in">
+                                <input type="number" #inputPrecio [value]="item.precioUnitarioAplicado" (keyup.enter)="fijarPrecioManual(i, inputPrecio.value)" 
+                                       class="w-20 px-2 py-1 text-xs font-bold border border-emerald-400 bg-emerald-50 rounded text-right text-emerald-800 outline-none focus:ring-1 focus:ring-emerald-500" autoFocus>
+                                
+                                <button (click)="fijarPrecioManual(i, inputPrecio.value)" class="text-emerald-600 hover:text-emerald-800 bg-emerald-100 p-1 rounded transition-colors" title="Guardar Precio">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                </button>
+                                
+                                <button (click)="restablecerPrecio(i)" class="text-slate-400 hover:text-red-500 bg-slate-100 p-1 rounded transition-colors" title="Restaurar precio original">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
                         </td>
+
                         <td class="px-2 lg:px-4 py-3 text-right font-bold text-slate-900 font-mono text-xs lg:text-sm">
                             {{ item.subtotal | currency:'ARS':'symbol-narrow':'1.0-0' }}
                         </td>
+                        
                         <td class="px-1 lg:px-4 py-3 text-center">
                             <button (click)="quitarDelCarrito(i)" class="text-red-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
@@ -209,7 +241,7 @@
                 </div>
             </div>
 
-            <!-- <div class="group">
+            <div class="group">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -240,7 +272,7 @@
                         placeholder="Domicilio o E-mail"
                     >
                 </div>
-            </div> -->
+            </div>
         </div>
 
         <div class="mb-6 bg-slate-100 p-1 rounded-xl flex border border-slate-200 relative">
@@ -658,17 +690,18 @@
                 </div>
             </div>
 
-            <div class="group">
+            <!-- <div class="group">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0c0 .884-.896 1.75-2.124 1.75C9.363 8 9 8.35 9 9v3m6-3v.01M9 17h.01" />
                         </svg>
                     </div>
                     <input 
                         type="text" 
-                        [(ngModel)]="datosCliente.cuit" 
-                        class="block w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 shadow-sm"
+                        [ngModel]="datosCliente.cuit" 
+                        readonly
+                        class="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-500 cursor-not-allowed shadow-sm"
                         placeholder="CUIT / DNI"
                     >
                 </div>
@@ -676,18 +709,19 @@
             <div class="group">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0c0 .884-.896 1.75-2.124 1.75C9.363 8 9 8.35 9 9v3m6-3v.01M9 17h.01" />
                         </svg>
                     </div>
                     <input
                         type="text"
-                        [(ngModel)]="datosCliente.direccion"
-                        class="block w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 shadow-sm"
+                        [ngModel]="datosCliente.direccion"
+                        readonly
+                        class="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-500 cursor-not-allowed shadow-sm"
                         placeholder="Domicilio o E-mail"
                     >
                 </div>
-            </div>
+            </div> -->
         </div>
 
         <div class="mb-6 bg-slate-100 p-1 rounded-xl flex border border-slate-200 relative">

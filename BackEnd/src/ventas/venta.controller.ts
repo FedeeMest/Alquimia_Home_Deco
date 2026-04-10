@@ -123,11 +123,22 @@ async function crearVenta(req: Request, res: Response) {
             detalle.producto = producto;
             detalle.cantidad = item.cantidad;
             
-            let precioFinal = 0;
-            if (datos.metodo_pago === 'EFECTIVO') precioFinal = producto.precio_efectivo;
-            else if (datos.metodo_pago === 'TARJETA') precioFinal = producto.precio_tarjeta;
-            else precioFinal = producto.precio_tarjeta_local; 
+            // let precioFinal = 0;
+            // if (datos.metodo_pago === 'EFECTIVO') precioFinal = producto.precio_efectivo;
+            // else if (datos.metodo_pago === 'TARJETA') precioFinal = producto.precio_tarjeta;
+            // else precioFinal = producto.precio_tarjeta_local; 
 
+            let precioNormal = 0;
+            if (datos.metodo_pago === 'EFECTIVO') precioNormal = producto.precio_efectivo;
+            else if (datos.metodo_pago === 'TARJETA') precioNormal = producto.precio_tarjeta;
+            else precioNormal = producto.precio_tarjeta_local; 
+
+            // LÓGICA DE DESFASE: Si el frontend envió un precio modificado, usamos ese. Si no, usamos el normal.
+            let precioFinal = item.precio_modificado !== undefined && item.precio_modificado !== null 
+                              ? Number(item.precio_modificado) 
+                              : precioNormal;
+
+            
             detalle.precio_unitario_historico = precioFinal;
             detalle.subtotal = precioFinal * item.cantidad;
 

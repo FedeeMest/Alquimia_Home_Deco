@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment.prod';
 export interface ItemVenta {
   id_producto: number;
   cantidad: number;
+  precio_modificado?: number;
 }
 
 export interface PaginatedResponse<T> {

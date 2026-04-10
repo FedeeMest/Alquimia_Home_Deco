@@ -48,6 +48,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
   observaciones: string = '';
   total: number = 0; 
 
+  // Estos datos ahora son de SOLO LECTURA para la vista
   datosCliente = {
     nombre: '',
     cuit: '',
@@ -58,7 +59,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     cuotas: 1
   };
 
-  // --- VARIABLES PARA LA LÓGICA DE CLIENTES ---
   clientesTotales: any[] = [];
   clientesFiltrados: any[] = []; 
   clientesModalFiltrados: any[] = []; 
@@ -70,7 +70,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
   mostrarModalClientes: boolean = false;
   busquedaModal: string = '';
   
-  // Lógica de Modal Crear Cliente
   mostrarModalCrearCliente: boolean = false;
   nuevoClienteForm = {
     nombre: '',
@@ -129,9 +128,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     }
   }
 
-  // =========================================================================
-  // LÓGICA DE CLIENTES
-  // =========================================================================
   cargarClientes() {
     this.clienteService.getClientes().subscribe({
       next: (res: any) => {
@@ -146,6 +142,8 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
   filtrarClientesRapido() {
     if (this.clienteSeleccionadoId && this.busquedaClienteInput !== this.datosCliente.nombre) {
         this.clienteSeleccionadoId = '';
+        this.datosCliente.cuit = '';
+        this.datosCliente.direccion = '';
     }
     this.datosCliente.nombre = this.busquedaClienteInput;
 
@@ -193,10 +191,8 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     this.clientesModalFiltrados = this.clientesTotales.filter(c => this.normalizarTexto(c.nombre).includes(term));
   }
 
-  // --- Lógica del POPUP CREAR CLIENTE ---
   abrirModalCrearCliente() {
     this.mostrarModalCrearCliente = true;
-    // Precompletamos el nombre si el usuario ya había tipeado algo en la búsqueda
     this.nuevoClienteForm = {
       nombre: this.busquedaClienteInput || '',
       tipo: 'Minorista',
@@ -224,7 +220,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
             this.clientesTotales.push(nuevoCli);
             this.clientesTotales.sort((a,b) => a.nombre.localeCompare(b.nombre));
             
-            // Lo seleccionamos automáticamente
             this.seleccionarCliente(nuevoCli);
             
             this.cerrarModalCrearCliente();
@@ -233,7 +228,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
         error: () => this.notificationService.show('Error al registrar cliente', 'error')
     });
   }
-  // =========================================================================
 
   onCamerasFound(devices: any[]): void {
     if (devices && devices.length > 0) {
@@ -487,6 +481,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     if (confirm('¿Confirmar el cierre de esta venta?')) {
       this.procesando = true;
 
+      // PAYLOAD LIMPIO: Solo enviamos el cliente_id
       const payload: VentaRequest = {
         metodo_pago: this.metodoPago,
         items: this.carrito.map(item => ({
@@ -536,7 +531,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 // import { VentaService, VentaRequest } from '../../services/venta.service';
 // import { NotificationService } from '../../services/notification.service';
 // import { ConfiguracionService } from '../../services/configuracion.service';
-// // NUEVO: Importamos el servicio de clientes
 // import { ClienteService } from '../../services/cliente.service'; 
 // import { Producto } from '../../Interfaces/producto.interface';
 // import { Router } from '@angular/router';
@@ -567,7 +561,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   private ventaService = inject(VentaService);
 //   private notificationService = inject(NotificationService);
 //   private configuracionService = inject(ConfiguracionService);
-//   private clienteService = inject(ClienteService); // INYECTADO
+//   private clienteService = inject(ClienteService); 
 //   private router = inject(Router);
 //   private cd = inject(ChangeDetectorRef);
 
@@ -590,7 +584,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     cuotas: 1
 //   };
 
-//   // --- VARIABLES PARA LA LÓGICA DE CLIENTES (AUTOCOMPLETADO Y MODAL) ---
+//   // --- VARIABLES PARA LA LÓGICA DE CLIENTES ---
 //   clientesTotales: any[] = [];
 //   clientesFiltrados: any[] = []; 
 //   clientesModalFiltrados: any[] = []; 
@@ -602,9 +596,17 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   mostrarModalClientes: boolean = false;
 //   busquedaModal: string = '';
   
-//   creandoNuevoCliente: boolean = false;
-//   nuevoClienteNombre: string = '';
-//   // ---------------------------------------------------------------------
+//   // Lógica de Modal Crear Cliente
+//   mostrarModalCrearCliente: boolean = false;
+//   nuevoClienteForm = {
+//     nombre: '',
+//     tipo: 'Minorista',
+//     telefono: '',
+//     email: '',
+//     cuit: '',
+//     direccion: '',
+//     notas: ''
+//   };
 
 //   productosCache: ProductoIndexado[] = [];
 //   productosEncontrados: ProductoIndexado[] = [];
@@ -637,7 +639,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   ngOnInit() {
 //     this.cargarConfiguracion();
 //     this.cargarTodosLosProductos();
-//     this.cargarClientes(); // CARGAMOS LA LISTA DE CLIENTES AL INICIAR
+//     this.cargarClientes(); 
 
 //     this.searchSubscription = this.searchSubject.pipe(
 //       debounceTime(250),
@@ -654,13 +656,13 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   }
 
 //   // =========================================================================
-//   // LÓGICA DE CLIENTES (AUTOCOMPLETADO, MODAL Y CREACIÓN RÁPIDA)
+//   // LÓGICA DE CLIENTES
 //   // =========================================================================
 //   cargarClientes() {
 //     this.clienteService.getClientes().subscribe({
 //       next: (res: any) => {
 //         this.clientesTotales = res.data;
-//         this.clientesFiltrados = this.clientesTotales.slice(0, 5); // Sugerencias iniciales
+//         this.clientesFiltrados = this.clientesTotales.slice(0, 5); 
 //         this.clientesModalFiltrados = this.clientesTotales;
 //       },
 //       error: (err) => console.error('Error cargando clientes', err)
@@ -668,7 +670,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   }
 
 //   filtrarClientesRapido() {
-//     // Si el usuario borra o cambia el nombre manualmente, desvinculamos el ID
 //     if (this.clienteSeleccionadoId && this.busquedaClienteInput !== this.datosCliente.nombre) {
 //         this.clienteSeleccionadoId = '';
 //     }
@@ -681,11 +682,10 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     }
 //     this.clientesFiltrados = this.clientesTotales
 //         .filter(c => this.normalizarTexto(c.nombre).includes(term))
-//         .slice(0, 5); // Mostramos solo 5 en el autocompletado para no tapar la pantalla
+//         .slice(0, 5); 
 //   }
 
 //   ocultarSugerenciasCliente() {
-//     // Delay para permitir que el clic en la sugerencia se registre antes de ocultar
 //     setTimeout(() => this.mostrarSugerenciasCliente = false, 200);
 //   }
 
@@ -693,7 +693,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     this.clienteSeleccionadoId = cliente.id;
 //     this.busquedaClienteInput = cliente.nombre;
     
-//     // Autocompletamos los demás campos
 //     this.datosCliente.nombre = cliente.nombre;
 //     this.datosCliente.cuit = cliente.cuit || cliente.telefono || ''; 
 //     this.datosCliente.direccion = cliente.direccion || cliente.email || '';
@@ -720,14 +719,32 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     this.clientesModalFiltrados = this.clientesTotales.filter(c => this.normalizarTexto(c.nombre).includes(term));
 //   }
 
-//   toggleNuevoCliente() {
-//     this.creandoNuevoCliente = !this.creandoNuevoCliente;
-//     this.nuevoClienteNombre = '';
+//   // --- Lógica del POPUP CREAR CLIENTE ---
+//   abrirModalCrearCliente() {
+//     this.mostrarModalCrearCliente = true;
+//     // Precompletamos el nombre si el usuario ya había tipeado algo en la búsqueda
+//     this.nuevoClienteForm = {
+//       nombre: this.busquedaClienteInput || '',
+//       tipo: 'Minorista',
+//       telefono: '',
+//       email: '',
+//       cuit: '',
+//       direccion: '',
+//       notas: ''
+//     };
+//   }
+
+//   cerrarModalCrearCliente() {
+//     this.mostrarModalCrearCliente = false;
 //   }
 
 //   guardarNuevoCliente() {
-//     if (!this.nuevoClienteNombre.trim()) return;
-//     this.clienteService.crearCliente({ nombre: this.nuevoClienteNombre, tipo: 'Feria' }).subscribe({
+//     if (!this.nuevoClienteForm.nombre.trim()) {
+//         this.notificationService.show('El nombre es obligatorio', 'error');
+//         return;
+//     }
+
+//     this.clienteService.crearCliente(this.nuevoClienteForm).subscribe({
 //         next: (res: any) => {
 //             const nuevoCli = res.data;
 //             this.clientesTotales.push(nuevoCli);
@@ -736,8 +753,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //             // Lo seleccionamos automáticamente
 //             this.seleccionarCliente(nuevoCli);
             
-//             this.creandoNuevoCliente = false;
-//             this.nuevoClienteNombre = '';
+//             this.cerrarModalCrearCliente();
 //             this.notificationService.show('Cliente/Feria registrado con éxito', 'success');
 //         },
 //         error: () => this.notificationService.show('Error al registrar cliente', 'error')
@@ -997,14 +1013,13 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     if (confirm('¿Confirmar el cierre de esta venta?')) {
 //       this.procesando = true;
 
-//       // Armamos el Payload (incluyendo el cliente_id)
 //       const payload: VentaRequest = {
 //         metodo_pago: this.metodoPago,
 //         items: this.carrito.map(item => ({
 //           id_producto: item.producto.id!, 
 //           cantidad: item.cantidad
 //         })),
-//         cliente_id: this.clienteSeleccionadoId ? Number(this.clienteSeleccionadoId) : undefined, // NUEVO
+//         cliente_id: this.clienteSeleccionadoId ? Number(this.clienteSeleccionadoId) : undefined, 
 //         estado: this.estadoVenta as 'COBRADA' | 'PENDIENTE',
 //         observaciones: this.observaciones ? this.observaciones : undefined,
 //         cuotas: this.metodoPago !== 'EFECTIVO' ? this.datosVenta.cuotas : 1
@@ -1026,10 +1041,8 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //           this.datosVenta.cuotas = 1;
 //           this.metodoPago = 'EFECTIVO';
           
-//           // Limpiamos la info del cliente seleccionado
 //           this.clienteSeleccionadoId = '';
 //           this.busquedaClienteInput = '';
-//           this.creandoNuevoCliente = false;
 
 //           this.calcularTotales();
 //           this.limpiarBusqueda();

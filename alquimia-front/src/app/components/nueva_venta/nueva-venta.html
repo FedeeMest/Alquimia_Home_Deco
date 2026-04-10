@@ -212,14 +212,15 @@
             <div class="group">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0c0 .884-.896 1.75-2.124 1.75C9.363 8 9 8.35 9 9v3m6-3v.01M9 17h.01" />
                         </svg>
                     </div>
                     <input 
                         type="text" 
-                        [(ngModel)]="datosCliente.cuit" 
-                        class="block w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 shadow-sm"
+                        [ngModel]="datosCliente.cuit" 
+                        readonly
+                        class="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-500 cursor-not-allowed shadow-sm"
                         placeholder="CUIT / DNI"
                     >
                 </div>
@@ -227,14 +228,15 @@
             <div class="group">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0c0 .884-.896 1.75-2.124 1.75C9.363 8 9 8.35 9 9v3m6-3v.01M9 17h.01" />
                         </svg>
                     </div>
                     <input
                         type="text"
-                        [(ngModel)]="datosCliente.direccion"
-                        class="block w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 shadow-sm"
+                        [ngModel]="datosCliente.direccion"
+                        readonly
+                        class="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-500 cursor-not-allowed shadow-sm"
                         placeholder="Domicilio o E-mail"
                     >
                 </div>
@@ -648,7 +650,7 @@
                         </svg>
                     </button>
 
-                    <button (click)="toggleNuevoCliente()" class="px-3 py-2.5 bg-white hover:bg-emerald-50 text-emerald-600 rounded-lg border border-slate-300 transition-colors shadow-sm flex items-center justify-center" title="Registrar Cliente Nuevo">
+                    <button (click)="abrirModalCrearCliente()" class="px-3 py-2.5 bg-white hover:bg-emerald-50 text-emerald-600 rounded-lg border border-slate-300 transition-colors shadow-sm flex items-center justify-center" title="Registrar Cliente Nuevo">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
@@ -656,11 +658,6 @@
                 </div>
             </div>
 
-            <div *ngIf="creandoNuevoCliente" class="flex gap-2 animate-fade-in-up mt-2">
-                <input type="text" [(ngModel)]="nuevoClienteNombre" placeholder="Nombre completo o feria..." class="flex-1 w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-sm text-slate-900 focus:border-emerald-500 outline-none transition-all shadow-sm">
-                <button (click)="guardarNuevoCliente()" [disabled]="!nuevoClienteNombre" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Guardar</button>
-            </div>
-            
             <div class="group">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -734,40 +731,18 @@
             </div>
 
             <div *ngIf="metodoPago !== 'EFECTIVO'" class="mt-4 animate-fade-in p-4 bg-slate-50 rounded-xl border border-slate-200">
-                
                 <label class="block text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
                     Cantidad de Cuotas (1-12)
                 </label>
-                
                 <div class="flex items-center gap-2 bg-white p-1.5 rounded-lg border border-slate-300 shadow-sm">
-                    
-                    <button 
-                        (click)="datosVenta.cuotas = datosVenta.cuotas > 1 ? datosVenta.cuotas - 1 : 1"
-                        class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md transition-all active:scale-90 border border-slate-200"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6" />
-                        </svg>
+                    <button (click)="datosVenta.cuotas = datosVenta.cuotas > 1 ? datosVenta.cuotas - 1 : 1" class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md transition-all active:scale-90 border border-slate-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6" /></svg>
                     </button>
-
                     <div class="flex-1 relative flex justify-center">
-                        <input 
-                            type="number" 
-                            [(ngModel)]="datosVenta.cuotas" 
-                            (change)="datosVenta.cuotas < 1 ? datosVenta.cuotas = 1 : (datosVenta.cuotas > 12 ? datosVenta.cuotas = 12 : null)"
-                            class="w-full bg-transparent text-center text-3xl font-bold text-slate-900 border-none focus:ring-0 p-0 appearance-none outline-none"
-                            min="1" 
-                            max="12"
-                        >
+                        <input type="number" [(ngModel)]="datosVenta.cuotas" (change)="datosVenta.cuotas < 1 ? datosVenta.cuotas = 1 : (datosVenta.cuotas > 12 ? datosVenta.cuotas = 12 : null)" class="w-full bg-transparent text-center text-3xl font-bold text-slate-900 border-none focus:ring-0 p-0 appearance-none outline-none" min="1" max="12">
                     </div>
-
-                    <button 
-                        (click)="datosVenta.cuotas = datosVenta.cuotas < 12 ? datosVenta.cuotas + 1 : 12"
-                        class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md transition-all active:scale-90 border border-slate-200"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
-                        </svg>
+                    <button (click)="datosVenta.cuotas = datosVenta.cuotas < 12 ? datosVenta.cuotas + 1 : 12" class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md transition-all active:scale-90 border border-slate-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" /></svg>
                     </button>
                 </div>
             </div>
@@ -852,6 +827,70 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
+<div *ngIf="mostrarModalCrearCliente" class="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-scale-up">
+        
+        <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 text-emerald-600"><path stroke-linecap="round" stroke-linejoin="round" d="M18 19.5v-1.5c0-2.07-1.68-3.75-3.75-3.75H9c-2.07 0-3.75 1.68-3.75 3.75v1.5m13.5-9a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5h3m-1.5-1.5v3" /></svg>
+                Crear Nuevo Cliente
+            </h3>
+            <button (click)="cerrarModalCrearCliente()" class="text-slate-500 hover:text-slate-800 transition-colors bg-white hover:bg-slate-100 border border-slate-200 p-1.5 rounded-lg shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-4 bg-white overflow-y-auto max-h-[60vh] custom-scrollbar">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nombre Completo *</label>
+                    <input type="text" [(ngModel)]="nuevoClienteForm.nombre" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm" placeholder="Juan Pérez o Feria...">
+                </div>
+                
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Tipo de Cliente</label>
+                    <select [(ngModel)]="nuevoClienteForm.tipo" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
+                        <option value="Minorista">Minorista</option>
+                        <option value="Mayorista">Mayorista</option>
+                        <option value="Feria">Feria</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Teléfono</label>
+                    <input type="text" [(ngModel)]="nuevoClienteForm.telefono" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm" placeholder="Ej: 341 555-1234">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">CUIT / DNI</label>
+                    <input type="text" [(ngModel)]="nuevoClienteForm.cuit" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm" placeholder="Sin guiones">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Domicilio</label>
+                <input type="text" [(ngModel)]="nuevoClienteForm.direccion" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm" placeholder="Calle, Número, Ciudad">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Email</label>
+                <input type="email" [(ngModel)]="nuevoClienteForm.email" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm" placeholder="correo@ejemplo.com">
+            </div>
+
+        </div>
+
+        <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+            <button (click)="cerrarModalCrearCliente()" class="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold rounded-lg text-sm transition-colors shadow-sm">
+                Cancelar
+            </button>
+            <button (click)="guardarNuevoCliente()" [disabled]="!nuevoClienteForm.nombre" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:bg-slate-300 text-white font-bold rounded-lg text-sm transition-colors shadow-md flex items-center gap-2">
+                Guardar Cliente
+            </button>
+        </div>
     </div>
 </div> -->

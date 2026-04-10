@@ -140,9 +140,10 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
         this.creandoCliente = false;
       },
       error: (err) => {
-        this.notificationService.error('Error al crear el cliente');
-        this.creandoCliente = false;
-      }
+  console.error('ERROR COMPLETO DEL BACKEND:', err.error); // <-- Te dirá el motivo exacto
+  this.notificationService.error(err.error?.message || 'Error al crear el cliente');
+  this.creandoCliente = false;
+}
     });
   }
 

@@ -340,16 +340,41 @@ export class ProductoList implements OnInit, OnDestroy {
 
     // 4. ORDENAMIENTO
     filtrados.sort((a, b) => {
+      // Calculamos los stocks al vuelo previniendo valores null/undefined
+      const stockGralA = a.stock || 0;
+      const stockGralB = b.stock || 0;
+      const stockCamionA = a.stock_camion || 0;
+      const stockCamionB = b.stock_camion || 0;
+      const stockAlmacenA = stockGralA - stockCamionA;
+      const stockAlmacenB = stockGralB - stockCamionB;
+
       switch (this.filtros.orden) {
-        case 'nombre_asc':
+        case 'nombre_asc': 
           return (a.nombre || '').localeCompare(b.nombre || '');
-        case 'nombre_desc':
+        case 'nombre_desc': 
           return (b.nombre || '').localeCompare(a.nombre || '');
-        case 'precio_asc':
+        case 'precio_asc': 
           return (a.precio_efectivo || 0) - (b.precio_efectivo || 0);
-        case 'precio_desc':
+        case 'precio_desc': 
           return (b.precio_efectivo || 0) - (a.precio_efectivo || 0);
-        default:
+        
+        // Nuevos casos de ordenamiento por Stock
+        case 'stock_general_asc': 
+          return stockGralA - stockGralB;
+        case 'stock_general_desc': 
+          return stockGralB - stockGralA;
+        
+        case 'stock_camion_asc': 
+          return stockCamionA - stockCamionB;
+        case 'stock_camion_desc': 
+          return stockCamionB - stockCamionA;
+        
+        case 'stock_almacen_asc': 
+          return stockAlmacenA - stockAlmacenB;
+        case 'stock_almacen_desc': 
+          return stockAlmacenB - stockAlmacenA;
+        
+        default: 
           return 0;
       }
     });

@@ -56,7 +56,7 @@ export class ProductoForm implements OnInit {
     'Vasos', 'Copas', 'Tazas', 'Copetineros', 'Tortera', 'Jarras',
     'Compoteras', 'Ensaladeras', 'Jarrones/Floreros', 'Borlas',
     'Accesorio de Mesa', 'Almohadones', 'Mantas', 'Manteles',
-    'Caminos', 'Decoración', 'Difusores / Aromas', 'Ceramica','Textil','Platos',
+    'Caminos', 'Decoración', 'Difusores / Aromas', 'Ceramica','Textil','Platos','Té y Accesorios',
     'Jardín', 'Contenedores', 'Aromatizador', 'Difusores','Jarritos Con Sorbete', 'Otros'
   ];
 

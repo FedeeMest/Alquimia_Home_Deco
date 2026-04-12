@@ -15,6 +15,12 @@ export class Cliente {
     @Property({ nullable: true })
     email?: string;
 
+    @Property({ nullable: true })
+    cuit?: string;
+
+    @Property({ nullable: true })
+    direccion?: string;
+
     @Property({ default: 'Feria' }) // 'Feria', 'Minorista', 'Mayorista'
     tipo!: string;
 

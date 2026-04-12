@@ -22,8 +22,7 @@ interface ProductoCarrito {
   cantidad: number;
   precioUnitarioAplicado: number;
   subtotal: number;
-  precioPersonalizado?: number; // <-- NUEVO: Guarda el precio que tipeaste a mano
-  editandoPrecio?: boolean;     // <-- NUEVO: Controla si se ve el input o el texto
+  precioPersonalizado?: number; 
 }
 
 @Component({
@@ -50,11 +49,12 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
   observaciones: string = '';
   total: number = 0; 
 
-  // Estos datos ahora son de SOLO LECTURA para la vista
+  // NUEVO: Agregamos la propiedad 'tipo' para identificar si es Familia
   datosCliente = {
     nombre: '',
     cuit: '',
-    direccion: ''
+    direccion: '',
+    tipo: ''
   };
 
   datosVenta = {
@@ -64,10 +64,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
   clientesTotales: any[] = [];
   clientesFiltrados: any[] = []; 
   clientesModalFiltrados: any[] = []; 
-
-  mostrarModalPrecio: boolean = false;
-  itemEditandoIndex: number = -1;
-  precioEdicionTemp: number | null = null;
   
   clienteSeleccionadoId: string = '';
   busquedaClienteInput: string = '';
@@ -86,6 +82,10 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     direccion: '',
     notas: ''
   };
+
+  mostrarModalPrecio: boolean = false;
+  itemEditandoIndex: number = -1;
+  precioEdicionTemp: number | null = null;
 
   productosCache: ProductoIndexado[] = [];
   productosEncontrados: ProductoIndexado[] = [];
@@ -146,10 +146,13 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
   }
 
   filtrarClientesRapido() {
+    // Si el usuario borra o edita, desvinculamos el ID y recalculamos precios
     if (this.clienteSeleccionadoId && this.busquedaClienteInput !== this.datosCliente.nombre) {
         this.clienteSeleccionadoId = '';
         this.datosCliente.cuit = '';
         this.datosCliente.direccion = '';
+        this.datosCliente.tipo = ''; // Limpiamos el tipo
+        this.calcularTotales(); // Recalculamos para volver al precio normal
     }
     this.datosCliente.nombre = this.busquedaClienteInput;
 
@@ -174,8 +177,12 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     this.datosCliente.nombre = cliente.nombre;
     this.datosCliente.cuit = cliente.cuit || cliente.telefono || ''; 
     this.datosCliente.direccion = cliente.direccion || cliente.email || '';
+    this.datosCliente.tipo = cliente.tipo || ''; // Guardamos si es Familia
     
     this.mostrarSugerenciasCliente = false;
+    
+    // Recalculamos el carrito al instante para aplicar descuentos si es familia
+    this.calcularTotales();
   }
 
   abrirModalClientes() {
@@ -233,6 +240,35 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
         },
         error: () => this.notificationService.show('Error al registrar cliente', 'error')
     });
+  }
+
+  abrirModalPrecio(index: number) {
+    this.itemEditandoIndex = index;
+    const item = this.carrito[index];
+    this.precioEdicionTemp = item.precioPersonalizado !== undefined ? item.precioPersonalizado : item.precioUnitarioAplicado;
+    this.mostrarModalPrecio = true;
+  }
+
+  cerrarModalPrecio() {
+    this.mostrarModalPrecio = false;
+    this.itemEditandoIndex = -1;
+    this.precioEdicionTemp = null;
+  }
+
+  guardarPrecioManual() {
+    if (this.itemEditandoIndex > -1 && this.precioEdicionTemp !== null && this.precioEdicionTemp >= 0) {
+      this.carrito[this.itemEditandoIndex].precioPersonalizado = Number(this.precioEdicionTemp);
+      this.calcularTotales();
+      this.cerrarModalPrecio();
+    }
+  }
+
+  restablecerPrecioModal() {
+    if (this.itemEditandoIndex > -1) {
+      this.carrito[this.itemEditandoIndex].precioPersonalizado = undefined;
+      this.calcularTotales();
+      this.cerrarModalPrecio();
+    }
   }
 
   onCamerasFound(devices: any[]): void {
@@ -443,21 +479,41 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     this.calcularTotales();
   }
 
+  // NUEVO: Función auxiliar para mostrar el precio correcto en la lista desplegable de búsqueda
+  getPrecioMostrado(p: any): number {
+    if (this.datosCliente.tipo?.toLowerCase() === 'familia') {
+        return p.precio_costo || 0;
+    }
+    if (this.metodoPago === 'TARJETA_LOCAL') return p.precio_tarjeta_local || 0;
+    if (this.metodoPago === 'TARJETA') return p.precio_tarjeta || 0;
+    return p.precio_efectivo || 0;
+  }
+
+  // LÓGICA ACTUALIZADA DE PRECIOS
   calcularTotales() {
     this.totalVenta = 0;
     this.total = 0; 
     this.totalArticulos = 0;
 
+    // Detectamos si el cliente seleccionado tiene trato de familia
+    const esFamilia = this.datosCliente.tipo?.toLowerCase() === 'familia';
+
     this.carrito.forEach(item => {
-      // 1. Buscamos el precio base según el método de pago
       let precioBase = item.producto.precio_efectivo || 0;
-      if (this.metodoPago === 'TARJETA_LOCAL') {
-        precioBase = item.producto.precio_tarjeta_local || 0;
-      } else if (this.metodoPago === 'TARJETA') {
-        precioBase = item.producto.precio_tarjeta || 0;
+
+      if (esFamilia) {
+        // Si es familia, le cobramos al costo sin importar el método de pago
+        precioBase = item.producto.precio_costo || 0;
+      } else {
+        // Lógica tradicional para clientes normales
+        if (this.metodoPago === 'TARJETA_LOCAL') {
+          precioBase = item.producto.precio_tarjeta_local || 0;
+        } else if (this.metodoPago === 'TARJETA') {
+          precioBase = item.producto.precio_tarjeta || 0;
+        }
       }
 
-      // 2. Si el vendedor le puso un precio manual, lo usamos. Si no, usamos el base.
+      // Si se ingresó un precio a mano (Lapicito), ese gana siempre
       let precioAplicado = item.precioPersonalizado !== undefined ? item.precioPersonalizado : precioBase;
 
       item.precioUnitarioAplicado = precioAplicado;
@@ -468,44 +524,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
       this.totalArticulos += item.cantidad;
     });
   }
-
-  fijarPrecioManual(index: number, nuevoPrecio: number | string) {
-    const val = Number(nuevoPrecio);
-    if (!isNaN(val) && val >= 0) {
-      this.carrito[index].precioPersonalizado = val;
-      this.carrito[index].editandoPrecio = false;
-      this.calcularTotales();
-    }
-  }
-
-  restablecerPrecio(index: number) {
-    this.carrito[index].precioPersonalizado = undefined;
-    this.carrito[index].editandoPrecio = false;
-    this.calcularTotales();
-  }
-
-  // calcularTotales() {
-  //   this.totalVenta = 0;
-  //   this.total = 0; 
-  //   this.totalArticulos = 0;
-
-  //   this.carrito.forEach(item => {
-  //     let precioAplicado = item.producto.precio_efectivo || 0;
-
-  //     if (this.metodoPago === 'TARJETA_LOCAL') {
-  //       precioAplicado = item.producto.precio_tarjeta_local || 0;
-  //     } else if (this.metodoPago === 'TARJETA') {
-  //       precioAplicado = item.producto.precio_tarjeta || 0;
-  //     }
-
-  //     item.precioUnitarioAplicado = precioAplicado;
-  //     item.subtotal = precioAplicado * item.cantidad;
-
-  //     this.totalVenta += item.subtotal;
-  //     this.total += item.subtotal; 
-  //     this.totalArticulos += item.cantidad;
-  //   });
-  // }
 
   cancelarVenta() {
     if (this.carrito.length > 0) {
@@ -528,13 +546,12 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     if (confirm('¿Confirmar el cierre de esta venta?')) {
       this.procesando = true;
 
-      // PAYLOAD LIMPIO: Solo enviamos el cliente_id
       const payload: VentaRequest = {
         metodo_pago: this.metodoPago,
         items: this.carrito.map(item => ({
           id_producto: item.producto.id!, 
           cantidad: item.cantidad,
-          precio_modificado: item.precioPersonalizado // <-- SE ENVÍA AL BACKEND SOLO SI LO MODIFICASTE
+          precio_modificado: item.precioPersonalizado 
         })),
         cliente_id: this.clienteSeleccionadoId ? Number(this.clienteSeleccionadoId) : undefined, 
         estado: this.estadoVenta as 'COBRADA' | 'PENDIENTE',
@@ -552,7 +569,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
           this.notificationService.show('¡Venta completada con éxito!', 'success');
           
           this.carrito = [];
-          this.datosCliente = { nombre: '', cuit: '', direccion: '' };
+          this.datosCliente = { nombre: '', cuit: '', direccion: '', tipo: '' }; // Reseteamos tipo
           this.observaciones = '';
           this.estadoVenta = 'PENDIENTE';
           this.datosVenta.cuotas = 1;
@@ -569,35 +586,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
           this.notificationService.show('Error al registrar la venta en la base de datos', 'error');
         }
       });
-    }
-  }
-
-  abrirModalPrecio(index: number) {
-    this.itemEditandoIndex = index;
-    const item = this.carrito[index];
-    this.precioEdicionTemp = item.precioPersonalizado !== undefined ? item.precioPersonalizado : item.precioUnitarioAplicado;
-    this.mostrarModalPrecio = true;
-  }
-
-  cerrarModalPrecio() {
-    this.mostrarModalPrecio = false;
-    this.itemEditandoIndex = -1;
-    this.precioEdicionTemp = null;
-  }
-
-  guardarPrecioManual() {
-    if (this.itemEditandoIndex > -1 && this.precioEdicionTemp !== null && this.precioEdicionTemp >= 0) {
-      this.carrito[this.itemEditandoIndex].precioPersonalizado = Number(this.precioEdicionTemp);
-      this.calcularTotales();
-      this.cerrarModalPrecio();
-    }
-  }
-
-  restablecerPrecioModal() {
-    if (this.itemEditandoIndex > -1) {
-      this.carrito[this.itemEditandoIndex].precioPersonalizado = undefined;
-      this.calcularTotales();
-      this.cerrarModalPrecio();
     }
   }
 }
@@ -625,6 +613,8 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   cantidad: number;
 //   precioUnitarioAplicado: number;
 //   subtotal: number;
+//   precioPersonalizado?: number; // <-- NUEVO: Guarda el precio que tipeaste a mano
+//   editandoPrecio?: boolean;     // <-- NUEVO: Controla si se ve el input o el texto
 // }
 
 // @Component({
@@ -651,6 +641,7 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   observaciones: string = '';
 //   total: number = 0; 
 
+//   // Estos datos ahora son de SOLO LECTURA para la vista
 //   datosCliente = {
 //     nombre: '',
 //     cuit: '',
@@ -661,10 +652,13 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     cuotas: 1
 //   };
 
-//   // --- VARIABLES PARA LA LÓGICA DE CLIENTES ---
 //   clientesTotales: any[] = [];
 //   clientesFiltrados: any[] = []; 
 //   clientesModalFiltrados: any[] = []; 
+
+//   mostrarModalPrecio: boolean = false;
+//   itemEditandoIndex: number = -1;
+//   precioEdicionTemp: number | null = null;
   
 //   clienteSeleccionadoId: string = '';
 //   busquedaClienteInput: string = '';
@@ -673,7 +667,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   mostrarModalClientes: boolean = false;
 //   busquedaModal: string = '';
   
-//   // Lógica de Modal Crear Cliente
 //   mostrarModalCrearCliente: boolean = false;
 //   nuevoClienteForm = {
 //     nombre: '',
@@ -732,9 +725,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     }
 //   }
 
-//   // =========================================================================
-//   // LÓGICA DE CLIENTES
-//   // =========================================================================
 //   cargarClientes() {
 //     this.clienteService.getClientes().subscribe({
 //       next: (res: any) => {
@@ -749,6 +739,8 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //   filtrarClientesRapido() {
 //     if (this.clienteSeleccionadoId && this.busquedaClienteInput !== this.datosCliente.nombre) {
 //         this.clienteSeleccionadoId = '';
+//         this.datosCliente.cuit = '';
+//         this.datosCliente.direccion = '';
 //     }
 //     this.datosCliente.nombre = this.busquedaClienteInput;
 
@@ -796,10 +788,8 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     this.clientesModalFiltrados = this.clientesTotales.filter(c => this.normalizarTexto(c.nombre).includes(term));
 //   }
 
-//   // --- Lógica del POPUP CREAR CLIENTE ---
 //   abrirModalCrearCliente() {
 //     this.mostrarModalCrearCliente = true;
-//     // Precompletamos el nombre si el usuario ya había tipeado algo en la búsqueda
 //     this.nuevoClienteForm = {
 //       nombre: this.busquedaClienteInput || '',
 //       tipo: 'Minorista',
@@ -827,7 +817,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //             this.clientesTotales.push(nuevoCli);
 //             this.clientesTotales.sort((a,b) => a.nombre.localeCompare(b.nombre));
             
-//             // Lo seleccionamos automáticamente
 //             this.seleccionarCliente(nuevoCli);
             
 //             this.cerrarModalCrearCliente();
@@ -836,7 +825,6 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //         error: () => this.notificationService.show('Error al registrar cliente', 'error')
 //     });
 //   }
-//   // =========================================================================
 
 //   onCamerasFound(devices: any[]): void {
 //     if (devices && devices.length > 0) {
@@ -1052,13 +1040,16 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     this.totalArticulos = 0;
 
 //     this.carrito.forEach(item => {
-//       let precioAplicado = item.producto.precio_efectivo || 0;
-
+//       // 1. Buscamos el precio base según el método de pago
+//       let precioBase = item.producto.precio_efectivo || 0;
 //       if (this.metodoPago === 'TARJETA_LOCAL') {
-//         precioAplicado = item.producto.precio_tarjeta_local || 0;
+//         precioBase = item.producto.precio_tarjeta_local || 0;
 //       } else if (this.metodoPago === 'TARJETA') {
-//         precioAplicado = item.producto.precio_tarjeta || 0;
+//         precioBase = item.producto.precio_tarjeta || 0;
 //       }
+
+//       // 2. Si el vendedor le puso un precio manual, lo usamos. Si no, usamos el base.
+//       let precioAplicado = item.precioPersonalizado !== undefined ? item.precioPersonalizado : precioBase;
 
 //       item.precioUnitarioAplicado = precioAplicado;
 //       item.subtotal = precioAplicado * item.cantidad;
@@ -1068,6 +1059,44 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //       this.totalArticulos += item.cantidad;
 //     });
 //   }
+
+//   fijarPrecioManual(index: number, nuevoPrecio: number | string) {
+//     const val = Number(nuevoPrecio);
+//     if (!isNaN(val) && val >= 0) {
+//       this.carrito[index].precioPersonalizado = val;
+//       this.carrito[index].editandoPrecio = false;
+//       this.calcularTotales();
+//     }
+//   }
+
+//   restablecerPrecio(index: number) {
+//     this.carrito[index].precioPersonalizado = undefined;
+//     this.carrito[index].editandoPrecio = false;
+//     this.calcularTotales();
+//   }
+
+//   // calcularTotales() {
+//   //   this.totalVenta = 0;
+//   //   this.total = 0; 
+//   //   this.totalArticulos = 0;
+
+//   //   this.carrito.forEach(item => {
+//   //     let precioAplicado = item.producto.precio_efectivo || 0;
+
+//   //     if (this.metodoPago === 'TARJETA_LOCAL') {
+//   //       precioAplicado = item.producto.precio_tarjeta_local || 0;
+//   //     } else if (this.metodoPago === 'TARJETA') {
+//   //       precioAplicado = item.producto.precio_tarjeta || 0;
+//   //     }
+
+//   //     item.precioUnitarioAplicado = precioAplicado;
+//   //     item.subtotal = precioAplicado * item.cantidad;
+
+//   //     this.totalVenta += item.subtotal;
+//   //     this.total += item.subtotal; 
+//   //     this.totalArticulos += item.cantidad;
+//   //   });
+//   // }
 
 //   cancelarVenta() {
 //     if (this.carrito.length > 0) {
@@ -1090,11 +1119,13 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //     if (confirm('¿Confirmar el cierre de esta venta?')) {
 //       this.procesando = true;
 
+//       // PAYLOAD LIMPIO: Solo enviamos el cliente_id
 //       const payload: VentaRequest = {
 //         metodo_pago: this.metodoPago,
 //         items: this.carrito.map(item => ({
 //           id_producto: item.producto.id!, 
-//           cantidad: item.cantidad
+//           cantidad: item.cantidad,
+//           precio_modificado: item.precioPersonalizado // <-- SE ENVÍA AL BACKEND SOLO SI LO MODIFICASTE
 //         })),
 //         cliente_id: this.clienteSeleccionadoId ? Number(this.clienteSeleccionadoId) : undefined, 
 //         estado: this.estadoVenta as 'COBRADA' | 'PENDIENTE',
@@ -1129,6 +1160,35 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 //           this.notificationService.show('Error al registrar la venta en la base de datos', 'error');
 //         }
 //       });
+//     }
+//   }
+
+//   abrirModalPrecio(index: number) {
+//     this.itemEditandoIndex = index;
+//     const item = this.carrito[index];
+//     this.precioEdicionTemp = item.precioPersonalizado !== undefined ? item.precioPersonalizado : item.precioUnitarioAplicado;
+//     this.mostrarModalPrecio = true;
+//   }
+
+//   cerrarModalPrecio() {
+//     this.mostrarModalPrecio = false;
+//     this.itemEditandoIndex = -1;
+//     this.precioEdicionTemp = null;
+//   }
+
+//   guardarPrecioManual() {
+//     if (this.itemEditandoIndex > -1 && this.precioEdicionTemp !== null && this.precioEdicionTemp >= 0) {
+//       this.carrito[this.itemEditandoIndex].precioPersonalizado = Number(this.precioEdicionTemp);
+//       this.calcularTotales();
+//       this.cerrarModalPrecio();
+//     }
+//   }
+
+//   restablecerPrecioModal() {
+//     if (this.itemEditandoIndex > -1) {
+//       this.carrito[this.itemEditandoIndex].precioPersonalizado = undefined;
+//       this.calcularTotales();
+//       this.cerrarModalPrecio();
 //     }
 //   }
 // }

@@ -72,6 +72,34 @@ export class CargaCamionComponent implements OnInit {
     this.cargarClientes(); // Cargamos los clientes al inicio
   }
 
+  onDocumentoModalChange(valor: string) {
+    this.nuevoClienteForm.cuit = this.formatearDocumento(valor);
+  }
+
+  onTelefonoModalChange(valor: string) {
+    this.nuevoClienteForm.telefono = this.formatearTelefono(valor);
+  }
+
+  private formatearDocumento(valor: string): string {
+    if (!valor) return '';
+    let num = valor.replace(/\D/g, ''); 
+    if (num.length <= 8) return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    if (num.length > 11) num = num.substring(0, 11);
+    let cuitFormateado = num.substring(0, 2);
+    if (num.length > 2) cuitFormateado += '-' + num.substring(2, 10);
+    if (num.length > 10) cuitFormateado += '-' + num.substring(10, 11);
+    return cuitFormateado;
+  }
+
+  private formatearTelefono(valor: string): string {
+    if (!valor) return '';
+    let num = valor.replace(/\D/g, ''); 
+    if (num.length > 10) num = num.substring(0, 10); 
+    if (num.length <= 3) return num;
+    if (num.length <= 6) return `${num.substring(0, 3)} ${num.substring(3)}`;
+    return `${num.substring(0, 3)} ${num.substring(3, 6)}-${num.substring(6)}`;
+  }
+
   // Carga la lista de clientes para el modal
   cargarClientes() {
     this.clienteService.getClientes().subscribe({

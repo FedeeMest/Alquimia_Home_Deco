@@ -401,11 +401,11 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Teléfono</label>
-                    <input type="text" [(ngModel)]="nuevoClienteForm.telefono" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm" placeholder="Ej: 341 555-1234">
+                    <input type="text" [ngModel]="nuevoClienteForm.telefono" (ngModelChange)="onTelefonoModalChange($event)" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm" placeholder="Ej: 341 555-1234">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">CUIT / DNI</label>
-                    <input type="text" [(ngModel)]="nuevoClienteForm.cuit" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm" placeholder="Sin guiones">
+                    <input input type="text" [ngModel]="nuevoClienteForm.cuit" (ngModelChange)="onDocumentoModalChange($event)" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm" placeholder="Sin guiones">
                 </div>
             </div>
 

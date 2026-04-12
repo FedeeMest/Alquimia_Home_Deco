@@ -19,10 +19,11 @@ export const findAll = async (req: Request, res: Response) => {
         // 3. Si hay un término de búsqueda, lo aplicamos a varios campos
         if (search) {
             where.$or = [
-                { nombre: { $ilike: `%${search}%` } },
-                { cuit: { $ilike: `%${search}%` } },
-                { telefono: { $ilike: `%${search}%` } },
-                { email: { $ilike: `%${search}%` } }
+                // CAMBIAMOS $ilike POR $like PARA MYSQL
+                { nombre: { $like: `%${search}%` } },
+                { cuit: { $like: `%${search}%` } },
+                { telefono: { $like: `%${search}%` } },
+                { email: { $like: `%${search}%` } }
             ];
         }
         // Filtro exacto por Tipo

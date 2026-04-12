@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,7 @@ export class ClienteListComponent implements OnInit {
   private clienteService = inject(ClienteService);
   private notificationService = inject(NotificationService);
   private confirmService = inject(ConfirmService); 
+  private cd = inject(ChangeDetectorRef);
 
   clientes: any[] = [];
   loading = true;
@@ -39,11 +40,13 @@ export class ClienteListComponent implements OnInit {
         this.total = resp.meta?.total || 0;
         this.totalPages = resp.meta?.totalPages || 1;
         this.loading = false;
+        this.cd.detectChanges();
       },
       error: (err) => {
         console.error(err);
         this.notificationService.show('Error al cargar clientes', 'error');
         this.loading = false;
+        this.cd.detectChanges();
       }
     });
   }
@@ -63,6 +66,7 @@ export class ClienteListComponent implements OnInit {
     if (nuevaPagina >= 1 && nuevaPagina <= this.totalPages) {
       this.page = nuevaPagina;
       this.cargarClientes();
+      this.cd.detectChanges();
     }
   }
 
@@ -81,10 +85,12 @@ export class ClienteListComponent implements OnInit {
       next: () => {
         this.notificationService.show('Cliente eliminado con éxito', 'success');
         this.cargarClientes();
+        this.cd.detectChanges();
       },
       error: (err) => {
         console.error(err);
         this.notificationService.show('Error al eliminar cliente', 'error');
+        this.cd.detectChanges();
       }
     });
   }

@@ -1,9 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ClienteService } from '../../services/cliente.service';
 import { NotificationService } from '../../services/notification.service';
+
 
 @Component({
   selector: 'app-cliente-form',
@@ -16,6 +17,7 @@ export class ClienteFormComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  private cd = inject(ChangeDetectorRef);
 
   isEditMode = false;
   clienteId: number | null = null;
@@ -36,6 +38,7 @@ export class ClienteFormComponent implements OnInit {
     if (this.clienteId) {
       this.isEditMode = true;
       this.cargarCliente();
+      
     }
   }
 
@@ -46,11 +49,13 @@ export class ClienteFormComponent implements OnInit {
       next: (res: any) => {
         this.cliente = { ...this.cliente, ...res.data };
         this.loading = false;
+        this.cd.detectChanges();
       },
       error: (err) => {
         console.error(err);
         this.notificationService.show('Error al cargar datos del cliente', 'error');
         this.router.navigate(['/admin/clientes']);
+        this.cd.detectChanges();
       }
     });
   }
@@ -69,6 +74,7 @@ export class ClienteFormComponent implements OnInit {
         next: () => {
           this.notificationService.show('Cliente actualizado con éxito', 'success');
           this.router.navigate(['/admin/clientes']);
+          this.cd.detectChanges();
         },
         error: (err) => this.manejarError(err)
       });
@@ -78,6 +84,7 @@ export class ClienteFormComponent implements OnInit {
         next: () => {
           this.notificationService.show('Cliente creado con éxito', 'success');
           this.router.navigate(['/admin/clientes']);
+          this.cd.detectChanges();
         },
         error: (err) => this.manejarError(err)
       });

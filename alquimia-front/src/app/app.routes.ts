@@ -33,6 +33,11 @@ export const routes: Routes = [
             { path: 'productos/nuevo', loadComponent: () => import('./components/producto-form/producto-form').then(m => m.ProductoForm) },
             { path: 'productos/editar/:id', loadComponent: () => import('./components/producto-form/producto-form').then(m => m.ProductoForm) },
 
+            // Clientes (NUEVO)
+            { path: 'clientes', loadComponent: () => import('./components/cliente-list/cliente-list').then(m => m.ClienteListComponent) },
+            { path: 'clientes/nuevo', loadComponent: () => import('./components/cliente-form/cliente-form').then(m => m.ClienteFormComponent) },
+            { path: 'clientes/editar/:id', loadComponent: () => import('./components/cliente-form/cliente-form').then(m => m.ClienteFormComponent) },
+
             // Herramientas
             { path: 'verificador', loadComponent: () => import('./components/verificador-precio/verificador-precio').then(m => m.VerificadorPrecio) },
             { path: 'cierre-caja', loadComponent: () => import('./components/cierre/cierre').then(m => m.CierreCajaComponent) },
@@ -47,6 +52,8 @@ export const routes: Routes = [
             // Administración
             { path: 'configuracion', loadComponent: () => import('./components/configuracion/configuracion').then(m => m.ConfiguracionComponent) },
             { path: 'metricas', loadComponent: () => import('./components/dashboard/dashboard').then(m => m.DashboardComponent) } 
+
+            
         ]
     },
     

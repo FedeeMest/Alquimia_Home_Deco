@@ -1,0 +1,44 @@
+<div *ngIf="isOpen" class="fixed inset-0 z-[500] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in" (click)="respond(false)"></div>
+    
+    <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-scale-up flex flex-col">
+        
+        <div class="p-6 text-center pt-8">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-4"
+                [ngClass]="{
+                    'bg-red-100 text-red-600': options.type === 'danger',
+                    'bg-amber-100 text-amber-500': options.type === 'warning' || !options.type,
+                    'bg-blue-100 text-blue-500': options.type === 'info',
+                    'bg-emerald-100 text-emerald-500': options.type === 'success'
+                }">
+                
+                <svg *ngIf="options.type === 'danger' || options.type === 'warning' || !options.type" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+
+                <svg *ngIf="options.type === 'info'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                </svg>
+            </div>
+
+            <h3 class="text-xl font-bold text-slate-800 mb-2">{{ options.title }}</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">
+                {{ options.message }}
+            </p>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3 mt-2">
+            <button (click)="respond(false)" class="flex-1 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold rounded-xl text-sm transition-colors shadow-sm">
+                {{ options.cancelText || 'Cancelar' }}
+            </button>
+            <button (click)="respond(true)" 
+                class="flex-1 px-4 py-2.5 text-white font-bold rounded-xl text-sm transition-colors shadow-sm"
+                [ngClass]="{
+                    'bg-red-600 hover:bg-red-700': options.type === 'danger',
+                    'bg-slate-800 hover:bg-slate-900': options.type !== 'danger'
+                }">
+                {{ options.confirmText || 'Aceptar' }}
+            </button>
+        </div>
+    </div>
+</div>

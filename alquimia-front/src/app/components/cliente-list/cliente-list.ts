@@ -27,6 +27,19 @@ export class ClienteListComponent implements OnInit {
   total: number = 0;
   totalPages: number = 1;
 
+  mostrarFiltros: boolean = false;
+  filtros = {
+    tipo: '',
+    orden: 'nombre_asc'
+  };
+
+  get conteoFiltrosActivos(): number {
+    let count = 0;
+    if (this.filtros.tipo !== '') count++;
+    if (this.filtros.orden !== 'nombre_asc') count++;
+    return count;
+  }
+
   ngOnInit() {
     this.cargarClientes();
   }
@@ -34,7 +47,7 @@ export class ClienteListComponent implements OnInit {
   cargarClientes() {
     this.loading = true;
     // CORREGIDO: Llamamos a getClientes()
-    this.clienteService.getClientes(this.page, this.limit, this.terminoBusqueda).subscribe({
+    this.clienteService.getClientes(this.page, this.limit, this.terminoBusqueda,this.filtros.tipo, this.filtros.orden).subscribe({
       next: (resp: any) => {
         this.clientes = resp.data;
         this.total = resp.meta?.total || 0;

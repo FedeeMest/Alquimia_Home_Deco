@@ -10,6 +10,8 @@ export const findAll = async (req: Request, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const search = req.query.search as string || '';
+        const tipo = req.query.tipo as string || '';
+        const orden = req.query.orden as string || 'nombre_asc';
 
         // 2. Armamos la consulta base (asumiendo que tenés la columna 'activo')
         const where: any = { activo: true };
@@ -23,6 +25,15 @@ export const findAll = async (req: Request, res: Response) => {
                 { email: { $ilike: `%${search}%` } }
             ];
         }
+        // Filtro exacto por Tipo
+        if (tipo) {
+            where.tipo = tipo;
+        }
+
+        // Lógica de Ordenamiento
+        let orderBy: any = { nombre: 'ASC' };
+        if (orden === 'nombre_desc') orderBy = { nombre: 'DESC' };
+        if (orden === 'recientes') orderBy = { id: 'DESC' };
 
         // 4. Usamos findAndCount para obtener los clientes paginados y el total real
         const [clientes, totalItems] = await em.findAndCount(Cliente, where, {

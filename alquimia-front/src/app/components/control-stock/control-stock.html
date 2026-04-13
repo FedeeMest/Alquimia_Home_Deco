@@ -7,23 +7,36 @@
         </div>
     </div>
 
-    <div class="mb-8 max-w-lg mx-auto">
-        <div class="flex items-center justify-between relative">
-            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 rounded-full z-0"></div>
-            <div class="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-emerald-500 rounded-full z-0 transition-all duration-500"
-                 [style.width]="pasoActual === 1 ? '0%' : '100%'"></div>
-
-            <div class="relative z-10 flex flex-col items-center gap-2">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors border-2 bg-slate-50"
-                     [ngClass]="pasoActual >= 1 ? 'border-emerald-500 bg-emerald-500 text-white shadow-md' : 'border-slate-300 text-slate-400'">1</div>
-                <span class="text-xs font-bold uppercase tracking-wider bg-transparent" [ngClass]="pasoActual >= 1 ? 'text-slate-800' : 'text-slate-400'">Conteo</span>
+    <div class="mb-14 max-w-md mx-auto px-4">
+        <div class="flex items-center">
+            
+            <div class="relative flex justify-center z-10 shrink-0">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-base transition-colors border-4"
+                     [ngClass]="pasoActual >= 1 ? 'border-emerald-500 bg-emerald-500 text-white shadow-md' : 'border-slate-200 bg-white text-slate-400'">
+                    1
+                </div>
+                <div class="absolute top-14 whitespace-nowrap text-center">
+                    <span class="text-[11px] font-extrabold uppercase tracking-widest" [ngClass]="pasoActual >= 1 ? 'text-slate-800' : 'text-slate-400'">
+                        Conteo
+                    </span>
+                </div>
             </div>
 
-            <div class="relative z-10 flex flex-col items-center gap-2">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors border-2 bg-slate-50"
-                     [ngClass]="pasoActual === 2 ? 'border-emerald-500 bg-emerald-500 text-white shadow-md' : 'border-slate-300 text-slate-400'">2</div>
-                <span class="text-xs font-bold uppercase tracking-wider bg-transparent" [ngClass]="pasoActual === 2 ? 'text-slate-800' : 'text-slate-400'">Confirmación</span>
+            <div class="flex-1 h-1.5 transition-all duration-500 mx-[-2px] z-0 rounded-full"
+                 [ngClass]="pasoActual === 2 ? 'bg-emerald-500' : 'bg-slate-200'"></div>
+
+            <div class="relative flex justify-center z-10 shrink-0">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-base transition-colors border-4"
+                     [ngClass]="pasoActual === 2 ? 'border-emerald-500 bg-emerald-500 text-white shadow-md' : 'border-slate-200 bg-white text-slate-400'">
+                    2
+                </div>
+                <div class="absolute top-14 whitespace-nowrap text-center">
+                    <span class="text-[11px] font-extrabold uppercase tracking-widest" [ngClass]="pasoActual === 2 ? 'text-slate-800' : 'text-slate-400'">
+                        Confirmar
+                    </span>
+                </div>
             </div>
+
         </div>
     </div>
 
@@ -34,7 +47,7 @@
             <div class="w-full md:w-1/3">
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Filtrar por Categoría</label>
                 <select [(ngModel)]="categoriaSeleccionada" class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-slate-800 focus:ring-1 focus:ring-slate-800 outline-none transition-all shadow-inner font-medium text-slate-800 cursor-pointer">
-                    <option value="TODAS">📦 Ver Todas las Categorías</option>
+                    <option value="TODAS">Ver Todas las Categorías</option>
                     <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
                 </select>
             </div>

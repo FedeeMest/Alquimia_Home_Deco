@@ -1,9 +1,9 @@
-<div class="container mx-auto p-4 max-w-4xl animate-fade-in-up">
+<div class="container mx-auto p-4 max-w-5xl animate-fade-in-up">
     
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
             <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Auditoría de Stock</h1>
-            <p class="text-slate-500 font-medium mt-1">Conteo y ajuste rápido de inventario.</p>
+            <p class="text-slate-500 font-medium mt-1">Inventario rápido. Modificá las cantidades de lo que tengas a la vista.</p>
         </div>
     </div>
 
@@ -13,80 +13,110 @@
             <div class="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-emerald-500 rounded-full z-0 transition-all duration-500"
                  [style.width]="pasoActual === 1 ? '0%' : '100%'"></div>
 
-            <div class="relative z-10 flex flex-col items-center gap-2 bg-slate-50 px-4">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors border-2"
-                     [ngClass]="pasoActual >= 1 ? 'bg-emerald-500 border-emerald-500 text-white shadow-md' : 'bg-white border-slate-300 text-slate-400'">1</div>
-                <span class="text-xs font-bold uppercase tracking-wider" [ngClass]="pasoActual >= 1 ? 'text-slate-800' : 'text-slate-400'">Conteo Físico</span>
+            <div class="relative z-10 flex flex-col items-center gap-2">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors border-2 bg-slate-50"
+                     [ngClass]="pasoActual >= 1 ? 'border-emerald-500 bg-emerald-500 text-white shadow-md' : 'border-slate-300 text-slate-400'">1</div>
+                <span class="text-xs font-bold uppercase tracking-wider bg-transparent" [ngClass]="pasoActual >= 1 ? 'text-slate-800' : 'text-slate-400'">Conteo</span>
             </div>
 
-            <div class="relative z-10 flex flex-col items-center gap-2 bg-slate-50 px-4">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors border-2"
-                     [ngClass]="pasoActual === 2 ? 'bg-emerald-500 border-emerald-500 text-white shadow-md' : 'bg-white border-slate-300 text-slate-400'">2</div>
-                <span class="text-xs font-bold uppercase tracking-wider" [ngClass]="pasoActual === 2 ? 'text-slate-800' : 'text-slate-400'">Confirmación</span>
+            <div class="relative z-10 flex flex-col items-center gap-2">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors border-2 bg-slate-50"
+                     [ngClass]="pasoActual === 2 ? 'border-emerald-500 bg-emerald-500 text-white shadow-md' : 'border-slate-300 text-slate-400'">2</div>
+                <span class="text-xs font-bold uppercase tracking-wider bg-transparent" [ngClass]="pasoActual === 2 ? 'text-slate-800' : 'text-slate-400'">Confirmación</span>
             </div>
         </div>
     </div>
 
     <div *ngIf="pasoActual === 1" class="animate-fade-in">
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6">
-            <form (submit)="buscarYAgregar($event)" class="relative flex gap-3">
-                <div class="relative flex-1">
+        
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4">
+            
+            <div class="w-full md:w-1/3">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Filtrar por Categoría</label>
+                <select [(ngModel)]="categoriaSeleccionada" class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-slate-800 focus:ring-1 focus:ring-slate-800 outline-none transition-all shadow-inner font-medium text-slate-800 cursor-pointer">
+                    <option value="TODAS">📦 Ver Todas las Categorías</option>
+                    <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
+                </select>
+            </div>
+
+            <div class="w-full md:w-2/3">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Búsqueda rápida</label>
+                <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </div>
                     <input 
                         #inputBusqueda
                         type="text" 
                         [(ngModel)]="busqueda" 
-                        name="busqueda"
-                        placeholder="Escaneá el código o escribí el nombre..." 
-                        class="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-slate-800 focus:ring-1 focus:ring-slate-800 outline-none transition-all shadow-inner font-medium text-slate-800"
+                        placeholder="Buscar nombre o escanear código en esta categoría..." 
+                        class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-slate-800 focus:ring-1 focus:ring-slate-800 outline-none transition-all shadow-inner font-medium text-slate-800"
                         [disabled]="cargando"
                         autocomplete="off"
                     >
                 </div>
-                <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3.5 rounded-xl font-bold shadow-md transition-all active:scale-95 whitespace-nowrap">
-                    Agregar a lista
-                </button>
-            </form>
+            </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden">
-            <div class="overflow-x-auto min-h-[300px]">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+        <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden flex flex-col relative">
+            
+            <div *ngIf="cargando" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex justify-center items-center flex-col gap-3">
+                <svg class="animate-spin h-10 w-10 text-slate-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <span class="font-bold text-slate-600">Cargando base de datos...</span>
+            </div>
+
+            <div class="overflow-x-auto overflow-y-auto max-h-[55vh] custom-scrollbar">
+                <table class="w-full text-left text-sm relative">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px] tracking-wider sticky top-0 z-10 shadow-sm">
                         <tr>
                             <th class="px-6 py-4">Producto</th>
                             <th class="px-6 py-4 text-center">Stock Sistema</th>
-                            <th class="px-6 py-4 text-center w-40">Stock Real (Físico)</th>
-                            <th class="px-6 py-4 text-center w-16">Quitar</th>
+                            <th class="px-6 py-4 text-center w-48">Stock Real (Físico)</th>
+                            <th class="px-6 py-4 text-center w-24">Ajuste</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        <tr *ngIf="listaAjustes.length === 0">
+                        <tr *ngIf="itemsVisibles.length === 0 && !cargando">
                             <td colspan="4" class="py-16 text-center text-slate-400">
-                                <p class="font-medium text-base">La lista de conteo está vacía.</p>
-                                <p class="text-xs mt-1">Escaneá productos arriba para empezar a contar.</p>
+                                <p class="font-medium text-base">No se encontraron productos.</p>
+                                <p class="text-xs mt-1">Intentá cambiar la categoría o limpiar el buscador.</p>
                             </td>
                         </tr>
-                        <tr *ngFor="let item of listaAjustes; let i = index" class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 font-bold text-slate-800">{{ item.producto.nombre }}</td>
-                            <td class="px-6 py-4 text-center text-slate-500">{{ item.stockSistema }}</td>
+                        
+                        <tr *ngFor="let item of itemsVisibles" class="hover:bg-slate-50 transition-colors" [ngClass]="{'bg-blue-50/30': item.diferencia !== 0}">
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-slate-800">{{ item.producto.nombre }}</div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">{{ item.producto.categoria || 'Sin Categoría' }}</span>
+                                    <span class="text-xs text-slate-400">{{ item.producto.codigo_barra || 'S/C' }}</span>
+                                </div>
+                            </td>
+                            
+                            <td class="px-6 py-4 text-center text-slate-500 text-lg font-mono">{{ item.stockSistema }}</td>
+                            
                             <td class="px-6 py-4">
                                 <div class="flex justify-center">
                                     <input type="number" [(ngModel)]="item.stockReal" (ngModelChange)="recalcularDiferencia(item)" onclick="this.select()"
-                                        class="w-20 text-center py-2 px-2 bg-white border-2 border-slate-300 rounded-xl text-lg font-bold shadow-inner outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                                        class="w-24 text-center py-2 px-2 bg-white border-2 rounded-xl text-lg font-bold shadow-inner outline-none transition-all focus:ring-2"
+                                        [ngClass]="item.diferencia === 0 ? 'border-slate-300 focus:border-slate-800 focus:ring-slate-200' : 'border-blue-400 focus:border-blue-500 focus:ring-blue-200 text-blue-700'">
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-center">
-                                <button (click)="quitarDeLista(i)" class="text-slate-400 hover:text-red-500 p-2 rounded-lg transition-colors"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg></button>
+                            
+                            <td class="px-6 py-4 text-center font-bold text-base">
+                                <span *ngIf="item.diferencia === 0" class="text-slate-300">-</span>
+                                <span *ngIf="item.diferencia > 0" class="text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">+{{ item.diferencia }}</span>
+                                <span *ngIf="item.diferencia < 0" class="text-red-600 bg-red-50 px-2.5 py-1 rounded-lg border border-red-100">{{ item.diferencia }}</span>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end">
-                <button (click)="avanzarPaso()" [disabled]="listaAjustes.length === 0" class="bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-bold py-3 px-8 rounded-xl shadow-md transition-all">
+            
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center z-10">
+                <span class="text-sm font-bold text-slate-500">
+                    Cambios pendientes: <span [ngClass]="itemsConDiferencia.length > 0 ? 'text-blue-600' : ''">{{ itemsConDiferencia.length }}</span>
+                </span>
+                <button (click)="avanzarPaso()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-xl shadow-md transition-all active:scale-95">
                     Siguiente: Revisar Cambios
                 </button>
             </div>
@@ -102,16 +132,15 @@
                 </div>
                 <div>
                     <h3 class="font-bold">Revisión de Cambios</h3>
-                    <p class="text-sm opacity-90">Se encontraron diferencias en <strong>{{ itemsConDiferencia.length }} producto(s)</strong>. Los productos que coincidían con el sistema fueron omitidos.</p>
+                    <p class="text-sm opacity-90">Se actualizarán únicamente estos <strong>{{ itemsConDiferencia.length }} producto(s)</strong>. El resto del inventario permanecerá igual.</p>
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden">
-            
-            <div class="overflow-x-auto min-h-[250px]">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+            <div class="overflow-x-auto min-h-[250px] max-h-[50vh] custom-scrollbar">
+                <table class="w-full text-left text-sm relative">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px] tracking-wider sticky top-0 z-10 shadow-sm">
                         <tr>
                             <th class="px-6 py-4">Producto</th>
                             <th class="px-6 py-4 text-center">Stock Sistema</th>
@@ -136,11 +165,11 @@
                 </table>
             </div>
 
-            <div class="bg-slate-50 p-5 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="bg-slate-50 p-5 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4 z-10">
                 <button (click)="retrocederPaso()" [disabled]="guardando" class="text-slate-500 font-bold hover:text-slate-800 hover:bg-slate-200 px-6 py-3 rounded-xl transition-all">
-                    Volver a Editar
+                    Volver al Conteo
                 </button>
-                <button (click)="guardarAjustes()" [disabled]="guardando" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-8 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+                <button (click)="guardarAjustes()" [disabled]="guardando" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-8 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
                     <span *ngIf="!guardando">Aceptar Cambios y Guardar</span>
                     <span *ngIf="guardando" class="flex items-center gap-2">
                         <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>

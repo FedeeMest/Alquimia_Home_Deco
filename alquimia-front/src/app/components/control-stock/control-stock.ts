@@ -26,9 +26,13 @@ export class ControlStockComponent implements OnInit {
 
   pasoActual: number = 1; // 1: Conteo, 2: Confirmación
   
+  // Filtros
   busqueda: string = '';
+  categorias: string[] = [];
+  categoriaSeleccionada: string = 'TODAS';
+
   productosCache: Producto[] = [];
-  listaAjustes: ItemAjuste[] = [];
+  listaAjustes: ItemAjuste[] = []; // Contiene TODOS los productos precargados
   
   cargando: boolean = false;
   guardando: boolean = false;
@@ -42,6 +46,27 @@ export class ControlStockComponent implements OnInit {
     this.productoService.getAll('', true, 1, 10000).subscribe({
       next: (res) => {
         this.productosCache = res.data;
+        
+        // 1. Extraemos las categorías únicas para el selector
+        this.categorias = [...new Set(this.productosCache.map(p => p.categoria || 'Sin Categoría'))].sort();
+        
+        // 2. Ordenamos todos los productos por Categoría y luego por Nombre
+        let productosOrdenados = [...this.productosCache].sort((a, b) => {
+            const catA = a.categoria || 'Sin Categoría';
+            const catB = b.categoria || 'Sin Categoría';
+            if (catA < catB) return -1;
+            if (catA > catB) return 1;
+            return a.nombre.localeCompare(b.nombre);
+        });
+
+        // 3. Precargamos la lista con todos los productos listos para auditar
+        this.listaAjustes = productosOrdenados.map(p => ({
+            producto: p,
+            stockSistema: p.stock || 0,
+            stockReal: p.stock || 0, 
+            diferencia: 0
+        }));
+
         this.cargando = false;
         setTimeout(() => this.inputBusqueda?.nativeElement.focus(), 100);
       },
@@ -53,23 +78,56 @@ export class ControlStockComponent implements OnInit {
   }
 
   // ==========================================
-  // NAVEGACIÓN Y FILTROS
+  // FILTROS Y VISTAS
   // ==========================================
+  
+  // Esto es lo que se muestra en la tabla del Paso 1
+  get itemsVisibles() {
+      let filtrados = this.listaAjustes;
+
+      // Filtro por categoría
+      if (this.categoriaSeleccionada !== 'TODAS') {
+          filtrados = filtrados.filter(item => (item.producto.categoria || 'Sin Categoría') === this.categoriaSeleccionada);
+      }
+
+      // Filtro por barra de búsqueda
+      if (this.busqueda.trim()) {
+          const term = this.busqueda.trim().toLowerCase();
+          filtrados = filtrados.filter(item => 
+              item.producto.nombre.toLowerCase().includes(term) ||
+              item.producto.codigo_barra?.includes(term) ||
+              item.producto.codigo_proveedor?.toLowerCase().includes(term)
+          );
+      }
+
+      return filtrados;
+  }
+
+  // Esto es lo que pasa al Paso 2 (Solo lo que modificaste)
   get itemsConDiferencia() {
     return this.listaAjustes.filter(item => item.diferencia !== 0);
   }
 
+  // ==========================================
+  // LÓGICA DE CONTEO
+  // ==========================================
+  
+  recalcularDiferencia(item: ItemAjuste) {
+    if (item.stockReal === null || item.stockReal < 0) {
+      item.stockReal = 0;
+    }
+    item.diferencia = item.stockReal - item.stockSistema;
+  }
+
+  // ==========================================
+  // NAVEGACIÓN
+  // ==========================================
+  
   avanzarPaso() {
     if (this.pasoActual === 1) {
-        if (this.listaAjustes.length === 0) {
-            this.notificationService.show('Agregá al menos un producto para revisar', 'warning');
-            return;
-        }
-        
-        // Si todo coincide a la perfección, no hay nada que guardar
+        // Verificamos en toda la lista precargada si alguien tocó algún número
         if (this.itemsConDiferencia.length === 0) {
-            this.notificationService.show('¡Todo cuadra perfecto! No hay diferencias para ajustar.', 'success');
-            this.limpiarTodo();
+            this.notificationService.show('¡Todo cuadra perfecto! No hiciste ningún ajuste.', 'success');
             return;
         }
         
@@ -85,58 +143,9 @@ export class ControlStockComponent implements OnInit {
   }
 
   // ==========================================
-  // LÓGICA DE CONTEO (PASO 1)
+  // GUARDADO DEFINITIVO
   // ==========================================
-  buscarYAgregar(event?: any) {
-    if (event) event.preventDefault();
-    const termino = this.busqueda.trim().toLowerCase();
-    if (!termino) return;
-
-    const producto = this.productosCache.find(p => 
-      p.codigo_barra === termino || 
-      p.codigo_proveedor?.toLowerCase() === termino ||
-      p.nombre.toLowerCase().includes(termino) 
-    );
-
-    if (producto) {
-      const existe = this.listaAjustes.find(item => item.producto.id === producto.id);
-      if (existe) {
-        this.notificationService.show('Ese producto ya está en la lista de revisión', 'info');
-      } else {
-        this.listaAjustes.unshift({
-          producto: producto,
-          stockSistema: producto.stock || 0,
-          stockReal: producto.stock || 0, 
-          diferencia: 0
-        });
-      }
-      this.busqueda = '';
-    } else {
-      this.notificationService.show('Producto no encontrado', 'warning');
-    }
-  }
-
-  recalcularDiferencia(item: ItemAjuste) {
-    if (item.stockReal === null || isNaN(item.stockReal) || item.stockReal < 0) {
-      item.stockReal = 0;
-    }
-    item.diferencia = item.stockReal - item.stockSistema;
-  }
-
-  quitarDeLista(index: number) {
-    this.listaAjustes.splice(index, 1);
-  }
-
-  limpiarTodo() {
-    this.listaAjustes = [];
-    this.busqueda = '';
-    this.pasoActual = 1;
-    setTimeout(() => this.inputBusqueda?.nativeElement.focus(), 100);
-  }
-
-  // ==========================================
-  // GUARDADO DEFINITIVO (PASO 2)
-  // ==========================================
+  
   guardarAjustes() {
     const payload = this.itemsConDiferencia.map(item => ({
         id: item.producto.id!,
@@ -148,8 +157,12 @@ export class ControlStockComponent implements OnInit {
       next: () => {
         this.notificationService.show(`Stock de ${payload.length} producto(s) actualizado correctamente`, 'success');
         this.guardando = false;
-        this.cargarProductos(); // Recarga la base para tener el stock fresco
-        this.limpiarTodo();
+        
+        // Reseteamos filtros y recargamos la base
+        this.busqueda = '';
+        this.categoriaSeleccionada = 'TODAS';
+        this.pasoActual = 1;
+        this.cargarProductos(); 
       },
       error: () => {
         this.notificationService.show('Hubo un error al guardar los ajustes', 'error');

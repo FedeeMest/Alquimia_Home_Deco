@@ -143,4 +143,8 @@ actualizarStockRapido(id: number, stockAlmacen: number, stockCamion: number): Ob
 getByBarcode(codigo: string): Observable<{ data: Producto }> {
     return this.http.get<{ data: Producto }>(`${this.apiUrl}/codigo/${codigo}`);
   }
+
+  actualizarStockMasivo(ajustes: { id: number, stock_real: number }[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/stock/masivo`, { ajustes });
+  }
 }

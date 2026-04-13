@@ -83,7 +83,6 @@ async function marcarPagada(req: Request, res: Response) {
     }
 }
 
-
 async function crearVenta(req: Request, res: Response) {
     const em = orm.em.fork();
     try {
@@ -99,7 +98,7 @@ async function crearVenta(req: Request, res: Response) {
         nuevaVenta.usuario_vendedor = datos.usuario_vendedor;
         nuevaVenta.observaciones = datos.observaciones;
 
-        // NUEVO: Vinculamos el Cliente si nos enviaron un ID
+        // Vinculamos el Cliente si nos enviaron un ID
         if (datos.cliente_id) {
             const clienteBD = await em.findOne(Cliente, { id: parseInt(datos.cliente_id) });
             if (!clienteBD) {
@@ -123,11 +122,6 @@ async function crearVenta(req: Request, res: Response) {
             detalle.producto = producto;
             detalle.cantidad = item.cantidad;
             
-            // let precioFinal = 0;
-            // if (datos.metodo_pago === 'EFECTIVO') precioFinal = producto.precio_efectivo;
-            // else if (datos.metodo_pago === 'TARJETA') precioFinal = producto.precio_tarjeta;
-            // else precioFinal = producto.precio_tarjeta_local; 
-
             let precioNormal = 0;
             if (datos.metodo_pago === 'EFECTIVO') precioNormal = producto.precio_efectivo;
             else if (datos.metodo_pago === 'TARJETA') precioNormal = producto.precio_tarjeta;
@@ -145,7 +139,23 @@ async function crearVenta(req: Request, res: Response) {
             nuevaVenta.detalles.add(detalle);
             totalVenta += detalle.subtotal;
 
+            // ====================================================================
+            // NUEVA LÓGICA DE DESCUENTO DE STOCK (ALMACÉN VS CAMIÓN)
+            // ====================================================================
+            
+            // 1. Siempre restamos del general porque la mercadería salió del negocio
             producto.stock -= item.cantidad;
+
+            // 2. Si el vendedor indicó explícitamente que lo sacó del camión, restamos ahí
+            if (item.origen === 'camion') {
+                producto.stock_camion = Math.max(0, (producto.stock_camion || 0) - item.cantidad);
+            }
+
+            // 3. Red de seguridad: El camión nunca puede figurar con más stock que el total del negocio
+            if (producto.stock_camion !== null && producto.stock_camion > producto.stock) {
+                producto.stock_camion = Math.max(0, producto.stock);
+            }
+            // ====================================================================
         }
 
         nuevaVenta.total = totalVenta;
@@ -159,6 +169,82 @@ async function crearVenta(req: Request, res: Response) {
         return res.status(500).json({ message: 'Error al procesar la venta' });
     }
 }
+
+// async function crearVenta(req: Request, res: Response) {
+//     const em = orm.em.fork();
+//     try {
+//         const datos = req.body.inputS; 
+
+//         if (!datos.items || datos.items.length === 0) {
+//             return res.status(400).json({ message: 'El carrito no puede estar vacío' });
+//         }
+
+//         const nuevaVenta = new Venta();
+//         nuevaVenta.estado = datos.estado || 'COBRADA';
+//         nuevaVenta.metodo_pago = datos.metodo_pago;
+//         nuevaVenta.usuario_vendedor = datos.usuario_vendedor;
+//         nuevaVenta.observaciones = datos.observaciones;
+
+//         // NUEVO: Vinculamos el Cliente si nos enviaron un ID
+//         if (datos.cliente_id) {
+//             const clienteBD = await em.findOne(Cliente, { id: parseInt(datos.cliente_id) });
+//             if (!clienteBD) {
+//                 return res.status(404).json({ message: 'El cliente seleccionado no existe en la base de datos' });
+//             }
+//             nuevaVenta.cliente = clienteBD;
+//         }
+        
+//         let totalVenta = 0;
+
+//         for (const item of datos.items) {
+//             const producto = await em.findOneOrFail(Producto, { id: item.id_producto });
+
+//             if (producto.stock < item.cantidad) {
+//                 return res.status(400).json({ 
+//                     message: `No hay suficiente stock de ${producto.nombre}. Stock actual: ${producto.stock}` 
+//                 });
+//             }
+
+//             const detalle = new DetalleVenta();
+//             detalle.producto = producto;
+//             detalle.cantidad = item.cantidad;
+            
+//             // let precioFinal = 0;
+//             // if (datos.metodo_pago === 'EFECTIVO') precioFinal = producto.precio_efectivo;
+//             // else if (datos.metodo_pago === 'TARJETA') precioFinal = producto.precio_tarjeta;
+//             // else precioFinal = producto.precio_tarjeta_local; 
+
+//             let precioNormal = 0;
+//             if (datos.metodo_pago === 'EFECTIVO') precioNormal = producto.precio_efectivo;
+//             else if (datos.metodo_pago === 'TARJETA') precioNormal = producto.precio_tarjeta;
+//             else precioNormal = producto.precio_tarjeta_local; 
+
+//             // LÓGICA DE DESFASE: Si el frontend envió un precio modificado, usamos ese. Si no, usamos el normal.
+//             let precioFinal = item.precio_modificado !== undefined && item.precio_modificado !== null 
+//                               ? Number(item.precio_modificado) 
+//                               : precioNormal;
+
+            
+//             detalle.precio_unitario_historico = precioFinal;
+//             detalle.subtotal = precioFinal * item.cantidad;
+
+//             nuevaVenta.detalles.add(detalle);
+//             totalVenta += detalle.subtotal;
+
+//             producto.stock -= item.cantidad;
+//         }
+
+//         nuevaVenta.total = totalVenta;
+
+//         await em.persistAndFlush([nuevaVenta]);
+
+//         return res.status(201).json({ message: 'Venta registrada', id: nuevaVenta.id });
+
+//     } catch (error: any) {
+//         console.error(error);
+//         return res.status(500).json({ message: 'Error al procesar la venta' });
+//     }
+// }
 
 async function obtenerVentas(req: Request, res: Response) {
     const em = orm.em.fork();

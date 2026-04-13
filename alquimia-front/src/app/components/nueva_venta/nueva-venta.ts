@@ -22,7 +22,9 @@ interface ProductoCarrito {
   cantidad: number;
   precioUnitarioAplicado: number;
   subtotal: number;
-  precioPersonalizado?: number; 
+  precioPersonalizado?: number;
+  origen?: 'almacen' | 'camion';
+  
 }
 
 @Component({
@@ -261,7 +263,8 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
         producto: producto,
         cantidad: 1,
         precioUnitarioAplicado: 0, 
-        subtotal: 0
+        subtotal: 0,
+        origen: 'almacen'
       };
       this.carrito.unshift(nuevoItem);
     }
@@ -630,7 +633,8 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
         items: this.carrito.map(item => ({
           id_producto: item.producto.id!, 
           cantidad: item.cantidad,
-          precio_modificado: item.precioPersonalizado 
+          precio_modificado: item.precioPersonalizado,
+          origen: item.origen || 'almacen'
         })),
         cliente_id: this.clienteSeleccionadoId ? Number(this.clienteSeleccionadoId) : undefined, 
         estado: this.estadoVenta as 'COBRADA' | 'PENDIENTE',

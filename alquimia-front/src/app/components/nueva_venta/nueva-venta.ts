@@ -467,10 +467,22 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
 
   agregarAlCarrito(producto: Producto | ProductoIndexado) {
     const itemExistente = this.carrito.find(item => item.producto.id === producto.id);
+    const stockDisponible = producto.stock || 0; // Calculamos el stock real
     
     if (itemExistente) {
+      // Validamos antes de sumar +1
+      if (itemExistente.cantidad + 1 > stockDisponible) {
+        this.notificationService.show(`Stock insuficiente. Solo hay ${stockDisponible} unidades disponibles.`, 'warning');
+        return;
+      }
       itemExistente.cantidad += 1;
     } else {
+      // Validamos antes de agregarlo por primera vez
+      if (stockDisponible < 1) {
+        this.notificationService.show(`El producto no tiene stock disponible.`, 'error');
+        return;
+      }
+
       const nuevoItem: ProductoCarrito = {
         producto: producto,
         cantidad: 1,
@@ -486,6 +498,50 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     this.limpiarBusqueda(); 
     this.mostrarSugerencias = false; 
   }
+
+  // ==============================================================
+  // NUEVA FUNCIÓN: Valida lo que el usuario tipea a mano en la tabla
+  // ==============================================================
+  validarCantidadCarrito(index: number, valor: any) {
+    const item = this.carrito[index];
+    const stockDisponible = item.producto.stock || 0;
+    let nuevaCantidad = parseInt(valor, 10);
+
+    // Si el cajero borra el input o pone algo inválido, forzamos a 1
+    if (isNaN(nuevaCantidad) || nuevaCantidad < 1) {
+        nuevaCantidad = 1;
+    } 
+    // Si tipea un número mayor al stock, lo frenamos en el máximo disponible
+    else if (nuevaCantidad > stockDisponible) {
+        nuevaCantidad = stockDisponible;
+        this.notificationService.show(`Stock máximo alcanzado (${stockDisponible} unidades).`, 'warning');
+    }
+
+    item.cantidad = nuevaCantidad;
+    this.calcularTotales();
+  }
+
+  // agregarAlCarrito(producto: Producto | ProductoIndexado) {
+  //   const itemExistente = this.carrito.find(item => item.producto.id === producto.id);
+    
+  //   if (itemExistente) {
+  //     itemExistente.cantidad += 1;
+  //   } else {
+  //     const nuevoItem: ProductoCarrito = {
+  //       producto: producto,
+  //       cantidad: 1,
+  //       precioUnitarioAplicado: 0, 
+  //       subtotal: 0
+  //     };
+  //     this.carrito.unshift(nuevoItem);
+  //   }
+    
+  //   this.calcularTotales();
+  //   this.notificationService.show('Producto agregado al ticket', 'success');
+
+  //   this.limpiarBusqueda(); 
+  //   this.mostrarSugerencias = false; 
+  // }
 
   modificarCantidad(index: number, delta: number) {
     const item = this.carrito[index];

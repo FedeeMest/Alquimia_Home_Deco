@@ -103,19 +103,14 @@ export class CargaCamionComponent implements OnInit {
 
     this.notificationService.show('Generando listado de feria...', 'info');
 
-    const productosPorCategoria: { [categoria: string]: Producto[] } = {};
+    // 1. Usamos nuestra nueva función agrupadora
+    const reporteAgrupado = this.agruparProductosParaPDF(enCamion);
+    const categoriasOrdenadas = Object.keys(reporteAgrupado).sort();
+
     let totalUnidades = 0;   
-    
-    enCamion.forEach(prod => {
-      const cat = prod.categoria || 'Sin Categoría';
-      if (!productosPorCategoria[cat]) productosPorCategoria[cat] = [];
-      productosPorCategoria[cat].push(prod);
+    enCamion.forEach(prod => totalUnidades += (prod.stock_camion || 0));
 
-      totalUnidades += (prod.stock_camion || 0);
-    });
-
-    const categoriasOrdenadas = Object.keys(productosPorCategoria).sort();
-
+    // 2. Configuración base del PDF
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -139,58 +134,102 @@ export class CargaCamionComponent implements OnInit {
 
     let startY = 48;
 
+    // 3. DIBUJAR LAS TABLAS
     categoriasOrdenadas.forEach((categoria) => {
-      if (startY + 45 > pageHeight) { 
+      const datosCategoria = reporteAgrupado[categoria];
+
+      if (startY + 30 > pageHeight) { 
         doc.addPage();
         startY = 20;
       }
 
+      // Título de la Categoría Principal (Ej: MANTELES)
       doc.setFontSize(13);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 41, 59); 
       doc.text(categoria.toUpperCase(), 14, startY);
       startY += 6;
 
-      const productosDeLaCategoria = productosPorCategoria[categoria];
-      productosDeLaCategoria.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+      // === CASO A: MANTELES (Tienen subcategorías por medida) ===
+      if (datosCategoria.esSubcategorizada) {
+          const medidas = Object.keys(datosCategoria.subcategorias).sort();
+          
+          medidas.forEach(medida => {
+              if (startY + 20 > pageHeight) { doc.addPage(); startY = 20; }
 
-      const datosTabla = productosDeLaCategoria.map(p => [
-        p.codigo_barra || '-',
-        p.nombre || '-',
-        p.proveedor || '-',
-        p.stock_camion?.toString() || '0',
-        `$ ${p.precio_efectivo?.toLocaleString('es-AR') || '0'}`
-      ]);
+              // Subtítulo de la medida (Ej: Medida: 3x1.40)
+              doc.setFontSize(10);
+              doc.setFont('helvetica', 'bolditalic');
+              doc.setTextColor(71, 85, 105);
+              doc.text(`Medida: ${medida}`, 18, startY); // Un poco más adentro (indentado)
+              startY += 4;
 
-      autoTable(doc, {
-        startY: startY,
-        head: [['Código', 'Producto', 'Proveedor', 'Cant.', 'Precio Venta']],
-        body: datosTabla,
-        theme: 'striped', 
-        headStyles: { 
-          fillColor: [15, 23, 42], 
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          halign: 'center'
-        },
-        styles: { fontSize: 8, cellPadding: 3, textColor: [51, 65, 83] }, 
-        
-        columnStyles: {
-          0: { cellWidth: 25, halign: 'center' }, 
-          1: { cellWidth: 'auto' }, 
-          2: { cellWidth: 35 }, 
-          3: { cellWidth: 20, halign: 'center', fontStyle: 'bold' }, 
-          4: { cellWidth: 25, halign: 'center', fontStyle: 'bold', fontSize: 10, textColor: [5, 150, 105] } 
-        },
-        
-        margin: { bottom: 25 }, 
-        rowPageBreak: 'avoid',  
-        showHead: 'everyPage'   
-      });
+              const productosDeLaMedida = datosCategoria.subcategorias[medida];
+              productosDeLaMedida.sort((a: any, b: any) => (a.nombre || '').localeCompare(b.nombre || ''));
 
-      startY = (doc as any).lastAutoTable.finalY + 12; 
+              const datosTabla = productosDeLaMedida.map((p: any) => [
+                p.codigo_barra || '-', p.nombre || '-', p.proveedor || '-',
+                p.stock_camion?.toString() || '0', `$ ${p.precio_efectivo?.toLocaleString('es-AR') || '0'}`
+              ]);
+
+              autoTable(doc, {
+                startY: startY,
+                head: [['Código', 'Producto', 'Proveedor', 'Cant.', 'Precio Venta']],
+                body: datosTabla,
+                theme: 'striped', 
+                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+                styles: { fontSize: 8, cellPadding: 3, textColor: [51, 65, 83] }, 
+                columnStyles: {
+                  0: { cellWidth: 25, halign: 'center' }, 
+                  1: { cellWidth: 'auto' }, 
+                  2: { cellWidth: 35 }, 
+                  3: { cellWidth: 20, halign: 'center', fontStyle: 'bold' }, 
+                  4: { cellWidth: 25, halign: 'center', fontStyle: 'bold', fontSize: 10, textColor: [5, 150, 105] } 
+                },
+                margin: { left: 18, right: 14, bottom: 25 }, // Indentamos la tabla de manteles
+                rowPageBreak: 'avoid',  
+                showHead: 'firstPage'   
+              });
+
+              startY = (doc as any).lastAutoTable.finalY + 8; 
+          });
+          startY += 4; // Espacio extra antes de la siguiente categoría
+
+      } 
+      // === CASO B: PRODUCTOS NORMALES (Ej: Espejos, Velas) ===
+      else {
+          const productosGenerales = datosCategoria.itemsGenerales;
+          productosGenerales.sort((a: any, b: any) => (a.nombre || '').localeCompare(b.nombre || ''));
+
+          const datosTabla = productosGenerales.map((p: any) => [
+            p.codigo_barra || '-', p.nombre || '-', p.proveedor || '-',
+            p.stock_camion?.toString() || '0', `$ ${p.precio_efectivo?.toLocaleString('es-AR') || '0'}`
+          ]);
+
+          autoTable(doc, {
+            startY: startY,
+            head: [['Código', 'Producto', 'Proveedor', 'Cant.', 'Precio Venta']],
+            body: datosTabla,
+            theme: 'striped', 
+            headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+            styles: { fontSize: 8, cellPadding: 3, textColor: [51, 65, 83] }, 
+            columnStyles: {
+              0: { cellWidth: 25, halign: 'center' }, 
+              1: { cellWidth: 'auto' }, 
+              2: { cellWidth: 35 }, 
+              3: { cellWidth: 20, halign: 'center', fontStyle: 'bold' }, 
+              4: { cellWidth: 25, halign: 'center', fontStyle: 'bold', fontSize: 10, textColor: [5, 150, 105] } 
+            },
+            margin: { bottom: 25 }, 
+            rowPageBreak: 'avoid',  
+            showHead: 'everyPage'   
+          });
+
+          startY = (doc as any).lastAutoTable.finalY + 12; 
+      }
     });
 
+    // 4. Pie de página con numeración
     const pageCount = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -211,6 +250,164 @@ export class CargaCamionComponent implements OnInit {
 
     doc.save(`Listado_Feria_${new Date().toISOString().split('T')[0]}.pdf`);
     this.notificationService.show('PDF de Feria generado con éxito', 'success');
+  }
+  // generarPdfCarga() {
+  //   const enCamion = this.productosOriginales.filter(p => (p.stock_camion || 0) > 0);
+
+  //   if (enCamion.length === 0) {
+  //       this.notificationService.show('No hay productos cargados en el camión para generar el listado.', 'error');
+  //       return;
+  //   }
+
+  //   this.notificationService.show('Generando listado de feria...', 'info');
+
+  //   const productosPorCategoria: { [categoria: string]: Producto[] } = {};
+  //   let totalUnidades = 0;   
+    
+  //   enCamion.forEach(prod => {
+  //     const cat = prod.categoria || 'Sin Categoría';
+  //     if (!productosPorCategoria[cat]) productosPorCategoria[cat] = [];
+  //     productosPorCategoria[cat].push(prod);
+
+  //     totalUnidades += (prod.stock_camion || 0);
+  //   });
+
+  //   const categoriasOrdenadas = Object.keys(productosPorCategoria).sort();
+
+  //   const doc = new jsPDF();
+  //   const pageWidth = doc.internal.pageSize.getWidth();
+  //   const pageHeight = doc.internal.pageSize.getHeight();
+
+  //   doc.setFontSize(22);
+  //   doc.setTextColor(15, 23, 42); 
+  //   doc.text('Listado de Mercadería - Feria', 14, 20);
+
+  //   doc.setFontSize(10);
+  //   doc.setTextColor(100, 116, 139); 
+  //   doc.text(`Alquimia Home Deco  |  Fecha: ${new Date().toLocaleDateString('es-AR')}`, 14, 28);
+
+  //   doc.setFontSize(11);
+  //   doc.setTextColor(15, 23, 42);
+  //   doc.setFont('helvetica', 'bold');
+  //   doc.text(`Items: ${enCamion.length} refs  |  Total Unidades en Transporte: ${totalUnidades}`, 14, 36);
+
+  //   doc.setDrawColor(226, 232, 240);
+  //   doc.setLineWidth(0.5);
+  //   doc.line(14, 40, pageWidth - 14, 40);
+
+  //   let startY = 48;
+
+  //   categoriasOrdenadas.forEach((categoria) => {
+  //     if (startY + 45 > pageHeight) { 
+  //       doc.addPage();
+  //       startY = 20;
+  //     }
+
+  //     doc.setFontSize(13);
+  //     doc.setFont('helvetica', 'bold');
+  //     doc.setTextColor(30, 41, 59); 
+  //     doc.text(categoria.toUpperCase(), 14, startY);
+  //     startY += 6;
+
+  //     const productosDeLaCategoria = productosPorCategoria[categoria];
+  //     productosDeLaCategoria.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+
+  //     const datosTabla = productosDeLaCategoria.map(p => [
+  //       p.codigo_barra || '-',
+  //       p.nombre || '-',
+  //       p.proveedor || '-',
+  //       p.stock_camion?.toString() || '0',
+  //       `$ ${p.precio_efectivo?.toLocaleString('es-AR') || '0'}`
+  //     ]);
+
+  //     autoTable(doc, {
+  //       startY: startY,
+  //       head: [['Código', 'Producto', 'Proveedor', 'Cant.', 'Precio Venta']],
+  //       body: datosTabla,
+  //       theme: 'striped', 
+  //       headStyles: { 
+  //         fillColor: [15, 23, 42], 
+  //         textColor: [255, 255, 255],
+  //         fontStyle: 'bold',
+  //         halign: 'center'
+  //       },
+  //       styles: { fontSize: 8, cellPadding: 3, textColor: [51, 65, 83] }, 
+        
+  //       columnStyles: {
+  //         0: { cellWidth: 25, halign: 'center' }, 
+  //         1: { cellWidth: 'auto' }, 
+  //         2: { cellWidth: 35 }, 
+  //         3: { cellWidth: 20, halign: 'center', fontStyle: 'bold' }, 
+  //         4: { cellWidth: 25, halign: 'center', fontStyle: 'bold', fontSize: 10, textColor: [5, 150, 105] } 
+  //       },
+        
+  //       margin: { bottom: 25 }, 
+  //       rowPageBreak: 'avoid',  
+  //       showHead: 'everyPage'   
+  //     });
+
+  //     startY = (doc as any).lastAutoTable.finalY + 12; 
+  //   });
+
+  //   const pageCount = (doc as any).internal.getNumberOfPages();
+  //   for (let i = 1; i <= pageCount; i++) {
+  //     doc.setPage(i);
+  //     doc.setFontSize(8);
+  //     doc.setFont('helvetica', 'italic');
+  //     doc.setTextColor(148, 163, 184); 
+      
+  //     doc.setDrawColor(226, 232, 240);
+  //     doc.line(14, pageHeight - 15, pageWidth - 14, pageHeight - 15);
+      
+  //     doc.text(
+  //       `Página ${i} de ${pageCount}  -  Uso Feria - Alquimia Home Deco`, 
+  //       pageWidth / 2, 
+  //       pageHeight - 8, 
+  //       { align: 'center' }
+  //     );
+  //   }
+
+  //   doc.save(`Listado_Feria_${new Date().toISOString().split('T')[0]}.pdf`);
+  //   this.notificationService.show('PDF de Feria generado con éxito', 'success');
+  // }
+
+  private agruparProductosParaPDF(productos: Producto[]) {
+    // Regex para detectar "2x2", "2.5x1.50", "2 x 1,5", etc.
+    const regexMedida = /(\d+(?:[.,]\d+)?\s*[xX]\s*\d+(?:[.,]\d+)?)/i;
+    const reporteAgrupado: Record<string, any> = {};
+
+    productos.forEach(prod => {
+      const categoria = prod.categoria || 'Sin Categoría';
+
+      if (!reporteAgrupado[categoria]) {
+        reporteAgrupado[categoria] = {
+          esSubcategorizada: false,
+          itemsGenerales: [],
+          subcategorias: {}
+        };
+      }
+
+      // Si es categoría Manteles, extraemos la medida
+      if (categoria.toLowerCase().includes('mantel')) {
+        reporteAgrupado[categoria].esSubcategorizada = true;
+        
+        const coincidencia = (prod.nombre || '').match(regexMedida);
+        const medidaDetectada = coincidencia 
+            ? coincidencia[1].replace(/\s+/g, '').toLowerCase() // Normaliza: "3 x 1.4" -> "3x1.4"
+            : 'Otras Medidas / Lisos';
+
+        if (!reporteAgrupado[categoria].subcategorias[medidaDetectada]) {
+          reporteAgrupado[categoria].subcategorias[medidaDetectada] = [];
+        }
+        reporteAgrupado[categoria].subcategorias[medidaDetectada].push(prod);
+
+      } else {
+        // Resto de los productos normales
+        reporteAgrupado[categoria].itemsGenerales.push(prod);
+      }
+    });
+
+    return reporteAgrupado;
   }
 
   llenarTransporteMasivo() {

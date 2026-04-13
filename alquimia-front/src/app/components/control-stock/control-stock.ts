@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject, OnInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../services/producto.service';
@@ -21,6 +21,7 @@ interface ItemAjuste {
 export class ControlStockComponent implements OnInit {
   private productoService = inject(ProductoService);
   private notificationService = inject(NotificationService);
+  private cd = inject(ChangeDetectorRef);
 
   @ViewChild('inputBusqueda') inputBusqueda!: ElementRef;
 
@@ -39,6 +40,7 @@ export class ControlStockComponent implements OnInit {
 
   ngOnInit() {
     this.cargarProductos();
+    
   }
 
   cargarProductos() {
@@ -46,7 +48,6 @@ export class ControlStockComponent implements OnInit {
     this.productoService.getAll('', true, 1, 10000).subscribe({
       next: (res) => {
         this.productosCache = res.data;
-        
         // 1. Extraemos las categorías únicas para el selector
         this.categorias = [...new Set(this.productosCache.map(p => p.categoria || 'Sin Categoría'))].sort();
         
@@ -68,6 +69,7 @@ export class ControlStockComponent implements OnInit {
         }));
 
         this.cargando = false;
+        this.cd.detectChanges();
         setTimeout(() => this.inputBusqueda?.nativeElement.focus(), 100);
       },
       error: () => {

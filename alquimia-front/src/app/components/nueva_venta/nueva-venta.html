@@ -106,14 +106,14 @@
         </button>
 
         <button (click)="item.origen = 'camion'" 
-                [disabled]="!item.producto.stock_camion || item.producto.stock_camion < item.cantidad"
+                [disabled]="(item.producto.stock_camion || 0) < item.cantidad"
                 [ngClass]="{
                     'bg-blue-100 text-blue-700 border-blue-300 shadow-sm': item.origen === 'camion',
-                    'bg-white text-slate-500 border-slate-200 hover:bg-slate-100': item.origen !== 'camion' && item.producto.stock_camion >= item.cantidad,
-                    'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed': !item.producto.stock_camion || item.producto.stock_camion < item.cantidad
+                    'bg-white text-slate-500 border-slate-200 hover:bg-slate-100': item.origen !== 'camion' && (item.producto.stock_camion || 0) >= item.cantidad,
+                    'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed': (item.producto.stock_camion || 0) < item.cantidad
                 }"
                 class="px-3 py-1 rounded-md text-xs font-bold border transition-all"
-                title="{{ (!item.producto.stock_camion || item.producto.stock_camion < item.cantidad) ? 'No hay suficiente stock en el camión' : 'Sacar del camión' }}">
+                [title]="((item.producto.stock_camion || 0) < item.cantidad) ? 'No hay suficiente stock en el camión' : 'Sacar del camión'">
              Transporte
         </button>
     </div>

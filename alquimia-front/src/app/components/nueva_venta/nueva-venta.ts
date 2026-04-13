@@ -204,7 +204,8 @@ export class NuevaVentaComponent implements OnInit, OnDestroy {
     this.enfocarScanner();
   }
 
-  navegarSugerencias(event: KeyboardEvent) {
+  // Cambiamos (event: KeyboardEvent) por (event: any)
+  navegarSugerencias(event: any) {
     if (!this.mostrarSugerencias || this.productosEncontrados.length === 0) return;
 
     if (event.key === 'ArrowDown') {

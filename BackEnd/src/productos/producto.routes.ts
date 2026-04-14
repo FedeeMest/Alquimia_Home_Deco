@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { findAll, findOne, add, update, remove, inputS, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido,findByBarcode, getPublicCatalog } from './producto.controller.js';
+import { findAll, findOne, add, update, remove, inputS, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido,findByBarcode, getPublicCatalog, actualizarStockMasivo } from './producto.controller.js';
 import { authMiddleware } from '../shared/middleware/auth.middleware.js';
 import multer from 'multer';
 import cloudinary from '../shared/config/cloudinary.js';
@@ -34,6 +34,7 @@ productoRouter.post('/upload-image', upload.single('image'), async (req, res) =>
 productoRouter.get('/', findAll);           // Obtener todos (con paginación)
 productoRouter.post('/vaciar-camion', vaciarCamion);
 productoRouter.post('/venta-feria', ventaFeria);
+productoRouter.post('/stock/masivo', actualizarStockMasivo);
 productoRouter.patch('/:id/stock', updateStockRapido);
 productoRouter.get('/:id', findOne);        // Obtener uno
 productoRouter.get('/codigo/:codigo', findByBarcode); // Obtener por código de barra

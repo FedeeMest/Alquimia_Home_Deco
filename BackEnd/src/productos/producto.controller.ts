@@ -432,6 +432,39 @@ async function getPublicCatalog(req: Request, res: Response){
     }
 };
 
+async function actualizarStockMasivo(req: Request, res: Response) {
+    const em = orm.em.fork();
+    try {
+        const { ajustes } = req.body;
+
+        if (!ajustes || !Array.isArray(ajustes)) {
+            return res.status(400).json({ message: 'Formato de datos inválido' });
+        }
+
+        let contador = 0;
+        
+        // Recorremos el arreglo de ajustes que nos manda el frontend
+        for (const ajuste of ajustes) {
+            const producto = await em.findOne(Producto, { id: ajuste.id });
+            if (producto) {
+                // Actualizamos el stock general al nuevo stock real contado
+                producto.stock = ajuste.stock_real;
+                contador++;
+            }
+        }
+
+        // Guardamos todos los cambios en la base de datos en una sola transacción
+        await em.flush();
+
+        return res.status(200).json({ 
+            message: `Se actualizó el stock de ${contador} productos correctamente.` 
+        });
+
+    } catch (error) {
+        console.error('Error al actualizar stock masivo:', error);
+        return res.status(500).json({ message: 'Error interno al actualizar el stock' });
+    }
+}
 // async function getPublicCatalog(req: Request, res: Response) {
 //     try {
 //       // Buscamos SOLO los que están marcados para publicar en la web
@@ -459,4 +492,4 @@ async function getPublicCatalog(req: Request, res: Response){
 
 
 
-export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido, findByBarcode, getPublicCatalog };
+export { inputS, findAll, findOne, add, update, remove, restaurar, fixPrecios, actualizarGananciasMasivo, vaciarCamion, ventaFeria, updateStockRapido, findByBarcode, getPublicCatalog, actualizarStockMasivo };

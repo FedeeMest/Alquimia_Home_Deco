@@ -96,13 +96,19 @@
         Subtotal: {{ item.subtotal | currency:'ARS':'symbol-narrow':'1.0-0' }}
     </div>
 
-    <div class="mt-2 flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-200 w-fit">
+   <div class="mt-2 flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-200 w-fit">
         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Origen:</span>
         
         <button (click)="item.origen = 'almacen'" 
-                [ngClass]="item.origen === 'almacen' ? 'bg-emerald-100 text-emerald-700 border-emerald-300 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100'"
-                class="px-3 py-1 rounded-md text-xs font-bold border transition-all">
-             Almacén
+                [disabled]="((item.producto.stock || 0) - (item.producto.stock_camion || 0)) < item.cantidad"
+                [ngClass]="{
+                    'bg-emerald-100 text-emerald-700 border-emerald-300 shadow-sm': item.origen === 'almacen',
+                    'bg-white text-slate-500 border-slate-200 hover:bg-slate-100': item.origen !== 'almacen' && ((item.producto.stock || 0) - (item.producto.stock_camion || 0)) >= item.cantidad,
+                    'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed': ((item.producto.stock || 0) - (item.producto.stock_camion || 0)) < item.cantidad
+                }"
+                class="px-3 py-1 rounded-md text-xs font-bold border transition-all"
+                [title]="(((item.producto.stock || 0) - (item.producto.stock_camion || 0)) < item.cantidad) ? 'Sin stock local (todo está en el transporte)' : 'Sacar del almacén local'">
+            Almacén
         </button>
 
         <button (click)="item.origen = 'camion'" 
@@ -113,10 +119,11 @@
                     'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed': (item.producto.stock_camion || 0) < item.cantidad
                 }"
                 class="px-3 py-1 rounded-md text-xs font-bold border transition-all"
-                [title]="((item.producto.stock_camion || 0) < item.cantidad) ? 'No hay suficiente stock en el camión' : 'Sacar del camión'">
-             Transporte
+                [title]="((item.producto.stock_camion || 0) < item.cantidad) ? 'No hay suficiente stock en el camión' : 'Sacar del transporte'">
+            Transporte
         </button>
     </div>
+
     </td>
 
                         <td class="px-2 lg:px-4 py-3 text-center">

@@ -1,4 +1,102 @@
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-white to-amber-50 p-4 animate-fade-in-up">
+<div class="min-h-screen flex items-center justify-center bg-slate-50 relative overflow-hidden px-4">
+    
+    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-amber-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style="animation-duration: 8s;"></div>
+    <div class="absolute top-[20%] right-[-10%] w-96 h-96 bg-emerald-200/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style="animation-duration: 10s; animation-delay: 2s;"></div>
+    <div class="absolute bottom-[-20%] left-[20%] w-[30rem] h-[30rem] bg-blue-200/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style="animation-duration: 12s; animation-delay: 4s;"></div>
+
+    <div class="w-full max-w-md p-8 sm:p-12 bg-white/80 backdrop-blur-2xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 relative z-10 animate-fade-in-up">
+        
+        <div class="flex flex-col items-center mb-10">
+            <div class="relative group">
+                <div class="absolute -inset-4 bg-slate-100 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
+                
+                <img src="assets/images/logo_alquimia.png" 
+                     alt="Alquimia Logo" 
+                     class="h-28 w-auto object-contain relative transform transition-transform duration-500 group-hover:scale-105 drop-shadow-sm">
+            </div>
+            
+            <h2 class="mt-6 text-[11px] font-extrabold tracking-[0.35em] text-slate-400 uppercase">
+                Panel de Control
+            </h2>
+            <h1 class="text-2xl font-bold text-slate-800 mt-1 tracking-tight">Iniciar Sesión</h1>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" class="space-y-6">
+            
+            <div class="relative group">
+                <input [(ngModel)]="username" name="username" type="text" id="username"
+                    class="block w-full px-4 pt-6 pb-2 text-sm text-slate-900 bg-white/50 border border-slate-200 rounded-xl appearance-none focus:outline-none focus:ring-0 focus:border-slate-800 focus:bg-white peer transition-all shadow-sm"
+                    placeholder=" " required autocomplete="off" />
+                <label for="username" 
+                    class="absolute text-sm text-slate-400 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3 peer-focus:text-slate-800 peer-focus:font-bold pointer-events-none">
+                    Nombre de Usuario
+                </label>
+                <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-300 peer-focus:text-slate-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="relative group">
+                <input [(ngModel)]="password" name="password" [type]="verPassword ? 'text' : 'password'" id="password"
+                    class="block w-full px-4 pt-6 pb-2 pr-12 text-sm text-slate-900 bg-white/50 border border-slate-200 rounded-xl appearance-none focus:outline-none focus:ring-0 focus:border-slate-800 focus:bg-white peer transition-all shadow-sm"
+                    placeholder=" " required />
+                <label for="password" 
+                    class="absolute text-sm text-slate-400 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3 peer-focus:text-slate-800 peer-focus:font-bold pointer-events-none">
+                    Contraseña
+                </label>
+                
+                <button type="button" (click)="togglePassword()" tabindex="-1"
+                        class="absolute inset-y-0 right-3 flex items-center p-2 text-slate-400 hover:text-slate-800 focus:outline-none transition-colors rounded-full hover:bg-slate-100">
+                    
+                    <svg *ngIf="!verPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                    
+                    <svg *ngIf="verPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.746 0 8.957 3.09 10.56 7.5a10.415 10.415 0 0 1-2.89 4.22M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                    </svg>
+                </button>
+            </div>
+
+            <button type="submit" [disabled]="loading || !username || !password"
+                class="w-full mt-2 bg-slate-900 text-white font-bold tracking-wide py-4 px-4 rounded-xl shadow-lg shadow-slate-300/50 
+                       hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300 
+                       disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex justify-center items-center gap-3 group relative overflow-hidden">
+                
+                <div class="absolute inset-0 w-full h-full bg-white/10 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+
+                <span *ngIf="!loading" class="relative z-10">Ingresar al Sistema</span>
+                <span *ngIf="loading" class="relative z-10">Verificando...</span>
+                
+                <svg *ngIf="!loading" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 relative z-10 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+
+                <svg *ngIf="loading" class="animate-spin h-5 w-5 text-white/80 relative z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </button>
+
+        </form>
+        
+        <div class="mt-10 pt-6 border-t border-slate-100/50 flex flex-col items-center">
+            <p class="text-[11px] text-slate-400 font-medium">
+                Alquimia Home Deco ERP &copy; {{ 2026 }}
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes shimmer {
+        100% { transform: translateX(100%); }
+    }
+</style>
+<!-- <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-white to-amber-50 p-4 animate-fade-in-up">
     
     <div class="bg-white/90 backdrop-blur-sm p-8 sm:p-10 rounded-2xl shadow-2xl w-full max-w-sm border border-white/50 relative overflow-hidden">
         
@@ -77,4 +175,4 @@
             </p>
         </div>
     </div>
-</div>
+</div> -->

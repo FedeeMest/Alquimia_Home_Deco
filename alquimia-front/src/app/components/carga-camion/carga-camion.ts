@@ -167,9 +167,9 @@ export class CargaCamionComponent implements OnInit {
             headStyles: { fillColor: [51, 65, 83], fontSize: 8, halign: 'center' },
             styles: { fontSize: 8, cellPadding: 2 },
             columnStyles: {
-              0: { cellWidth: 25, halign: 'center', fontStyle: 'bold' },
+              0: { cellWidth: 25, halign: 'center', fontStyle: 'bold', fontSize: 11 },
               2: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
-              3: { cellWidth: 25, halign: 'right', fontStyle: 'bold' }
+              3: { cellWidth: 25, halign: 'right', fontStyle: 'bold',fontSize: 11 }
             },
             margin: { left: 14, right: 14 }
           });

@@ -57,7 +57,7 @@ export class ProductoForm implements OnInit {
     'Compoteras', 'Ensaladeras', 'Jarrones/Floreros', 'Borlas',
     'Accesorio de Mesa', 'Almohadones', 'Mantas', 'Manteles',
     'Caminos', 'Decoración', 'Difusores / Aromas', 'Ceramica','Textil','Platos','Combo','Frascos','Té y Accesorios',
-    'Jardín', 'Contenedores', 'Aromatizador', 'Difusores','Jarritos Con Sorbete', 'Otros'
+    'Jardín', 'Contenedores', 'Aromatizador', 'Difusores','Jarritos Con Sorbete','Pillow', 'Otros'
   ];
 
   proveedoresFrecuentes = [

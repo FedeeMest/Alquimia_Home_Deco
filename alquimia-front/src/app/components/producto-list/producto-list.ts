@@ -353,10 +353,15 @@ export class ProductoList implements OnInit, OnDestroy {
           return (a.nombre || '').localeCompare(b.nombre || '');
         case 'nombre_desc': 
           return (b.nombre || '').localeCompare(a.nombre || '');
+        case 'codigo_asc':
+          return (a.codigo_barra || '').localeCompare(b.codigo_barra || '');
+        case 'codigo_desc':
+          return (b.codigo_barra || '').localeCompare(a.codigo_barra || '');
         case 'precio_asc': 
           return (a.precio_efectivo || 0) - (b.precio_efectivo || 0);
         case 'precio_desc': 
           return (b.precio_efectivo || 0) - (a.precio_efectivo || 0);
+        
         
         // Nuevos casos de ordenamiento por Stock
         case 'stock_general_asc': 

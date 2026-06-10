@@ -288,24 +288,25 @@ export class CatalogoPublicoComponent implements OnInit {
   }
 
   get totalCarrito(): number {
-    return this.carrito.reduce((total, item) => total + (item.producto.precio * item.cantidad), 0);
-  }
+  return this.carrito.reduce((total, item) => total + ((item.producto.precio_tarjeta || item.producto.precio) * item.cantidad), 0);
+}
 
   enviarPedidoWhatsApp() {
-    if (this.carrito.length === 0) return;
+  if (this.carrito.length === 0) return;
 
-    const numeroWa = '5493401408588'; 
-    let mensaje = '¡Hola Alquimia! Estoy interesado en estos productos:\n\n';
+  const numeroWa = '5493401408588'; 
+  let mensaje = '¡Hola Alquimia! Estoy interesado en estos productos:\n\n';
 
-    this.carrito.forEach((item, index) => {
-      mensaje += `${index + 1}. *${item.producto.nombre}* (x${item.cantidad}) - $${item.producto.precio * item.cantidad}\n`;
-    });
+  this.carrito.forEach((item, index) => {
+    const precioBase = item.producto.precio_tarjeta || item.producto.precio;
+    mensaje += `${index + 1}. *${item.producto.nombre}* (x${item.cantidad}) - $${precioBase * item.cantidad}\n`;
+  });
 
-    mensaje += `\n*Total: $${this.totalCarrito}*\n\n`;
+  mensaje += `\n*Total: $${this.totalCarrito}*\n\n`;
 
-    const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank');
-  }
+  const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
+  window.open(url, '_blank');
+}
 
   consultarPorWhatsApp(producto: any) {
     const numeroWa = '5493401408588'; 

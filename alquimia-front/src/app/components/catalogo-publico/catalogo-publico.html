@@ -197,9 +197,12 @@
                 
                 <span class="text-xs text-slate-400 mb-5">Código: {{ productoSeleccionado.codigo_barra || 'Sin código' }}</span>
 
-                <div class="text-4xl font-light text-slate-900 mb-6">
-                    {{ productoSeleccionado.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}
-                </div>
+                <div class="text-4xl font-light text-slate-900 mb-1">
+    {{ (productoSeleccionado.precio_tarjeta || productoSeleccionado.precio) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+</div>
+<div *ngIf="productoSeleccionado.precio_efectivo" class="text-lg font-semibold text-rose-600 mb-6">
+    {{ productoSeleccionado.precio_efectivo | currency:'ARS':'symbol-narrow':'1.0-0' }} en efectivo / transferencia
+</div>
                 <div class="mb-6">
                     <p class="text-sm font-semibold text-slate-900 mb-2">Cantidad:</p>
                     

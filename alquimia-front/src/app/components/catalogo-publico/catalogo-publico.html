@@ -129,12 +129,17 @@
                         </div>
 
                         <div class="p-4 flex flex-col flex-1 bg-white">
-                            <div class="text-2xl font-normal text-slate-900 mb-1">
-                                {{ p.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}
-                            </div>
-                            <p class="text-sm font-medium text-slate-800 line-clamp-2 leading-snug mt-1">
-                                {{ p.nombre }}
-                            </p>
+    <div class="text-2xl font-normal text-slate-900 mb-0">
+        {{ (p.precio_tarjeta || p.precio) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+    </div>
+    
+    <div *ngIf="p.precio_efectivo" class="text-xs sm:text-sm font-semibold text-rose-600 mb-2">
+        {{ p.precio_efectivo | currency:'ARS':'symbol-narrow':'1.0-0' }} en efectivo/transferencia
+    </div>
+
+    <p class="text-sm font-medium text-slate-800 line-clamp-2 leading-snug mt-1">
+        {{ p.nombre }}
+    </p>
                             
                             <div class="mt-auto pt-3">
                                 <span *ngIf="!p.disponible" class="text-[10px] font-semibold text-red-500 uppercase tracking-wide">Sin stock</span>

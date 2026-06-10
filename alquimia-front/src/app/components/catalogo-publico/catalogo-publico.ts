@@ -145,18 +145,26 @@ export class CatalogoPublicoComponent implements OnInit {
 
     // Filtro Rango de Precio
     if (this.precioMin !== null && this.precioMin >= 0) {
-      resultado = resultado.filter(p => p.precio >= this.precioMin!);
+      resultado = resultado.filter(p => (p.precio_tarjeta || p.precio) >= this.precioMin!);
     }
     if (this.precioMax !== null && this.precioMax >= 0) {
-      resultado = resultado.filter(p => p.precio <= this.precioMax!);
+      resultado = resultado.filter(p => (p.precio_tarjeta || p.precio) <= this.precioMax!);
     }
 
     // Ordenamiento
     switch (this.ordenSeleccionado) {
-      case 'precio_asc': resultado.sort((a, b) => a.precio - b.precio); break;
-      case 'precio_desc': resultado.sort((a, b) => b.precio - a.precio); break;
-      case 'nombre_asc': resultado.sort((a, b) => a.nombre.localeCompare(b.nombre)); break;
-      case 'nombre_desc': resultado.sort((a, b) => b.nombre.localeCompare(a.nombre)); break;
+      case 'precio_asc': 
+        resultado.sort((a, b) => (a.precio_tarjeta || a.precio) - (b.precio_tarjeta || b.precio)); 
+        break;
+      case 'precio_desc': 
+        resultado.sort((a, b) => (b.precio_tarjeta || b.precio) - (a.precio_tarjeta || a.precio)); 
+        break;
+      case 'nombre_asc': 
+        resultado.sort((a, b) => a.nombre.localeCompare(b.nombre)); 
+        break;
+      case 'nombre_desc': 
+        resultado.sort((a, b) => b.nombre.localeCompare(a.nombre)); 
+        break;
     }
 
     this.productosFiltrados = resultado;

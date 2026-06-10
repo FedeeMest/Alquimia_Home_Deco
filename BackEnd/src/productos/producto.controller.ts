@@ -386,6 +386,71 @@ async function getPublicCatalog(req: Request, res: Response){
                     'id', 
                     'nombre', 
                     'codigo_barra', 
+                    'precio_efectivo', // Traemos el precio en efectivo
+                    'precio_tarjeta',  // ¡NUEVO! Traemos el precio de tarjeta
+                    'imagenUrl', 
+                    'categoria', 
+                    'proveedor', 
+                    'stock', 
+                    'stock_camion'
+                ] 
+            }
+        );
+
+        // 2. Formateamos el catálogo y aplicamos tu lógica de resta
+        const catalogo = productos.map(p => {
+            
+            // LÓGICA DE STOCK SEGURO: Stock general menos Stock en Camión
+            const stockGeneral = p.stock || 0;
+            const stockCamion = p.stock_camion || 0; 
+            let stockDisponible = stockGeneral - stockCamion;
+
+            // Por seguridad, evitamos stocks negativos
+            if (stockDisponible < 0) {
+                stockDisponible = 0;
+            }
+
+            return {
+                id: p.id,
+                nombre: p.nombre,
+                codigo_barra: p.codigo_barra,
+                
+                // Mantenemos 'precio' por compatibilidad, pero asignado a tarjeta
+                precio: p.precio_tarjeta, 
+                
+                // ¡NUEVO! Enviamos explícitamente ambos campos para que tu HTML los reconozca
+                precio_efectivo: p.precio_efectivo,
+                precio_tarjeta: p.precio_tarjeta,
+
+                imagenUrl: p.imagenUrl,
+                categoria: p.categoria,
+                proveedor: p.proveedor,
+                stock: stockDisponible, 
+                disponible: stockDisponible > 0, 
+            };
+        });
+
+        res.status(200).json({
+            message: 'Catálogo cargado con éxito',
+            data: catalogo
+        });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+/* async function getPublicCatalog(req: Request, res: Response){
+    try {
+        const em = orm.em.fork();
+        
+        // 1. Buscamos usando los nombres exactos de tu entidad
+        const productos = await em.find(Producto, 
+            { publicarEnWeb: true, activo: true },
+            { 
+                // Seleccionamos los campos exactos declarados en producto.entity.ts
+                fields: [
+                    'id', 
+                    'nombre', 
+                    'codigo_barra', 
                     'precio_efectivo', // Usamos el precio de contado para la web
                     'imagenUrl', 
                     'categoria', 
@@ -430,7 +495,7 @@ async function getPublicCatalog(req: Request, res: Response){
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
-};
+}; */
 
 async function actualizarStockMasivo(req: Request, res: Response) {
     const em = orm.em.fork();

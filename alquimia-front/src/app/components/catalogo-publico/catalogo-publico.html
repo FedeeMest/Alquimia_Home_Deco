@@ -177,9 +177,9 @@
     <div class="bg-white w-full sm:max-w-5xl sm:rounded-lg shadow-2xl relative z-10 flex flex-col h-[100dvh] sm:h-auto sm:max-h-[90vh] animate-fade-in-up sm:animate-scale-up overflow-hidden">
         
         <!-- 2. BOTÓN DE CIERRE: Queda "absolute" a este marco, por lo que nunca se va a mover -->
-        <button (click)="cerrarModal()" class="absolute top-4 right-4 z-50 p-2 bg-white/90 backdrop-blur-md hover:bg-slate-100 text-slate-700 rounded-full transition-all duration-200 shadow-md sm:shadow-sm sm:border sm:border-slate-200 active:scale-90 hover:rotate-90">
-            <svg class="w-6 h-6 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-        </button>
+        <button (click)="cerrarModal()" class="absolute top-4 right-4 z-50 p-2.5 bg-slate-900 hover:bg-black text-white rounded-full transition-all duration-200 shadow-xl border-2 border-white/20 active:scale-90 hover:rotate-90">
+    <svg class="w-6 h-6 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+</button>
 
         <!-- 3. CUERPO DEL MODAL: A este div le damos el scroll (flex-1 overflow-y-auto) -->
         <div class="flex-1 overflow-y-auto custom-scrollbar">

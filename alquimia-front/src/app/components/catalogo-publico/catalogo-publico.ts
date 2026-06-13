@@ -333,7 +333,7 @@ export class CatalogoPublicoComponent implements OnInit {
       mensaje += `   💵 Efectivo: $${precioE * item.cantidad}\n\n`;
     });
 
-    mensaje += `*TOTAL ESTIMADO*\n`;
+    mensaje += `*TOTAL*\n`;
     mensaje += `💳 *Tarjeta:* $${this.totalCarritoTarjeta}\n`;
     mensaje += `💵 *Efectivo/Transferencia:* $${this.totalCarritoEfectivo}\n\n`;
 

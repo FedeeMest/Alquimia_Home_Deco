@@ -362,10 +362,10 @@
 
 <button *ngIf="!isFiltrosMobileOpen && !isCarritoOpen && !productoSeleccionado && productosOriginales.length > 0" 
         (click)="abrirFiltrosMobile()" 
-        class="md:hidden fixed bottom-6 left-6 z-40 bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:scale-105 active:scale-95 transition-all duration-300 font-semibold flex items-center justify-center">
+        class="md:hidden fixed bottom-6 left-6 z-40 bg-slate-900 hover:bg-black text-white border-2 border-white/20 px-6 py-3 rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 font-semibold flex items-center justify-center">
     <div class="relative">
         Filtros
-        <span *ngIf="cantidadFiltrosActivos > 0" class="absolute -top-3 -right-5 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+        <span *ngIf="cantidadFiltrosActivos > 0" class="absolute -top-3 -right-5 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
             {{ cantidadFiltrosActivos }}
         </span>
     </div>

@@ -445,10 +445,19 @@
                 </div>
             </div>
             <div class="p-6 bg-white border-t border-slate-200">
-                <div class="flex items-end justify-between mb-5">
-                    <span class="text-sm font-semibold text-slate-500">Total Estimado</span>
-                    <span class="text-2xl font-semibold text-slate-900">{{ totalCarrito | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+                
+                <div class="flex flex-col gap-3 mb-5">
+                    <div class="flex items-end justify-between px-1">
+                        <span class="text-sm font-semibold text-slate-500">Total Tarjeta</span>
+                        <span class="text-xl font-bold text-slate-900">{{ totalCarritoTarjeta | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+                    </div>
+                    
+                    <div class="flex items-end justify-between bg-emerald-50 p-3 rounded-lg border border-emerald-200 shadow-sm">
+                        <span class="text-sm font-bold text-emerald-800">Total Efectivo / Transf.</span>
+                        <span class="text-xl font-bold text-emerald-800">{{ totalCarritoEfectivo | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+                    </div>
                 </div>
+
                 <button (click)="enviarPedidoWhatsApp()" [disabled]="carrito.length === 0" 
                     class="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3.5 rounded-md transition-all duration-200 active:scale-[0.98]">
                     Confirmar pedido

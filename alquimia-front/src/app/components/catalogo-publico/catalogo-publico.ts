@@ -89,6 +89,18 @@ export class CatalogoPublicoComponent implements OnInit {
     return stockTotal - cantidadEnCarrito;
   }
 
+  get totalCarritoTarjeta(): number {
+    return this.carrito.reduce((total, item) => total + ((item.producto.precio_tarjeta || item.producto.precio) * item.cantidad), 0);
+  }
+
+  get totalCarritoEfectivo(): number {
+    return this.carrito.reduce((total, item) => {
+      // Si el producto no tiene un precio en efectivo específico, usamos el base/tarjeta para que la suma sea correcta
+      const precioEfectivo = item.producto.precio_efectivo || item.producto.precio_tarjeta || item.producto.precio;
+      return total + (precioEfectivo * item.cantidad);
+    }, 0);
+  }
+
   cargarCatalogo() {
     this.productoService.getPublicCatalog().subscribe({
       next: (res: any) => {
@@ -302,9 +314,9 @@ export class CatalogoPublicoComponent implements OnInit {
     return this.carrito.reduce((total, item) => total + item.cantidad, 0);
   }
 
-  get totalCarrito(): number {
-    return this.carrito.reduce((total, item) => total + ((item.producto.precio_tarjeta || item.producto.precio) * item.cantidad), 0);
-  }
+  // get totalCarrito(): number {
+  //   return this.carrito.reduce((total, item) => total + ((item.producto.precio_tarjeta || item.producto.precio) * item.cantidad), 0);
+  // }
 
   enviarPedidoWhatsApp() {
     if (this.carrito.length === 0) return;
@@ -313,11 +325,17 @@ export class CatalogoPublicoComponent implements OnInit {
     let mensaje = '¡Hola Alquimia! Estoy interesado en estos productos:\n\n';
 
     this.carrito.forEach((item, index) => {
-      const precioBase = item.producto.precio_tarjeta || item.producto.precio;
-      mensaje += `${index + 1}. *${item.producto.nombre}* (x${item.cantidad}) - $${precioBase * item.cantidad}\n`;
+      const precioT = item.producto.precio_tarjeta || item.producto.precio;
+      const precioE = item.producto.precio_efectivo || precioT;
+
+      mensaje += `${index + 1}. *${item.producto.nombre}* (x${item.cantidad})\n`;
+      mensaje += `   💳 Tarjeta: $${precioT * item.cantidad}\n`;
+      mensaje += `   💵 Efectivo: $${precioE * item.cantidad}\n\n`;
     });
 
-    mensaje += `\n*Total: $${this.totalCarrito}*\n\n`;
+    mensaje += `*TOTAL ESTIMADO*\n`;
+    mensaje += `💳 *Tarjeta:* $${this.totalCarritoTarjeta}\n`;
+    mensaje += `💵 *Efectivo/Transferencia:* $${this.totalCarritoEfectivo}\n\n`;
 
     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, '_blank');

@@ -257,10 +257,21 @@
                 <button (click)="consultarPorWhatsApp(productoSeleccionado)" class="flex-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold py-3.5 rounded-md transition-all duration-200 active:scale-[0.98] text-center order-2 sm:order-1">
                     Consultar por WhatsApp
                 </button>
+                
                 <button (click)="agregarAlCarrito(productoSeleccionado, cantidadModal)" 
-                        [disabled]="!productoSeleccionado.disponible || getCantidadDisponible(productoSeleccionado) === 0" 
-                        class="flex-1 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 text-white font-semibold py-3.5 rounded-md transition-all duration-200 active:scale-[0.98] shadow-sm text-center order-1 sm:order-2">
-                    {{ !productoSeleccionado.disponible ? 'Producto sin stock' : (getCantidadDisponible(productoSeleccionado) === 0 ? 'Sin stock adicional' : 'Agregar al carrito') }}
+                        [disabled]="!productoSeleccionado.disponible || getCantidadDisponible(productoSeleccionado) === 0 || agregadoExito" 
+                        [ngClass]="agregadoExito ? 'bg-emerald-600 text-white disabled:bg-emerald-600 disabled:text-white' : 'bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 text-white'"
+                        class="flex-1 font-semibold py-3.5 rounded-md transition-all duration-200 active:scale-[0.98] shadow-sm text-center order-1 sm:order-2 flex justify-center items-center gap-2">
+                    
+                    <ng-container *ngIf="agregadoExito">
+                        <svg class="w-5 h-5 animate-scale-up" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                        ¡Agregado!
+                    </ng-container>
+
+                    <ng-container *ngIf="!agregadoExito">
+                        {{ !productoSeleccionado.disponible ? 'Producto sin stock' : (getCantidadDisponible(productoSeleccionado) === 0 ? 'Sin stock adicional' : 'Agregar al carrito') }}
+                    </ng-container>
+
                 </button>
             </div>
         </div>

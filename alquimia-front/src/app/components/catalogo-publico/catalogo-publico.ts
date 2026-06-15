@@ -122,15 +122,20 @@ export class CatalogoPublicoComponent implements OnInit {
   }
 
   extraerFiltros() {
-    const categoriasSet = new Set<string>();
+    // 1. Contamos cuántos productos tiene cada categoría para poder ordenarlas por "más usadas"
+    const categoriasCount: { [key: string]: number } = {};
     const proveedoresSet = new Set<string>();
     
     this.productosOriginales.forEach(p => {
-      if (p.categoria) categoriasSet.add(p.categoria);
+      if (p.categoria) {
+        categoriasCount[p.categoria] = (categoriasCount[p.categoria] || 0) + 1;
+      }
       if (p.proveedor) proveedoresSet.add(p.proveedor);
     });
     
-    this.categoriasDisponibles = Array.from(categoriasSet).sort();
+    // 2. Ordenamos el array de categorías basándonos en el conteo (de mayor a menor)
+    this.categoriasDisponibles = Object.keys(categoriasCount).sort((a, b) => categoriasCount[b] - categoriasCount[a]);
+    
     this.proveedoresDisponibles = Array.from(proveedoresSet).sort();
   }
 
@@ -141,6 +146,18 @@ export class CatalogoPublicoComponent implements OnInit {
 
   seleccionarProveedor(prov: string) {
     this.proveedorSeleccionado = this.proveedorSeleccionado === prov ? '' : prov;
+    this.aplicarFiltros();
+  }
+
+  // --- NUEVA FUNCIÓN PARA EL CHIP DE ORDENAMIENTO EN MOBILE ---
+  toggleOrdenPrecio() {
+    if (this.ordenSeleccionado === 'precio_asc') {
+      this.ordenSeleccionado = 'precio_desc';
+    } else if (this.ordenSeleccionado === 'precio_desc') {
+      this.ordenSeleccionado = 'defecto';
+    } else {
+      this.ordenSeleccionado = 'precio_asc';
+    }
     this.aplicarFiltros();
   }
 
@@ -379,7 +396,7 @@ export class CatalogoPublicoComponent implements OnInit {
 // import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 // import { CommonModule } from '@angular/common';
 // import { FormsModule } from '@angular/forms';
-// import { Router, ActivatedRoute } from '@angular/router'; // 1. Nuevas importaciones de Rutas
+// import { Router, ActivatedRoute } from '@angular/router';
 // import { ProductoService } from '../../services/producto.service';
 // import { NotificationService } from '../../services/notification.service';
 
@@ -394,7 +411,6 @@ export class CatalogoPublicoComponent implements OnInit {
 //   private cd = inject(ChangeDetectorRef);
 //   private notificationService = inject(NotificationService);
   
-//   // 2. Inyectamos las herramientas de navegación
 //   private router = inject(Router);
 //   private route = inject(ActivatedRoute);
 
@@ -431,7 +447,7 @@ export class CatalogoPublicoComponent implements OnInit {
 
 //   // Modales y Carrito
 //   productoSeleccionado: any = null;
-//   productoPendienteId: string | null = null; // Guarda el ID si alguien entra directo con un link
+//   productoPendienteId: string | null = null; 
 //   carrito: { producto: any, cantidad: number }[] = [];
 //   isCarritoOpen: boolean = false;
 //   isFiltrosMobileOpen: boolean = false;
@@ -439,20 +455,16 @@ export class CatalogoPublicoComponent implements OnInit {
 //   ngOnInit() {
 //     this.cargarCatalogo();
 
-//     // 3. Suscribirse a los cambios en la URL (Query Params)
 //     this.route.queryParams.subscribe(params => {
 //       const idProducto = params['producto'];
       
 //       if (idProducto) {
-//         // Si ya cargaron los productos, lo buscamos y lo abrimos
 //         if (this.productosOriginales.length > 0) {
 //           this.abrirModalPorId(idProducto);
 //         } else {
-//           // Si los productos todavía se están descargando del backend, guardamos el ID
 //           this.productoPendienteId = idProducto;
 //         }
 //       } else {
-//         // Si no hay parámetro en la URL, cerramos el modal (ideal para el botón "Atrás" del celu)
 //         this.cerrarModalInterno();
 //       }
 //     });
@@ -473,7 +485,6 @@ export class CatalogoPublicoComponent implements OnInit {
 
 //   get totalCarritoEfectivo(): number {
 //     return this.carrito.reduce((total, item) => {
-//       // Si el producto no tiene un precio en efectivo específico, usamos el base/tarjeta para que la suma sea correcta
 //       const precioEfectivo = item.producto.precio_efectivo || item.producto.precio_tarjeta || item.producto.precio;
 //       return total + (precioEfectivo * item.cantidad);
 //     }, 0);
@@ -490,10 +501,9 @@ export class CatalogoPublicoComponent implements OnInit {
 //         this.actualizarProductosVisibles();
 //         this.cargando = false;
 
-//         // 4. Revisamos si alguien entró con un link directo a un producto
 //         if (this.productoPendienteId) {
 //           this.abrirModalPorId(this.productoPendienteId);
-//           this.productoPendienteId = null; // Limpiamos
+//           this.productoPendienteId = null; 
 //         }
 
 //         this.cd.detectChanges();
@@ -601,18 +611,15 @@ export class CatalogoPublicoComponent implements OnInit {
 //     }, 500); 
 //   }
 
-//   // --- 5. MODAL PRODUCTO ACTUALIZADO ---
 //   abrirModal(producto: any) {
-//     // En lugar de abrir el modal, actualizamos la URL (esto dispara la suscripción en el ngOnInit)
 //     this.router.navigate([], {
 //       relativeTo: this.route,
 //       queryParams: { producto: producto.id },
-//       queryParamsHandling: 'merge' // Mantiene la URL actual y le agrega el ?producto=id
+//       queryParamsHandling: 'merge' 
 //     });
 //   }
 
 //   cerrarModal() {
-//     // Limpiamos el parámetro de la URL (esto también dispara el ngOnInit)
 //     this.router.navigate([], {
 //       relativeTo: this.route,
 //       queryParams: { producto: null },
@@ -620,7 +627,6 @@ export class CatalogoPublicoComponent implements OnInit {
 //     });
 //   }
 
-//   // Métodos internos que reaccionan a los cambios de URL
 //   private abrirModalPorId(id: string) {
 //     const producto = this.productosOriginales.find(p => p.id.toString() === id.toString());
 //     if (producto) {
@@ -639,7 +645,6 @@ export class CatalogoPublicoComponent implements OnInit {
 //     }
 //   }
 
-//   // --- LÓGICA DEL CARRITO ---
 //   abrirCarrito() {
 //     this.isCarritoOpen = true;
 //     this.actualizarBodyOverflow();
@@ -677,7 +682,7 @@ export class CatalogoPublicoComponent implements OnInit {
 //     this.notificationService.success(`Agregaste ${cantidadSeleccionada}x ${producto.nombre} al carrito.`);
 
 //     if (this.productoSeleccionado) {
-//       this.cerrarModal(); // Esto ahora cambia la URL y cierra el modal
+//       this.cerrarModal(); 
 //     }
 //   }
 
@@ -691,10 +696,6 @@ export class CatalogoPublicoComponent implements OnInit {
 //   get cantidadItemsCarrito(): number {
 //     return this.carrito.reduce((total, item) => total + item.cantidad, 0);
 //   }
-
-//   // get totalCarrito(): number {
-//   //   return this.carrito.reduce((total, item) => total + ((item.producto.precio_tarjeta || item.producto.precio) * item.cantidad), 0);
-//   // }
 
 //   enviarPedidoWhatsApp() {
 //     if (this.carrito.length === 0) return;
@@ -769,3 +770,4 @@ export class CatalogoPublicoComponent implements OnInit {
 //     return contador;
 //   }
 // }
+

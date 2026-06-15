@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ProductoService } from '../../services/producto.service';
 import { NotificationService } from '../../services/notification.service';
+import { Title, Meta } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-catalogo-publico',
@@ -18,6 +19,9 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
   
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+
+  private title = inject(Title);
+  private meta = inject(Meta);
 
   cantidadModal: number = 1;
   imagenAmpliada: string | null = null;
@@ -59,6 +63,18 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
   isFiltrosMobileOpen: boolean = false;
 
   ngOnInit() {
+
+    // --- NUEVO: SEO y Meta Tags para el Catálogo ---
+    this.title.setTitle('Catálogo | Alquimia Home Deco');
+    this.meta.updateTag({ name: 'description', content: 'Explorá nuestro catálogo de fragancias, textiles y decoración. Armá tu carrito y hacé tu pedido fácilmente.' });
+    
+    this.meta.updateTag({ property: 'og:title', content: 'Catálogo | Alquimia Home Deco' });
+    this.meta.updateTag({ property: 'og:description', content: 'Explorá nuestro catálogo de fragancias, textiles y decoración. Armá tu carrito y hacé tu pedido fácilmente.' });
+    
+    // URL de Vercel aplicada acá:
+    this.meta.updateTag({ property: 'og:image', content: 'https://alquimia-home-deco.vercel.app/assets/images/hero_house.jpg' });
+    this.meta.updateTag({ property: 'og:url', content: 'https://alquimia-home-deco.vercel.app/catalogo' });
+    // -----------------------------------------------
     this.cargarCatalogo();
 
     this.route.queryParams.subscribe(params => {

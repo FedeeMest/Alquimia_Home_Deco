@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router'; // 1. Nuevas importaciones de Rutas
+import { Router, ActivatedRoute } from '@angular/router';
 import { ProductoService } from '../../services/producto.service';
 import { NotificationService } from '../../services/notification.service';
 
@@ -16,7 +16,6 @@ export class CatalogoPublicoComponent implements OnInit {
   private cd = inject(ChangeDetectorRef);
   private notificationService = inject(NotificationService);
   
-  // 2. Inyectamos las herramientas de navegación
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -53,7 +52,7 @@ export class CatalogoPublicoComponent implements OnInit {
 
   // Modales y Carrito
   productoSeleccionado: any = null;
-  productoPendienteId: string | null = null; // Guarda el ID si alguien entra directo con un link
+  productoPendienteId: string | null = null; 
   carrito: { producto: any, cantidad: number }[] = [];
   isCarritoOpen: boolean = false;
   isFiltrosMobileOpen: boolean = false;
@@ -61,20 +60,16 @@ export class CatalogoPublicoComponent implements OnInit {
   ngOnInit() {
     this.cargarCatalogo();
 
-    // 3. Suscribirse a los cambios en la URL (Query Params)
     this.route.queryParams.subscribe(params => {
       const idProducto = params['producto'];
       
       if (idProducto) {
-        // Si ya cargaron los productos, lo buscamos y lo abrimos
         if (this.productosOriginales.length > 0) {
           this.abrirModalPorId(idProducto);
         } else {
-          // Si los productos todavía se están descargando del backend, guardamos el ID
           this.productoPendienteId = idProducto;
         }
       } else {
-        // Si no hay parámetro en la URL, cerramos el modal (ideal para el botón "Atrás" del celu)
         this.cerrarModalInterno();
       }
     });
@@ -95,7 +90,6 @@ export class CatalogoPublicoComponent implements OnInit {
 
   get totalCarritoEfectivo(): number {
     return this.carrito.reduce((total, item) => {
-      // Si el producto no tiene un precio en efectivo específico, usamos el base/tarjeta para que la suma sea correcta
       const precioEfectivo = item.producto.precio_efectivo || item.producto.precio_tarjeta || item.producto.precio;
       return total + (precioEfectivo * item.cantidad);
     }, 0);
@@ -112,10 +106,9 @@ export class CatalogoPublicoComponent implements OnInit {
         this.actualizarProductosVisibles();
         this.cargando = false;
 
-        // 4. Revisamos si alguien entró con un link directo a un producto
         if (this.productoPendienteId) {
           this.abrirModalPorId(this.productoPendienteId);
-          this.productoPendienteId = null; // Limpiamos
+          this.productoPendienteId = null; 
         }
 
         this.cd.detectChanges();
@@ -223,18 +216,15 @@ export class CatalogoPublicoComponent implements OnInit {
     }, 500); 
   }
 
-  // --- 5. MODAL PRODUCTO ACTUALIZADO ---
   abrirModal(producto: any) {
-    // En lugar de abrir el modal, actualizamos la URL (esto dispara la suscripción en el ngOnInit)
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { producto: producto.id },
-      queryParamsHandling: 'merge' // Mantiene la URL actual y le agrega el ?producto=id
+      queryParamsHandling: 'merge' 
     });
   }
 
   cerrarModal() {
-    // Limpiamos el parámetro de la URL (esto también dispara el ngOnInit)
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { producto: null },
@@ -242,7 +232,6 @@ export class CatalogoPublicoComponent implements OnInit {
     });
   }
 
-  // Métodos internos que reaccionan a los cambios de URL
   private abrirModalPorId(id: string) {
     const producto = this.productosOriginales.find(p => p.id.toString() === id.toString());
     if (producto) {
@@ -261,7 +250,6 @@ export class CatalogoPublicoComponent implements OnInit {
     }
   }
 
-  // --- LÓGICA DEL CARRITO ---
   abrirCarrito() {
     this.isCarritoOpen = true;
     this.actualizarBodyOverflow();
@@ -299,7 +287,7 @@ export class CatalogoPublicoComponent implements OnInit {
     this.notificationService.success(`Agregaste ${cantidadSeleccionada}x ${producto.nombre} al carrito.`);
 
     if (this.productoSeleccionado) {
-      this.cerrarModal(); // Esto ahora cambia la URL y cierra el modal
+      this.cerrarModal(); 
     }
   }
 
@@ -313,10 +301,6 @@ export class CatalogoPublicoComponent implements OnInit {
   get cantidadItemsCarrito(): number {
     return this.carrito.reduce((total, item) => total + item.cantidad, 0);
   }
-
-  // get totalCarrito(): number {
-  //   return this.carrito.reduce((total, item) => total + ((item.producto.precio_tarjeta || item.producto.precio) * item.cantidad), 0);
-  // }
 
   enviarPedidoWhatsApp() {
     if (this.carrito.length === 0) return;
@@ -391,362 +375,397 @@ export class CatalogoPublicoComponent implements OnInit {
     return contador;
   }
 }
-/* import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ProductoService } from '../../services/producto.service';
-import { NotificationService } from '../../services/notification.service';
 
-@Component({
-  selector: 'app-catalogo-publico',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './catalogo-publico.html'
-})
-export class CatalogoPublicoComponent implements OnInit {
-  private productoService = inject(ProductoService);
-  private cd = inject(ChangeDetectorRef);
-  private notificationService = inject(NotificationService);
+// import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+// import { CommonModule } from '@angular/common';
+// import { FormsModule } from '@angular/forms';
+// import { Router, ActivatedRoute } from '@angular/router'; // 1. Nuevas importaciones de Rutas
+// import { ProductoService } from '../../services/producto.service';
+// import { NotificationService } from '../../services/notification.service';
 
-  cantidadModal: number = 1;
-  imagenAmpliada: string | null = null;
+// @Component({
+//   selector: 'app-catalogo-publico',
+//   standalone: true,
+//   imports: [CommonModule, FormsModule],
+//   templateUrl: './catalogo-publico.html'
+// })
+// export class CatalogoPublicoComponent implements OnInit {
+//   private productoService = inject(ProductoService);
+//   private cd = inject(ChangeDetectorRef);
+//   private notificationService = inject(NotificationService);
   
-  // Listas de datos
-  productosOriginales: any[] = [];
-  productosFiltrados: any[] = [];
+//   // 2. Inyectamos las herramientas de navegación
+//   private router = inject(Router);
+//   private route = inject(ActivatedRoute);
+
+//   cantidadModal: number = 1;
+//   imagenAmpliada: string | null = null;
   
-  // Paginación
-  productosVisibles: any[] = []; 
-  paginaActual: number = 1;
-  itemsPorPagina: number = 12;
-
-  cargando = true;
-
-  // --- VARIABLES DE FILTROS ---
-  terminoBusqueda: string = '';
-  ordenSeleccionado: string = 'defecto';
+//   // Listas de datos
+//   productosOriginales: any[] = [];
+//   productosFiltrados: any[] = [];
   
-  categoriasDisponibles: string[] = [];
-  categoriaSeleccionada: string = '';
-  mostrarCategorias: boolean = false; // Controla el acordeón
+//   // Paginación
+//   productosVisibles: any[] = []; 
+//   paginaActual: number = 1;
+//   itemsPorPagina: number = 12;
 
-  cargandoMas: boolean = false;
+//   cargando = true;
 
-  proveedoresDisponibles: string[] = [];
-  proveedorSeleccionado: string = '';
-  // mostrarProveedores: boolean = false; // Controla el acordeón
+//   // --- VARIABLES DE FILTROS ---
+//   terminoBusqueda: string = '';
+//   ordenSeleccionado: string = 'defecto';
   
-  precioMin: number | null = null;
-  precioMax: number | null = null;
-  mostrarPrecio: boolean = false; // Controla el acordeón
+//   categoriasDisponibles: string[] = [];
+//   categoriaSeleccionada: string = '';
+//   mostrarCategorias: boolean = false; 
 
-  // Modales y Carrito
-  productoSeleccionado: any = null;
-  carrito: { producto: any, cantidad: number }[] = [];
-  isCarritoOpen: boolean = false;
-  isFiltrosMobileOpen: boolean = false;
+//   cargandoMas: boolean = false;
 
-  ngOnInit() {
-    this.cargarCatalogo();
-  }
+//   proveedoresDisponibles: string[] = [];
+//   proveedorSeleccionado: string = '';
+  
+//   precioMin: number | null = null;
+//   precioMax: number | null = null;
+//   mostrarPrecio: boolean = false; 
 
-  getCantidadDisponible(producto: any): number {
-    if (!producto) return 0;
-    const stockTotal = producto.stock || 0;
-    const itemEnCarrito = this.carrito.find(item => item.producto.id === producto.id);
-    const cantidadEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad : 0;
+//   // Modales y Carrito
+//   productoSeleccionado: any = null;
+//   productoPendienteId: string | null = null; // Guarda el ID si alguien entra directo con un link
+//   carrito: { producto: any, cantidad: number }[] = [];
+//   isCarritoOpen: boolean = false;
+//   isFiltrosMobileOpen: boolean = false;
+
+//   ngOnInit() {
+//     this.cargarCatalogo();
+
+//     // 3. Suscribirse a los cambios en la URL (Query Params)
+//     this.route.queryParams.subscribe(params => {
+//       const idProducto = params['producto'];
+      
+//       if (idProducto) {
+//         // Si ya cargaron los productos, lo buscamos y lo abrimos
+//         if (this.productosOriginales.length > 0) {
+//           this.abrirModalPorId(idProducto);
+//         } else {
+//           // Si los productos todavía se están descargando del backend, guardamos el ID
+//           this.productoPendienteId = idProducto;
+//         }
+//       } else {
+//         // Si no hay parámetro en la URL, cerramos el modal (ideal para el botón "Atrás" del celu)
+//         this.cerrarModalInterno();
+//       }
+//     });
+//   }
+
+//   getCantidadDisponible(producto: any): number {
+//     if (!producto) return 0;
+//     const stockTotal = producto.stock || 0;
+//     const itemEnCarrito = this.carrito.find(item => item.producto.id === producto.id);
+//     const cantidadEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad : 0;
     
-    return stockTotal - cantidadEnCarrito;
-  }
+//     return stockTotal - cantidadEnCarrito;
+//   }
 
-  cargarCatalogo() {
-    this.productoService.getPublicCatalog().subscribe({
-      next: (res: any) => {
-        const data = res.data ? res.data : res; 
-        this.productosOriginales = data;
-        this.productosFiltrados = [...this.productosOriginales];
+//   get totalCarritoTarjeta(): number {
+//     return this.carrito.reduce((total, item) => total + ((item.producto.precio_tarjeta || item.producto.precio) * item.cantidad), 0);
+//   }
+
+//   get totalCarritoEfectivo(): number {
+//     return this.carrito.reduce((total, item) => {
+//       // Si el producto no tiene un precio en efectivo específico, usamos el base/tarjeta para que la suma sea correcta
+//       const precioEfectivo = item.producto.precio_efectivo || item.producto.precio_tarjeta || item.producto.precio;
+//       return total + (precioEfectivo * item.cantidad);
+//     }, 0);
+//   }
+
+//   cargarCatalogo() {
+//     this.productoService.getPublicCatalog().subscribe({
+//       next: (res: any) => {
+//         const data = res.data ? res.data : res; 
+//         this.productosOriginales = data;
+//         this.productosFiltrados = [...this.productosOriginales];
         
-        // Extraemos categorías y ahora también proveedores
-        this.extraerFiltros(); 
-        
-        this.actualizarProductosVisibles();
-        this.cargando = false;
-        this.cd.detectChanges();
-      },
-      error: (err) => {
-        console.error('❌ Error cargando el catálogo:', err);
-        this.cargando = false;
-        this.cd.detectChanges();
-      }
-    });
-  }
+//         this.extraerFiltros(); 
+//         this.actualizarProductosVisibles();
+//         this.cargando = false;
 
-  extraerFiltros() {
-    const categoriasSet = new Set<string>();
-    const proveedoresSet = new Set<string>();
+//         // 4. Revisamos si alguien entró con un link directo a un producto
+//         if (this.productoPendienteId) {
+//           this.abrirModalPorId(this.productoPendienteId);
+//           this.productoPendienteId = null; // Limpiamos
+//         }
+
+//         this.cd.detectChanges();
+//       },
+//       error: (err) => {
+//         console.error('❌ Error cargando el catálogo:', err);
+//         this.cargando = false;
+//         this.cd.detectChanges();
+//       }
+//     });
+//   }
+
+//   extraerFiltros() {
+//     const categoriasSet = new Set<string>();
+//     const proveedoresSet = new Set<string>();
     
-    this.productosOriginales.forEach(p => {
-      if (p.categoria) categoriasSet.add(p.categoria);
-      if (p.proveedor) proveedoresSet.add(p.proveedor);
-    });
+//     this.productosOriginales.forEach(p => {
+//       if (p.categoria) categoriasSet.add(p.categoria);
+//       if (p.proveedor) proveedoresSet.add(p.proveedor);
+//     });
     
-    this.categoriasDisponibles = Array.from(categoriasSet).sort();
-    this.proveedoresDisponibles = Array.from(proveedoresSet).sort();
-  }
+//     this.categoriasDisponibles = Array.from(categoriasSet).sort();
+//     this.proveedoresDisponibles = Array.from(proveedoresSet).sort();
+//   }
 
-  seleccionarCategoria(cat: string) {
-    this.categoriaSeleccionada = this.categoriaSeleccionada === cat ? '' : cat;
-    this.aplicarFiltros();
-  }
+//   seleccionarCategoria(cat: string) {
+//     this.categoriaSeleccionada = this.categoriaSeleccionada === cat ? '' : cat;
+//     this.aplicarFiltros();
+//   }
 
-  seleccionarProveedor(prov: string) {
-    this.proveedorSeleccionado = this.proveedorSeleccionado === prov ? '' : prov;
-    this.aplicarFiltros();
-  }
+//   seleccionarProveedor(prov: string) {
+//     this.proveedorSeleccionado = this.proveedorSeleccionado === prov ? '' : prov;
+//     this.aplicarFiltros();
+//   }
 
-  limpiarBusqueda() {
-    this.terminoBusqueda = '';
-    this.categoriaSeleccionada = '';
-    this.proveedorSeleccionado = '';
-    this.precioMin = null;
-    this.precioMax = null;
-    this.aplicarFiltros();
-  }
+//   limpiarBusqueda() {
+//     this.terminoBusqueda = '';
+//     this.categoriaSeleccionada = '';
+//     this.proveedorSeleccionado = '';
+//     this.precioMin = null;
+//     this.precioMax = null;
+//     this.aplicarFiltros();
+//   }
 
-  aplicarFiltros() {
-    let resultado = [...this.productosOriginales];
+//   aplicarFiltros() {
+//     let resultado = [...this.productosOriginales];
 
-    // Búsqueda por texto (Busca en nombre, categoría o proveedor)
-    if (this.terminoBusqueda.trim()) {
-      const termino = this.terminoBusqueda.toLowerCase().trim();
-      resultado = resultado.filter(p => 
-        p.nombre.toLowerCase().includes(termino) || 
-        (p.categoria && p.categoria.toLowerCase().includes(termino)) ||
-        (p.proveedor && p.proveedor.toLowerCase().includes(termino))
-      );
-    }
+//     if (this.terminoBusqueda.trim()) {
+//       const termino = this.terminoBusqueda.toLowerCase().trim();
+//       resultado = resultado.filter(p => 
+//         p.nombre.toLowerCase().includes(termino) || 
+//         (p.categoria && p.categoria.toLowerCase().includes(termino)) ||
+//         (p.proveedor && p.proveedor.toLowerCase().includes(termino))
+//       );
+//     }
 
-    // Filtro Categoría
-    if (this.categoriaSeleccionada) {
-      resultado = resultado.filter(p => p.categoria === this.categoriaSeleccionada);
-    }
+//     if (this.categoriaSeleccionada) {
+//       resultado = resultado.filter(p => p.categoria === this.categoriaSeleccionada);
+//     }
 
-    // Filtro Proveedor
-    if (this.proveedorSeleccionado) {
-      resultado = resultado.filter(p => p.proveedor === this.proveedorSeleccionado);
-    }
+//     if (this.proveedorSeleccionado) {
+//       resultado = resultado.filter(p => p.proveedor === this.proveedorSeleccionado);
+//     }
 
-    // Filtro Rango de Precio
-    if (this.precioMin !== null && this.precioMin >= 0) {
-      resultado = resultado.filter(p => (p.precio_tarjeta || p.precio) >= this.precioMin!);
-    }
-    if (this.precioMax !== null && this.precioMax >= 0) {
-      resultado = resultado.filter(p => (p.precio_tarjeta || p.precio) <= this.precioMax!);
-    }
+//     if (this.precioMin !== null && this.precioMin >= 0) {
+//       resultado = resultado.filter(p => (p.precio_tarjeta || p.precio) >= this.precioMin!);
+//     }
+//     if (this.precioMax !== null && this.precioMax >= 0) {
+//       resultado = resultado.filter(p => (p.precio_tarjeta || p.precio) <= this.precioMax!);
+//     }
 
-    // Ordenamiento
-    switch (this.ordenSeleccionado) {
-      case 'precio_asc': 
-        resultado.sort((a, b) => (a.precio_tarjeta || a.precio) - (b.precio_tarjeta || b.precio)); 
-        break;
-      case 'precio_desc': 
-        resultado.sort((a, b) => (b.precio_tarjeta || b.precio) - (a.precio_tarjeta || a.precio)); 
-        break;
-      case 'nombre_asc': 
-        resultado.sort((a, b) => a.nombre.localeCompare(b.nombre)); 
-        break;
-      case 'nombre_desc': 
-        resultado.sort((a, b) => b.nombre.localeCompare(a.nombre)); 
-        break;
-    }
+//     switch (this.ordenSeleccionado) {
+//       case 'precio_asc': 
+//         resultado.sort((a, b) => (a.precio_tarjeta || a.precio) - (b.precio_tarjeta || b.precio)); 
+//         break;
+//       case 'precio_desc': 
+//         resultado.sort((a, b) => (b.precio_tarjeta || b.precio) - (a.precio_tarjeta || a.precio)); 
+//         break;
+//       case 'nombre_asc': 
+//         resultado.sort((a, b) => a.nombre.localeCompare(b.nombre)); 
+//         break;
+//       case 'nombre_desc': 
+//         resultado.sort((a, b) => b.nombre.localeCompare(a.nombre)); 
+//         break;
+//     }
 
-    this.productosFiltrados = resultado;
-    this.paginaActual = 1;
-    this.actualizarProductosVisibles();
-  }
+//     this.productosFiltrados = resultado;
+//     this.paginaActual = 1;
+//     this.actualizarProductosVisibles();
+//   }
 
-  actualizarProductosVisibles() {
-    const limite = this.paginaActual * this.itemsPorPagina;
-    this.productosVisibles = this.productosFiltrados.slice(0, limite);
-    this.cd.detectChanges();
-  }
+//   actualizarProductosVisibles() {
+//     const limite = this.paginaActual * this.itemsPorPagina;
+//     this.productosVisibles = this.productosFiltrados.slice(0, limite);
+//     this.cd.detectChanges();
+//   }
 
-  cargarMas() {
-    this.cargandoMas = true;
+//   cargarMas() {
+//     this.cargandoMas = true;
+//     setTimeout(() => {
+//       this.paginaActual++;
+//       this.actualizarProductosVisibles();
+//       this.cargandoMas = false;
+//       this.cd.detectChanges();
+//     }, 500); 
+//   }
+
+//   // --- 5. MODAL PRODUCTO ACTUALIZADO ---
+//   abrirModal(producto: any) {
+//     // En lugar de abrir el modal, actualizamos la URL (esto dispara la suscripción en el ngOnInit)
+//     this.router.navigate([], {
+//       relativeTo: this.route,
+//       queryParams: { producto: producto.id },
+//       queryParamsHandling: 'merge' // Mantiene la URL actual y le agrega el ?producto=id
+//     });
+//   }
+
+//   cerrarModal() {
+//     // Limpiamos el parámetro de la URL (esto también dispara el ngOnInit)
+//     this.router.navigate([], {
+//       relativeTo: this.route,
+//       queryParams: { producto: null },
+//       queryParamsHandling: 'merge'
+//     });
+//   }
+
+//   // Métodos internos que reaccionan a los cambios de URL
+//   private abrirModalPorId(id: string) {
+//     const producto = this.productosOriginales.find(p => p.id.toString() === id.toString());
+//     if (producto) {
+//       this.productoSeleccionado = producto;
+//       this.cantidadModal = this.getCantidadDisponible(producto) > 0 ? 1 : 0;
+//       this.actualizarBodyOverflow();
+//       this.cd.detectChanges();
+//     }
+//   }
+
+//   private cerrarModalInterno() {
+//     if (this.productoSeleccionado) {
+//       this.productoSeleccionado = null;
+//       this.actualizarBodyOverflow();
+//       this.cd.detectChanges();
+//     }
+//   }
+
+//   // --- LÓGICA DEL CARRITO ---
+//   abrirCarrito() {
+//     this.isCarritoOpen = true;
+//     this.actualizarBodyOverflow();
+//   }
+
+//   cerrarCarrito() {
+//     this.isCarritoOpen = false;
+//     this.actualizarBodyOverflow();
+//   }
+
+//   agregarAlCarrito(producto: any, cantidadSeleccionada: number = 1) {
+//     if (cantidadSeleccionada <= 0) return; 
+
+//     const stockTotal = producto.stock || 0;
+//     const itemExistente = this.carrito.find(item => item.producto.id === producto.id);
+//     const cantidadEnCarrito = itemExistente ? itemExistente.cantidad : 0;
     
-    // Simulamos un tiempito de carga para mostrar el spinner
-    setTimeout(() => {
-      this.paginaActual++;
-      this.actualizarProductosVisibles();
-      this.cargandoMas = false;
-      this.cd.detectChanges();
-    }, 500); 
-  }
-  // --- MODAL PRODUCTO ---
-  abrirModal(producto: any) {
-    this.productoSeleccionado = producto;
-    this.cantidadModal = this.getCantidadDisponible(producto) > 0 ? 1 : 0;
-    document.body.style.overflow = 'hidden'; 
-  }
+//     const stockRestante = stockTotal - cantidadEnCarrito;
 
-  cerrarModal() {
-    this.productoSeleccionado = null;
-    if (!this.isCarritoOpen) {
-        document.body.style.overflow = 'auto'; 
-    }
-  }
+//     if (cantidadSeleccionada > stockRestante) {
+//         if (cantidadEnCarrito > 0) {
+//              this.notificationService.error(`Ya tenés ${cantidadEnCarrito} en el carrito. Solo podés agregar ${stockRestante} más.`);
+//         } else {
+//              this.notificationService.error(`Solo tenemos ${stockTotal} unidades en stock.`);
+//         }
+//         return;
+//     }
 
-  // --- LÓGICA DEL CARRITO ---
-  abrirCarrito() {
-    this.isCarritoOpen = true;
-    document.body.style.overflow = 'hidden';
-  }
+//     if (itemExistente) {
+//       itemExistente.cantidad += cantidadSeleccionada;
+//     } else {
+//       this.carrito.push({ producto: producto, cantidad: cantidadSeleccionada });
+//     }
 
-  cerrarCarrito() {
-    this.isCarritoOpen = false;
-    if (!this.productoSeleccionado) {
-        document.body.style.overflow = 'auto';
-    }
-  }
+//     this.notificationService.success(`Agregaste ${cantidadSeleccionada}x ${producto.nombre} al carrito.`);
 
-  agregarAlCarrito(producto: any, cantidadSeleccionada: number = 1) {
-    if (cantidadSeleccionada <= 0) return; 
+//     if (this.productoSeleccionado) {
+//       this.cerrarModal(); // Esto ahora cambia la URL y cierra el modal
+//     }
+//   }
 
-    const stockTotal = producto.stock || 0;
-    const itemExistente = this.carrito.find(item => item.producto.id === producto.id);
-    const cantidadEnCarrito = itemExistente ? itemExistente.cantidad : 0;
-    
-    const stockRestante = stockTotal - cantidadEnCarrito;
+//   eliminarDelCarrito(index: number) {
+//     this.carrito.splice(index, 1);
+//     if (this.carrito.length === 0) {
+//         this.cerrarCarrito();
+//     }
+//   }
 
-    // Si intenta agregar más de lo que sobra...
-    if (cantidadSeleccionada > stockRestante) {
-        if (cantidadEnCarrito > 0) {
-             // MENSAJE CLARO 1: Ya tiene en el carrito
-             this.notificationService.error(`Ya tenés ${cantidadEnCarrito} en el carrito. Solo podés agregar ${stockRestante} más.`);
-        } else {
-             // MENSAJE CLARO 2: No tiene en el carrito, pero pide de más
-             this.notificationService.error(`Solo tenemos ${stockTotal} unidades en stock.`);
-        }
-        return;
-    }
+//   get cantidadItemsCarrito(): number {
+//     return this.carrito.reduce((total, item) => total + item.cantidad, 0);
+//   }
 
-    // Si está todo bien, lo agregamos
-    if (itemExistente) {
-      itemExistente.cantidad += cantidadSeleccionada;
-    } else {
-      this.carrito.push({ producto: producto, cantidad: cantidadSeleccionada });
-    }
+//   // get totalCarrito(): number {
+//   //   return this.carrito.reduce((total, item) => total + ((item.producto.precio_tarjeta || item.producto.precio) * item.cantidad), 0);
+//   // }
 
-    this.notificationService.success(`Agregaste ${cantidadSeleccionada}x ${producto.nombre} al carrito.`);
+//   enviarPedidoWhatsApp() {
+//     if (this.carrito.length === 0) return;
 
-    if (this.productoSeleccionado) {
-      this.cerrarModal();
-    }
+//     const numeroWa = '5493401408588'; 
+//     let mensaje = '¡Hola Alquimia! Estoy interesado en estos productos:\n\n';
 
-  }
+//     this.carrito.forEach((item, index) => {
+//       const precioT = item.producto.precio_tarjeta || item.producto.precio;
+//       const precioE = item.producto.precio_efectivo || precioT;
 
-  // agregarAlCarrito(producto: any, cantidadSeleccionada: number = 1) {
-  //   const stockDisponible = producto.stock || 0;
-  //   const itemExistente = this.carrito.find(item => item.producto.id === producto.id);
-    
-  //   if (itemExistente) {
-  //     if (itemExistente.cantidad + cantidadSeleccionada > stockDisponible) {
-  //        this.notificationService.error(`Solo quedan ${stockDisponible} unidades disponibles.`);
-  //        return;
-  //     }
-  //     itemExistente.cantidad += cantidadSeleccionada;
-  //   } else {
-  //     if (cantidadSeleccionada > stockDisponible) {
-  //        this.notificationService.error(`Solo quedan ${stockDisponible} unidades disponibles.`);
-  //        return;
-  //     }
-  //     this.carrito.push({ producto: producto, cantidad: cantidadSeleccionada });
-  //   }
-  //   this.notificationService.success(`Agregaste ${cantidadSeleccionada}x ${producto.nombre} al carrito.`);
+//       mensaje += `${index + 1}. *${item.producto.nombre}* (x${item.cantidad})\n`;
+//       mensaje += `   💳 Tarjeta: $${precioT * item.cantidad}\n`;
+//       mensaje += `   💵 Efectivo: $${precioE * item.cantidad}\n\n`;
+//     });
 
-  //   if (this.productoSeleccionado) {
-  //     this.cerrarModal();
-  //   }
-  // }
+//     mensaje += `*TOTAL*\n`;
+//     mensaje += `💳 *Tarjeta:* $${this.totalCarritoTarjeta}\n`;
+//     mensaje += `💵 *Efectivo/Transferencia:* $${this.totalCarritoEfectivo}\n\n`;
 
-  eliminarDelCarrito(index: number) {
-    this.carrito.splice(index, 1);
-    if (this.carrito.length === 0) {
-        this.cerrarCarrito();
-    }
-  }
+//     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
+//     window.open(url, '_blank');
+//   }
 
-  get cantidadItemsCarrito(): number {
-    return this.carrito.reduce((total, item) => total + item.cantidad, 0);
-  }
+//   consultarPorWhatsApp(producto: any) {
+//     const numeroWa = '5493401408588'; 
+//     const mensaje = `¡Hola Alquimia! Quería hacer una consulta sobre el producto: *${producto.nombre}*`;
+//     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
+//     window.open(url, '_blank');
+//   }
 
-  get totalCarrito(): number {
-  return this.carrito.reduce((total, item) => total + ((item.producto.precio_tarjeta || item.producto.precio) * item.cantidad), 0);
-}
+//   abrirImagenAmpliada(url: string | undefined) {
+//     if (url) {
+//       this.imagenAmpliada = url;
+//       this.actualizarBodyOverflow();
+//     }
+//   }
 
-  enviarPedidoWhatsApp() {
-  if (this.carrito.length === 0) return;
+//   cerrarImagenAmpliada() {
+//     this.imagenAmpliada = null;
+//     this.actualizarBodyOverflow();
+//   }
 
-  const numeroWa = '5493401408588'; 
-  let mensaje = '¡Hola Alquimia! Estoy interesado en estos productos:\n\n';
+//   trackById(index: number, item: any): number {
+//     return item.id;
+//   }
 
-  this.carrito.forEach((item, index) => {
-    const precioBase = item.producto.precio_tarjeta || item.producto.precio;
-    mensaje += `${index + 1}. *${item.producto.nombre}* (x${item.cantidad}) - $${precioBase * item.cantidad}\n`;
-  });
+//   actualizarBodyOverflow() {
+//     if (this.productoSeleccionado || this.isCarritoOpen || this.isFiltrosMobileOpen || this.imagenAmpliada) {
+//         document.body.style.overflow = 'hidden';
+//     } else {
+//         document.body.style.overflow = 'auto';
+//     }
+//   }
 
-  mensaje += `\n*Total: $${this.totalCarrito}*\n\n`;
+//   abrirFiltrosMobile() {
+//     this.isFiltrosMobileOpen = true;
+//     this.actualizarBodyOverflow();
+//   }
 
-  const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
-  window.open(url, '_blank');
-}
+//   cerrarFiltrosMobile() {
+//     this.isFiltrosMobileOpen = false;
+//     this.actualizarBodyOverflow();
+//   }
 
-  consultarPorWhatsApp(producto: any) {
-    const numeroWa = '5493401408588'; 
-    const mensaje = `¡Hola Alquimia! Quería hacer una consulta sobre el producto: *${producto.nombre}*`;
-    const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank');
-  }
-
-  abrirImagenAmpliada(url: string | undefined) {
-    if (url) {
-      this.imagenAmpliada = url;
-    }
-  }
-
-  cerrarImagenAmpliada() {
-    this.imagenAmpliada = null;
-  }
-
-  trackById(index: number, item: any): number {
-    return item.id;
-  }
-
-  actualizarBodyOverflow() {
-    if (this.productoSeleccionado || this.isCarritoOpen || this.isFiltrosMobileOpen || this.imagenAmpliada) {
-        document.body.style.overflow = 'hidden';
-    } else {
-        document.body.style.overflow = 'auto';
-    }
-  }
-
-  abrirFiltrosMobile() {
-    this.isFiltrosMobileOpen = true;
-    this.actualizarBodyOverflow();
-  }
-
-  cerrarFiltrosMobile() {
-    this.isFiltrosMobileOpen = false;
-    this.actualizarBodyOverflow();
-  }
-
-  get cantidadFiltrosActivos(): number {
-    let contador = 0;
-    if (this.categoriaSeleccionada) contador++;
-    if (this.proveedorSeleccionado) contador++;
-    if (this.precioMin !== null || this.precioMax !== null) contador++;
-    if (this.terminoBusqueda) contador++;
-    return contador;
-  }
-}
- */
+//   get cantidadFiltrosActivos(): number {
+//     let contador = 0;
+//     if (this.categoriaSeleccionada) contador++;
+//     if (this.proveedorSeleccionado) contador++;
+//     if (this.precioMin !== null || this.precioMax !== null) contador++;
+//     if (this.terminoBusqueda) contador++;
+//     return contador;
+//   }
+// }

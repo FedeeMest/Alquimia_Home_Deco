@@ -143,11 +143,11 @@
                         </div>
 
                         <div class="p-4 flex flex-col flex-1 bg-white">
-                            <p class="text-xs text-slate-400 line-clamp-2 leading-snug mb-3">
+                            <p class="text-xs text-slate-800 line-clamp-2 leading-snug mb-3">
                                 {{ p.nombre }}
                             </p>
 
-                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Precio con Tarjeta</span>
+                            <span class="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-0.5">Precio con Tarjeta</span>
                             <div class="text-lg font-bold text-slate-900 leading-none mb-1">
                                 {{ (p.precio_tarjeta || p.precio) | currency:'ARS':'symbol-narrow':'1.0-0' }}
                             </div>

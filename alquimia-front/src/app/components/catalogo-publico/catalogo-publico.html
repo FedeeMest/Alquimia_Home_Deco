@@ -143,7 +143,7 @@
                         </div>
 
                         <div class="p-4 flex flex-col flex-1 bg-white">
-                            <p class="text-xs text-slate-900 line-clamp-2 leading-snug mb-3">
+                            <p class="text-xs font-bold text-slate-900 line-clamp-2 leading-snug mb-3">
                                 {{ p.nombre }}
                             </p>
 
@@ -226,7 +226,7 @@
 
                     <div *ngIf="productoSeleccionado.precio_efectivo" class="inline-flex items-center bg-emerald-50 px-3 py-2 sm:px-4 sm:py-2 rounded-lg mb-6 border border-emerald-200 shadow-sm max-w-full">
                         <span class="text-base sm:text-lg font-bold text-emerald-700 truncate">
-                            {{ productoSeleccionado.precio_efectivo | currency:'ARS':'symbol-narrow':'1.0-0' }} en efvo/transf.
+                            {{ productoSeleccionado.precio_efectivo | currency:'ARS':'symbol-narrow':'1.0-0' }} en efectivo/transf.
                         </span>
                     </div>
                     

@@ -143,22 +143,24 @@
                         </div>
 
                         <div class="p-4 flex flex-col flex-1 bg-white">
+                            <p class="text-xs text-slate-400 line-clamp-2 leading-snug mb-3">
+                                {{ p.nombre }}
+                            </p>
+
                             <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Precio con Tarjeta</span>
-                            <div class="text-2xl font-bold text-slate-900 mb-2">
+                            <div class="text-lg font-bold text-slate-900 leading-none mb-1">
                                 {{ (p.precio_tarjeta || p.precio) | currency:'ARS':'symbol-narrow':'1.0-0' }}
                             </div>
     
-                            <div *ngIf="p.precio_efectivo" class="flex items-center bg-emerald-50 px-2.5 py-1.5 rounded-md mb-3 border border-emerald-200 shadow-sm max-w-full">
+                            <div *ngIf="p.precio_efectivo" class="text-xs font-medium text-emerald-700">
                                 <span class="text-[11px] sm:text-sm font-bold text-emerald-700 truncate w-full">
                                     {{ p.precio_efectivo | currency:'ARS':'symbol-narrow':'1.0-0' }} efvo / transf.
                                 </span>
                             </div>
 
-                            <p class="text-sm font-medium text-slate-800 line-clamp-2 leading-snug mt-auto">
-                                {{ p.nombre }}
-                            </p>
+                            
     
-                            <div class="mt-3">
+                            <div class="mt-auto pt-2">
                                 <span *ngIf="!p.disponible" class="text-[10px] font-semibold text-red-500 uppercase tracking-wide bg-red-50 px-2 py-1 rounded border border-red-100">Sin stock</span>
                             </div>
                         </div>

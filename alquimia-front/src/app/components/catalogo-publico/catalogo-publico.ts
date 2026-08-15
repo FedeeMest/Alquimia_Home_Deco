@@ -62,6 +62,7 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
   carrito: { producto: any, cantidad: number }[] = [];
   isCarritoOpen: boolean = false;
   isFiltrosMobileOpen: boolean = false;
+  private modalAbiertoDesdeCarrito: boolean = false; // NUEVO
  
   private readonly CARRITO_KEY = 'alquimia_carrito'; // NUEVO
  
@@ -299,7 +300,8 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
     }, 500); 
   }
  
-  abrirModal(producto: any) {
+  abrirModal(producto: any, origenCarrito: boolean = false) {
+    this.modalAbiertoDesdeCarrito = origenCarrito; // NUEVO
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { producto: producto.id },
@@ -310,7 +312,7 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
   // NUEVO: ver el detalle de un producto desde el carrito
   verDetalleDesdeCarrito(producto: any) {
     this.cerrarCarrito();     // el drawer tiene z-index más alto que el modal, hay que cerrarlo primero
-    this.abrirModal(producto);
+    this.abrirModal(producto, true);
   }
  
   cerrarModal() {
@@ -376,6 +378,12 @@ seleccionarVariante(producto: any) {
     this.productoSeleccionado = null;
     this.agregadoExito = false; 
     this.variantesDelProducto = [];   // NUEVO
+ 
+    if (this.modalAbiertoDesdeCarrito) {   // NUEVO
+      this.modalAbiertoDesdeCarrito = false;
+      this.abrirCarrito();
+    }
+ 
     this.actualizarBodyOverflow();
     this.cd.detectChanges();
   }

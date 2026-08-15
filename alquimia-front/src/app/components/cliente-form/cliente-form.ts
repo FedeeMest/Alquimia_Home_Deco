@@ -131,8 +131,9 @@ export class ClienteFormComponent implements OnInit {
   }
 
   manejarError(err: any) {
-    console.error(err);
-    this.loading = false;
-    this.notificationService.show(err.error?.message || 'Ocurrió un error al guardar', 'error');
-  }
+  console.error(err);
+  this.loading = false;
+  this.notificationService.show(err.error?.message || 'Ocurrió un error al guardar', 'error');
+  this.cd.detectChanges();
+}
 }

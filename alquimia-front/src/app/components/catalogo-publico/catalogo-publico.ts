@@ -307,6 +307,12 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
     });
   }
  
+  // NUEVO: ver el detalle de un producto desde el carrito
+  verDetalleDesdeCarrito(producto: any) {
+    this.cerrarCarrito();     // el drawer tiene z-index más alto que el modal, hay que cerrarlo primero
+    this.abrirModal(producto);
+  }
+ 
   cerrarModal() {
     this.router.navigate([], {
       relativeTo: this.route,

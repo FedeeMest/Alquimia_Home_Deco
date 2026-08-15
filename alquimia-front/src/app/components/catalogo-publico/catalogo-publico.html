@@ -384,12 +384,13 @@
                 
                 <div *ngIf="carrito.length > 0" class="space-y-4">
                     <div *ngFor="let item of carrito; let i = index" class="bg-white p-3 rounded-md shadow-sm border border-slate-200 flex items-center gap-4 transition-all hover:border-slate-300">
-                        <div class="w-16 h-16 rounded-md bg-slate-50 border border-slate-100 p-1 relative">
+                        <div (click)="verDetalleDesdeCarrito(item.producto)" class="w-16 h-16 rounded-md bg-slate-50 border border-slate-100 p-1 relative cursor-pointer">
                             <img *ngIf="item.producto?.imagenUrl" [src]="item.producto.imagenUrl" class="w-full h-full object-contain">
                             <span class="absolute -top-2 -right-2 bg-slate-900 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm">{{ item.cantidad }}</span>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-semibold text-slate-800 truncate mb-1">{{ item.producto?.nombre }}</h4>
+                            <h4 (click)="verDetalleDesdeCarrito(item.producto)" 
+                                class="text-sm font-semibold text-slate-800 truncate mb-1 cursor-pointer hover:text-emerald-600 hover:underline transition-colors w-fit">{{ item.producto?.nombre }}</h4>
                             <p class="text-sm font-normal text-slate-900 mb-2">{{ item.producto?.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
                             <div class="flex items-center border border-slate-200 rounded-md w-fit">
                                 <button (click)="cambiarCantidadCarrito(i, -1)"

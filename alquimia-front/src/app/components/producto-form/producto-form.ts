@@ -65,6 +65,8 @@ export class ProductoForm implements OnInit {
     'BOTON', 'BRODERI', 'CURA TE ALMA', 'ELSATA', 'JUNKO SRL',
     'LUMME', 'ORAKKE', 'PAQUE & COCO', 'PETRIS SRL', 'LA CALA'
   ];
+
+  tamanosDisponibles: string[] = [];
   
   tiposAjuste = ['DESCUENTO', 'RECARGO', 'NINGUNO'];
 
@@ -78,6 +80,7 @@ export class ProductoForm implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.suscribirCambios();
+    this.cargarTamanosDisponibles();
 
     this.route.params.subscribe(params => {
       if (params['id']) {
@@ -99,6 +102,8 @@ export class ProductoForm implements OnInit {
       codigo_proveedor: [''],
       proveedor: ['', Validators.required],
       categoria: ['', Validators.required],
+      grupo_variante: [''],
+      tamano: [''],
       stock: [0, [Validators.required, Validators.min(0)]],
       stock_minimo: [1, [Validators.required, Validators.min(0)]],
       precio_compra: [0, [Validators.required, Validators.min(0)]],
@@ -414,6 +419,32 @@ export class ProductoForm implements OnInit {
         }
       });
   }
+
+  private cargarTamanosDisponibles() {
+  this.productoService.getAll('', true, 1, 5000).subscribe({
+    next: (resp) => {
+      const set = new Set<string>();
+      resp.data.forEach((p: any) => {
+        if (p.tamano && p.tamano.trim()) set.add(p.tamano.trim());
+      });
+      this.tamanosDisponibles = Array.from(set).sort((a, b) => {
+        const pa = this.parseTamano(a);
+        const pb = this.parseTamano(b);
+        return pa.ancho !== pb.ancho ? pa.ancho - pb.ancho : pa.area - pb.area;
+      });
+    },
+    error: (err) => console.error('Error cargando tamaños disponibles', err)
+  });
+}
+
+private parseTamano(tamano: string): { ancho: number; area: number } {
+  const numeros = tamano.match(/\d+[.,]?\d*/g);
+  if (!numeros || numeros.length === 0) return { ancho: 0, area: 0 };
+  const valores = numeros.map(n => parseFloat(n.replace(',', '.')));
+  const ancho = valores[0] || 0;
+  const alto = valores[1] !== undefined ? valores[1] : ancho;
+  return { ancho, area: ancho * alto };
+}
 }
 // import { Component, inject, OnInit, ElementRef, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
 // import { CommonModule } from '@angular/common';

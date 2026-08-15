@@ -57,7 +57,8 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
 
   // Modales y Carrito
   productoSeleccionado: any = null;
-  productoPendienteId: string | null = null; 
+  productoPendienteId: string | null = null;
+  variantesDelProducto: any[] = []; 
   carrito: { producto: any, cantidad: number }[] = [];
   isCarritoOpen: boolean = false;
   isFiltrosMobileOpen: boolean = false;
@@ -273,19 +274,59 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
       this.productoSeleccionado = producto;
       this.cantidadModal = this.getCantidadDisponible(producto) > 0 ? 1 : 0;
       this.agregadoExito = false; 
+      this.calcularVariantes(producto);
       this.actualizarBodyOverflow();
       this.cd.detectChanges();
     }
   }
 
-  private cerrarModalInterno() {
-    if (this.productoSeleccionado) {
-      this.productoSeleccionado = null;
-      this.agregadoExito = false; 
-      this.actualizarBodyOverflow();
-      this.cd.detectChanges();
-    }
+private calcularVariantes(producto: any) {
+  if (!producto.grupo_variante) {
+    this.variantesDelProducto = [];
+    return;
   }
+  this.variantesDelProducto = this.productosOriginales
+    .filter(p => p.grupo_variante === producto.grupo_variante)
+    .sort((a, b) => {
+      const pa = this.parseTamano(a.tamano);
+      const pb = this.parseTamano(b.tamano);
+      if (pa.ancho !== pb.ancho) return pa.ancho - pb.ancho;
+      return pa.area - pb.area;
+    });
+}
+
+// NUEVO: extrae los números de un string tipo "1.40 x 2.10" para poder ordenar de verdad
+private parseTamano(tamano: string | undefined | null): { ancho: number; area: number } {
+  if (!tamano) return { ancho: 0, area: 0 };
+  const numeros = tamano.match(/\d+[.,]?\d*/g); // encuentra "1.40", "2,10", etc.
+  if (!numeros || numeros.length === 0) return { ancho: 0, area: 0 };
+
+  const valores = numeros.map(n => parseFloat(n.replace(',', '.')));
+  const ancho = valores[0] || 0;
+  const alto = valores[1] !== undefined ? valores[1] : ancho; // si no hay segundo número, asume cuadrado
+
+  return { ancho, area: ancho * alto };
+}
+
+// NUEVO: navega a otra variante del mismo estampado sin cerrar el modal
+seleccionarVariante(producto: any) {
+  if (producto.id === this.productoSeleccionado?.id) return;
+  this.router.navigate([], {
+    relativeTo: this.route,
+    queryParams: { producto: producto.id },
+    queryParamsHandling: 'merge'
+  });
+}
+
+  private cerrarModalInterno() {
+  if (this.productoSeleccionado) {
+    this.productoSeleccionado = null;
+    this.agregadoExito = false; 
+    this.variantesDelProducto = [];   // NUEVO
+    this.actualizarBodyOverflow();
+    this.cd.detectChanges();
+  }
+}
 
   abrirCarrito() {
     this.isCarritoOpen = true;

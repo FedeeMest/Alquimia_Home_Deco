@@ -105,6 +105,12 @@ export class Producto {
     @Property({ type: 'text', nullable: true }) // 
     descripcion?: string;
 
+    @Property({ nullable: true })
+    grupo_variante?: string; // identificador común, ej: "MANTEL-HOJAS"
+
+    @Property({ nullable: true })
+    tamano?: string; // ej: "1.40 x 1.40", "1.60 x 2.10"
+
 
     @BeforeCreate()
     @BeforeUpdate()

@@ -39,6 +39,9 @@ function inputS(req: Request, res: Response, next: NextFunction) {
         ajuste_tarjeta_local_tipo: req.body.ajuste_tarjeta_local_tipo,
         ajuste_tarjeta_local_valor: req.body.ajuste_tarjeta_local_valor,
 
+        grupo_variante: req.body.grupo_variante,
+        tamano: req.body.tamano,
+
         imagenUrl: req.body.imagenUrl,
         publicarEnWeb: req.body.publicarEnWeb,
         descripcion: req.body.descripcion

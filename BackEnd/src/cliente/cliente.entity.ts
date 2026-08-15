@@ -1,4 +1,4 @@
-import { Entity, Property, PrimaryKey, OneToMany, Collection } from "@mikro-orm/core";
+import { Entity, Property, PrimaryKey, OneToMany, Collection, Unique } from "@mikro-orm/core";
 import { Venta } from "../ventas/venta.entity.js";
 
 @Entity()
@@ -7,6 +7,7 @@ export class Cliente {
     id!: number;
 
     @Property({ nullable: false })
+    @Unique()
     nombre!: string;
 
     @Property({ nullable: true })

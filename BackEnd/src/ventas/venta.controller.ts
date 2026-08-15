@@ -106,6 +106,8 @@ async function crearVenta(req: Request, res: Response) {
             }
             nuevaVenta.cliente = clienteBD;
         }
+
+        const esFamilia = nuevaVenta.cliente?.tipo?.toLowerCase() === 'familia';
         
         let totalVenta = 0;
 
@@ -123,9 +125,15 @@ async function crearVenta(req: Request, res: Response) {
             detalle.cantidad = item.cantidad;
             
             let precioNormal = 0;
-            if (datos.metodo_pago === 'EFECTIVO') precioNormal = producto.precio_efectivo;
-            else if (datos.metodo_pago === 'TARJETA') precioNormal = producto.precio_tarjeta;
-            else precioNormal = producto.precio_tarjeta_local; 
+            if (esFamilia) {
+                precioNormal = producto.precio_costo;
+            } else if (datos.metodo_pago === 'EFECTIVO') {
+                precioNormal = producto.precio_efectivo;
+            } else if (datos.metodo_pago === 'TARJETA') {
+                precioNormal = producto.precio_tarjeta;
+            } else {
+                precioNormal = producto.precio_tarjeta_local; 
+            } 
 
             // LÓGICA DE DESFASE: Si el frontend envió un precio modificado, usamos ese. Si no, usamos el normal.
             let precioFinal = item.precio_modificado !== undefined && item.precio_modificado !== null 

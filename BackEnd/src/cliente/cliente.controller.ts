@@ -72,7 +72,22 @@ export const findOne = async (req: Request, res: Response) => {
 export const create = async (req: Request, res: Response) => {
     try {
         const em = orm.em.fork();
-        const cliente = em.create(Cliente, req.body);
+        const nombre = (req.body.nombre || '').trim();
+
+        if (!nombre) {
+            return res.status(400).json({ message: 'El nombre es obligatorio' });
+        }
+
+        const existente = await em.findOne(Cliente, {
+            activo: true,
+            nombre: { $like: nombre }
+        });
+
+        if (existente) {
+            return res.status(409).json({ message: `Ya existe un cliente registrado con el nombre "${nombre}"` });
+        }
+
+        const cliente = em.create(Cliente, { ...req.body, nombre });
         await em.flush();
         res.status(201).json({ message: 'Cliente creado con éxito', data: cliente });
     } catch (error: any) {

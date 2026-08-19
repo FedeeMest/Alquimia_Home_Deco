@@ -228,6 +228,29 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
     return this.productosOriginales.filter(p => p.grupo_variante === producto.grupo_variante).length;
   }
  
+  // Si el filtro activo es la categoría Manteles (útil para simplificar la info que mostramos en la grilla)
+  get filtrandoPorManteles(): boolean {
+    return !!this.categoriaManteles && this.categoriaSeleccionada === this.categoriaManteles;
+  }
+ 
+  // Saca la medida (ej: "- 3,50 X 1,40 MTS") del final del nombre.
+  // Genérico: cualquier nombre que termine en "<número> X <número> <unidad opcional>" queda sin esa parte.
+  private quitarMedidaDelNombre(nombre: string): string {
+    if (!nombre) return nombre;
+    return nombre
+      .replace(/\s*-?\s*\d+([.,]\d+)?\s*[x×]\s*\d+([.,]\d+)?\s*(?:mts?\.?|cm\.?|m\.?)?\s*$/i, '')
+      .trim();
+  }
+ 
+  // Nombre a mostrar en la grilla: cuando estamos filtrando por Manteles, mostramos solo
+  // el nombre del estampado, sin la medida (el tamaño se elige adentro del producto).
+  nombreEnGrilla(producto: any): string {
+    if (this.filtrandoPorManteles) {
+      return this.quitarMedidaDelNombre(producto.nombre);
+    }
+    return producto.nombre;
+  }
+ 
   // De cada grupo de variantes (mismo estampado) elige un representante para mostrar en la grilla.
   // La grilla siempre muestra un solo card por estampado; el tamaño se elige adentro del modal.
   // preferimos uno con stock disponible; si ninguno tiene, mostramos el primero igual

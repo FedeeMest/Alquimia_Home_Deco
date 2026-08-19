@@ -228,6 +228,44 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
     return this.productosOriginales.filter(p => p.grupo_variante === producto.grupo_variante).length;
   }
  
+  // Precio a mostrar en la grilla cuando el card representa un estampado con varios tamaños:
+  // si todos los tamaños tienen el mismo precio, mostramos ese precio normal;
+  // si varía según el tamaño, mostramos "Desde $X" con el más bajo (y su efectivo correspondiente)
+  // para no inducir a error sobre cuánto sale un tamaño en particular.
+  infoPrecioCard(producto: any): { precioTarjeta: number; precioEfectivo: number | null; desde: boolean } {
+    if (!producto.grupo_variante) {
+      return {
+        precioTarjeta: producto.precio_tarjeta || producto.precio,
+        precioEfectivo: producto.precio_efectivo || null,
+        desde: false
+      };
+    }
+ 
+    const variantes = this.productosOriginales.filter(p => p.grupo_variante === producto.grupo_variante);
+    const precios = variantes.map(p => p.precio_tarjeta || p.precio);
+    const precioMin = Math.min(...precios);
+    const precioMax = Math.max(...precios);
+ 
+    if (precioMin === precioMax) {
+      return {
+        precioTarjeta: producto.precio_tarjeta || producto.precio,
+        precioEfectivo: producto.precio_efectivo || null,
+        desde: false
+      };
+    }
+ 
+    // El precio varía entre tamaños: mostramos el del tamaño más económico, junto con su efectivo
+    const varianteMasBarata = variantes.reduce((min, p) =>
+      (p.precio_tarjeta || p.precio) < (min.precio_tarjeta || min.precio) ? p : min
+    , variantes[0]);
+ 
+    return {
+      precioTarjeta: varianteMasBarata.precio_tarjeta || varianteMasBarata.precio,
+      precioEfectivo: varianteMasBarata.precio_efectivo || null,
+      desde: true
+    };
+  }
+ 
   // Si el filtro activo es la categoría Manteles (útil para simplificar la info que mostramos en la grilla)
   get filtrandoPorManteles(): boolean {
     return !!this.categoriaManteles && this.categoriaSeleccionada === this.categoriaManteles;

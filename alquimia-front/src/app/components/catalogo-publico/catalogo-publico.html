@@ -165,16 +165,19 @@
                             </p>
  
                             <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Precio con Tarjeta</span>
-                            <div class="text-lg font-bold text-slate-900 leading-none mb-1.5">
-                                {{ (p.precio_tarjeta || p.precio) | currency:'ARS':'symbol-narrow':'1.0-0' }}
-                            </div>
-    
-                            <div *ngIf="p.precio_efectivo" class="inline-flex items-baseline gap-1.5 w-fit">
-                                <span class="text-[11px] sm:text-sm font-bold text-emerald-600">
-                                    {{ p.precio_efectivo | currency:'ARS':'symbol-narrow':'1.0-0' }}
-                                </span>
-                                <span class="text-[10px] text-emerald-600/70 font-medium">efectivo / transf.</span>
-                            </div>
+                            <ng-container *ngIf="infoPrecioCard(p) as infoPrecio">
+                                <div class="text-lg font-bold text-slate-900 leading-none mb-1.5">
+                                    <span *ngIf="infoPrecio.desde" class="text-xs font-semibold text-slate-400 align-top mr-0.5">Desde</span>{{ infoPrecio.precioTarjeta | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                                </div>
+        
+                                <div *ngIf="infoPrecio.precioEfectivo" class="inline-flex items-baseline gap-1 w-fit">
+                                    <span *ngIf="infoPrecio.desde" class="text-[10px] font-semibold text-emerald-600/70">Desde</span>
+                                    <span class="text-[11px] sm:text-sm font-bold text-emerald-600">
+                                        {{ infoPrecio.precioEfectivo | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                                    </span>
+                                    <span class="text-[10px] text-emerald-600/70 font-medium">efectivo / transf.</span>
+                                </div>
+                            </ng-container>
  
                             <div class="mt-auto pt-2 flex flex-col gap-2">
                                 <span *ngIf="!p.disponible" class="inline-flex items-center gap-1.5 text-[10px] font-semibold text-red-600 uppercase tracking-wide bg-red-50 px-2 py-1 rounded border border-red-100 w-fit">

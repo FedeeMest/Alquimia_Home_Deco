@@ -26,6 +26,7 @@ export interface VentaRequest {
   cliente_id?: number | null;
   usuario_vendedor?: string;
   cuotas?: number;
+  fecha?: string;
   monto_descuento_recargo?: number;
   estado?: 'COBRADA' | 'PENDIENTE';
   observaciones?: string;

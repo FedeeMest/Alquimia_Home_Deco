@@ -6,6 +6,8 @@ import { NotificationService } from '../../services/notification.service';
 import { ClienteService } from '../../services/cliente.service'; 
 import { Venta } from '../../Interfaces/venta.interface';
 import { FormsModule } from '@angular/forms';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-venta-list',
@@ -137,6 +139,55 @@ export class VentaListComponent implements OnInit {
       }
     });
   }
+
+  exportarPDF() {
+  const doc = new jsPDF();
+
+  // Título del documento
+  doc.setFontSize(18);
+  doc.setTextColor(40);
+  doc.text('Reporte General de Ventas - Alquimia Home Deco', 14, 22);
+  
+  // Subtítulo con la fecha de emisión
+  doc.setFontSize(11);
+  doc.setTextColor(100);
+  doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 14, 30);
+
+  // Definir las columnas que el dueño necesita ver
+  // (Ajusta los nombres según cómo vengan de tu backend)
+  const columnas = [['Fecha', 'Cliente', 'Método de Pago', 'Total']];
+
+  // Mapear los datos de tu arreglo this.ventas
+  const filas = this.ventas.map(venta => [
+    new Date(venta.fecha).toLocaleDateString(), // Formateamos la fecha
+    venta.cliente?.nombre || 'Consumidor Final',
+    venta.metodo_pago || '-',
+    `$${venta.total}`
+  ]);
+
+  // Generar la tabla con estética profesional
+  autoTable(doc, {
+    head: columnas,
+    body: filas,
+    startY: 35,
+    theme: 'striped', // Filas alternadas para no perderse al leer
+    headStyles: {
+      fillColor: [41, 128, 185], // Un azul empresarial elegante
+      textColor: 255,
+      fontStyle: 'bold'
+    },
+    styles: {
+      fontSize: 10,
+      cellPadding: 3
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245]
+    }
+  });
+
+  // Descargar el archivo
+  doc.save('Reporte_Ventas_Alquimia.pdf');
+}
 }
 
 // import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';

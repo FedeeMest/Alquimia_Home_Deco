@@ -39,7 +39,7 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
       jspdf-autotable:
-        specifier: ^5.0.7
+        specifier: ^5.0.8
         version: 5.0.8(jspdf@4.2.1)
       ngx-image-cropper:
         specifier: ^9.1.6
@@ -63,6 +63,9 @@ importers:
       '@angular/compiler-cli':
         specifier: ^21.0.0
         version: 21.2.16(@angular/compiler@21.2.16)(typescript@5.9.3)
+      '@types/jspdf':
+        specifier: ^2.0.0
+        version: 2.0.0
       autoprefixer:
         specifier: ^10.4.23
         version: 10.5.0(postcss@8.5.15)
@@ -1336,6 +1339,10 @@ packages:
 
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
+
+  '@types/jspdf@2.0.0':
+    resolution: {integrity: sha512-oonYDXI4GegGaG7FFVtriJ+Yqlh4YR3L3NVDiwCEBVG7sbya19SoGx4MW4kg1MCMRPgkbbFTck8YKJL8PrkDfA==}
+    deprecated: This is a stub types definition. jspdf provides its own type definitions, so you do not need this installed.
 
   '@types/pako@2.0.4':
     resolution: {integrity: sha512-VWDCbrLeVXJM9fihYodcLiIv0ku+AlOa/TQ1SvYOaBuyrSKgEcro95LJyIsJ4vSo6BXIxOKxiJAat04CmST9Fw==}
@@ -4194,6 +4201,10 @@ snapshots:
   '@types/deep-eql@4.0.2': {}
 
   '@types/estree@1.0.9': {}
+
+  '@types/jspdf@2.0.0':
+    dependencies:
+      jspdf: 4.2.1
 
   '@types/pako@2.0.4': {}
 

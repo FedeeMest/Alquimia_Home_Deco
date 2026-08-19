@@ -17,6 +17,8 @@ function inputS(req: Request, res: Response, next: NextFunction) {
         // --- NUEVO: Solo recibimos el ID del cliente desde el FrontEnd ---
         cliente_id: req.body.cliente_id,
 
+        fecha: req.body.fecha,
+
         // --- Auditoría y Vendedor ---
         usuario_vendedor: req.body.usuario_vendedor,
 
@@ -97,6 +99,18 @@ async function crearVenta(req: Request, res: Response) {
         nuevaVenta.metodo_pago = datos.metodo_pago;
         nuevaVenta.usuario_vendedor = datos.usuario_vendedor;
         nuevaVenta.observaciones = datos.observaciones;
+
+        if (datos.fecha) {
+            // datos.fecha llega como "YYYY-MM-DD"
+            const [year, month, day] = datos.fecha.split('-');
+            
+            // Instanciamos una fecha actual (para conservar la hora del momento de carga)
+            const fechaModificada = new Date();
+            // Le forzamos el año, mes y día exactos seleccionados por el usuario
+            fechaModificada.setFullYear(Number(year), Number(month) - 1, Number(day));
+            
+            nuevaVenta.fecha = fechaModificada;
+        }
 
         // Vinculamos el Cliente si nos enviaron un ID
         if (datos.cliente_id) {

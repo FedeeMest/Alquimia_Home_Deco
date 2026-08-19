@@ -8,7 +8,7 @@ export class Venta {
     id!: number;
     @Index()
     // --- AUDITORÍA Y TIEMPO ---
-    @Property({ onCreate: () => new Date() })
+    @Property()
     fecha = new Date();
 
     // Nuevo: Saber QUIÉN hizo la venta (útil para comisiones o control de caja)

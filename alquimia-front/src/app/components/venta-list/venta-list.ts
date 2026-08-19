@@ -223,13 +223,12 @@ exportarPDF() {
       // SECCIÓN DE RESUMEN FINAL
       // ==========================================
       
-      // Obtenemos la posición Y donde terminó la tabla para poner el resumen debajo
+// Obtenemos la posición Y donde terminó la tabla
       let finalY = (doc as any).lastAutoTable.finalY + 15; 
       
-      // Si la tabla terminó muy cerca del final de la hoja, agregamos una nueva página
       if (finalY > 250) {
           doc.addPage();
-          finalY = 20; // Reiniciamos la posición Y al inicio de la nueva página
+          finalY = 20; 
       }
 
       // Título del cuadro de resumen
@@ -238,34 +237,36 @@ exportarPDF() {
       doc.setFont("helvetica", "bold");
       doc.text('Resumen de Operaciones', 14, finalY);
 
-      // Línea separadora decorativa
+      // Línea separadora (ahora más ancha, llega hasta el punto 110)
       doc.setDrawColor(41, 128, 185);
       doc.setLineWidth(0.5);
-      doc.line(14, finalY + 3, 80, finalY + 3);
+      doc.line(14, finalY + 3, 110, finalY + 3);
 
       // Desglose de información
       doc.setFontSize(11);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(80);
 
+      // Usamos X = 105 para alinear los números a la derecha pero mucho más lejos del texto
       doc.text(`Cantidad total de ventas:`, 14, finalY + 12);
-      doc.text(`${todasLasVentas.length}`, 65, finalY + 12, { align: 'right' });
+      doc.text(`${todasLasVentas.length}`, 105, finalY + 12, { align: 'right' });
 
       doc.text(`Ingresos en Efectivo:`, 14, finalY + 20);
-      doc.text(`$${sumaEfectivo}`, 65, finalY + 20, { align: 'right' });
+      doc.text(`$${sumaEfectivo.toLocaleString('es-AR')}`, 105, finalY + 20, { align: 'right' });
 
       doc.text(`Ingresos con Tarjeta:`, 14, finalY + 28);
-      doc.text(`$${sumaTarjeta}`, 65, finalY + 28, { align: 'right' });
+      doc.text(`$${sumaTarjeta.toLocaleString('es-AR')}`, 105, finalY + 28, { align: 'right' });
       
-      // Caja de Total General destacado
-      doc.setFillColor(245, 248, 250); // Fondo azul muy clarito
-      doc.rect(14, finalY + 35, 65, 12, 'F');
+      // Caja de Total General destacado (hacemos la caja más ancha: 96 de ancho)
+      doc.setFillColor(245, 248, 250); 
+      doc.rect(14, finalY + 35, 96, 12, 'F');
       
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(41, 128, 185); // El mismo azul empresarial de la tabla
+      doc.setTextColor(41, 128, 185); 
       doc.text(`RECAUDACIÓN TOTAL:`, 16, finalY + 43);
-      doc.text(`$${sumaTotal}`, 77, finalY + 43, { align: 'right' });
+      // El total también lo tiramos hasta X = 105
+      doc.text(`$${sumaTotal.toLocaleString('es-AR')}`, 105, finalY + 43, { align: 'right' });
 
       // Descargamos el archivo
       doc.save('Reporte_Ventas_Alquimia.pdf');

@@ -142,9 +142,7 @@ export class VentaListComponent implements OnInit {
     });
   }
 
- exportarPDF() {
-  // 1. Llamamos a getAll pidiendo 10.000 registros para asegurarnos de traer todo el historial
-  // Le pasamos exactamente las variables vinculadas a tus inputs de filtro en el HTML
+exportarPDF() {
   this.ventaService.getAll(
     1, 
     10000, 
@@ -154,7 +152,6 @@ export class VentaListComponent implements OnInit {
     this.clienteIdFiltro
   ).subscribe({
     next: (res: any) => {
-      // 2. Extraemos el arreglo completo de ventas que nos devuelve el backend
       const todasLasVentas = res.data; 
 
       if (!todasLasVentas || todasLasVentas.length === 0) {
@@ -162,9 +159,9 @@ export class VentaListComponent implements OnInit {
         return;
       }
 
-      // 3. Generamos el documento PDF
       const doc = new jsPDF();
 
+      // Título y Fecha
       doc.setFontSize(18);
       doc.setTextColor(40);
       doc.text('Reporte General de Ventas - Alquimia Home Deco', 14, 22);
@@ -175,19 +172,34 @@ export class VentaListComponent implements OnInit {
 
       const columnas = [['Fecha', 'Cliente', 'Método de Pago', 'Total']];
 
-      // 4. Armamos las filas iterando sobre TODAS las ventas, no solo las de la tabla visual
+      // Variables para los cálculos del resumen
+      let sumaTotal = 0;
+      let sumaEfectivo = 0;
+      let sumaTarjeta = 0;
+
       const filas = todasLasVentas.map((venta: any) => {
-        // Aseguramos que la fecha se formatee correctamente
         const fechaFormateada = new Date(venta.fecha).toLocaleDateString();
+        const totalVenta = Number(venta.total) || 0;
+        
+        // Sumamos al total general
+        sumaTotal += totalVenta;
+        
+        // Clasificamos por método de pago
+        if (venta.metodo_pago === 'EFECTIVO') {
+          sumaEfectivo += totalVenta;
+        } else if (venta.metodo_pago && venta.metodo_pago.includes('TARJETA')) {
+          sumaTarjeta += totalVenta;
+        }
         
         return [
           fechaFormateada, 
           venta.cliente?.nombre || 'Consumidor Final',
           venta.metodo_pago === 'TARJETA_LOCAL' ? 'T. Local' : (venta.metodo_pago || '-'),
-          `$${venta.total}`
+          `$${totalVenta}`
         ];
       });
 
+      // Dibujar la tabla principal
       autoTable(doc, {
         head: columnas,
         body: filas,
@@ -207,7 +219,55 @@ export class VentaListComponent implements OnInit {
         }
       });
 
-      // 5. Descargamos el archivo
+      // ==========================================
+      // SECCIÓN DE RESUMEN FINAL
+      // ==========================================
+      
+      // Obtenemos la posición Y donde terminó la tabla para poner el resumen debajo
+      let finalY = (doc as any).lastAutoTable.finalY + 15; 
+      
+      // Si la tabla terminó muy cerca del final de la hoja, agregamos una nueva página
+      if (finalY > 250) {
+          doc.addPage();
+          finalY = 20; // Reiniciamos la posición Y al inicio de la nueva página
+      }
+
+      // Título del cuadro de resumen
+      doc.setFontSize(14);
+      doc.setTextColor(40);
+      doc.setFont("helvetica", "bold");
+      doc.text('Resumen de Operaciones', 14, finalY);
+
+      // Línea separadora decorativa
+      doc.setDrawColor(41, 128, 185);
+      doc.setLineWidth(0.5);
+      doc.line(14, finalY + 3, 80, finalY + 3);
+
+      // Desglose de información
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80);
+
+      doc.text(`Cantidad total de ventas:`, 14, finalY + 12);
+      doc.text(`${todasLasVentas.length}`, 65, finalY + 12, { align: 'right' });
+
+      doc.text(`Ingresos en Efectivo:`, 14, finalY + 20);
+      doc.text(`$${sumaEfectivo}`, 65, finalY + 20, { align: 'right' });
+
+      doc.text(`Ingresos con Tarjeta:`, 14, finalY + 28);
+      doc.text(`$${sumaTarjeta}`, 65, finalY + 28, { align: 'right' });
+      
+      // Caja de Total General destacado
+      doc.setFillColor(245, 248, 250); // Fondo azul muy clarito
+      doc.rect(14, finalY + 35, 65, 12, 'F');
+      
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(41, 128, 185); // El mismo azul empresarial de la tabla
+      doc.text(`RECAUDACIÓN TOTAL:`, 16, finalY + 43);
+      doc.text(`$${sumaTotal}`, 77, finalY + 43, { align: 'right' });
+
+      // Descargamos el archivo
       doc.save('Reporte_Ventas_Alquimia.pdf');
     },
     error: (err) => {

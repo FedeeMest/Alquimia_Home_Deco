@@ -55,6 +55,9 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
   precioMax: number | null = null;
   mostrarPrecio: boolean = false; 
  
+  // NUEVO: vista "un producto por estampado" (agrupa variantes de tamaño en un solo card)
+  vistaPorEstampado: boolean = false;
+ 
   // Modales y Carrito
   productoSeleccionado: any = null;
   productoPendienteId: string | null = null;
@@ -207,6 +210,60 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
     this.proveedoresDisponibles = Array.from(proveedoresSet).sort();
   }
  
+  // NUEVO: nombre real de la categoría "Manteles" tal como está cargada (por si tiene mayúsculas distintas)
+  get categoriaManteles(): string | null {
+    return this.categoriasDisponibles.find(c => c.toLowerCase().includes('mantel')) || null;
+  }
+ 
+  // NUEVO: si hay productos con variantes (estampados con distintos tamaños), mostramos el toggle de agrupado
+  get tieneProductosConEstampados(): boolean {
+    return this.productosOriginales.some(p => !!p.grupo_variante);
+  }
+ 
+  // NUEVO: acceso rápido y destacado al catálogo de manteles, agrupado por estampado
+  irACatalogoDeManteles() {
+    const cat = this.categoriaManteles;
+    if (!cat) return;
+    this.categoriaSeleccionada = cat;
+    this.vistaPorEstampado = true;
+    this.aplicarFiltros();
+    this.cerrarFiltrosMobile();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+ 
+  // NUEVO: alterna entre ver cada tamaño como producto aparte o un solo card por estampado
+  toggleVistaPorEstampado() {
+    this.vistaPorEstampado = !this.vistaPorEstampado;
+    this.aplicarFiltros();
+  }
+ 
+  // NUEVO: cuenta cuántos tamaños tiene un estampado (para mostrarlo en el card)
+  contarVariantes(producto: any): number {
+    if (!producto.grupo_variante) return 1;
+    return this.productosOriginales.filter(p => p.grupo_variante === producto.grupo_variante).length;
+  }
+ 
+  // NUEVO: de cada grupo de variantes (mismo estampado) elige un representante para mostrar en la grilla
+  // preferimos uno con stock disponible; si ninguno tiene, mostramos el primero igual
+  private agruparPorEstampado(lista: any[]): any[] {
+    const representantePorGrupo = new Map<string, any>();
+ 
+    lista.forEach(p => {
+      if (!p.grupo_variante) return;
+      const actual = representantePorGrupo.get(p.grupo_variante);
+      if (!actual) {
+        representantePorGrupo.set(p.grupo_variante, p);
+      } else if (this.getCantidadDisponible(actual) <= 0 && this.getCantidadDisponible(p) > 0) {
+        representantePorGrupo.set(p.grupo_variante, p);
+      }
+    });
+ 
+    return lista.filter(p => {
+      if (!p.grupo_variante) return true;
+      return representantePorGrupo.get(p.grupo_variante)?.id === p.id;
+    });
+  }
+ 
   seleccionarCategoria(cat: string) {
     this.categoriaSeleccionada = this.categoriaSeleccionada === cat ? '' : cat;
     this.aplicarFiltros();
@@ -277,6 +334,11 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
       case 'nombre_desc': 
         resultado.sort((a, b) => b.nombre.localeCompare(a.nombre)); 
         break;
+    }
+ 
+    // NUEVO: si está activa la vista por estampado, dejamos un solo card por grupo_variante
+    if (this.vistaPorEstampado) {
+      resultado = this.agruparPorEstampado(resultado);
     }
  
     this.productosFiltrados = resultado;

@@ -61,11 +61,43 @@
                 </li>
             </ul>
         </div>
+ 
+        <!-- NUEVO: toggle para ver un solo card por estampado (agrupa los distintos tamaños) -->
+        <div class="border-t border-slate-100 pt-4" *ngIf="tieneProductosConEstampados">
+            <label class="flex items-center justify-between cursor-pointer group">
+                <span class="text-sm font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors duration-200 pr-3">
+                    Un producto por estampado
+                </span>
+                <button type="button" (click)="toggleVistaPorEstampado()"
+                    role="switch" [attr.aria-checked]="vistaPorEstampado"
+                    [ngClass]="vistaPorEstampado ? 'bg-emerald-600' : 'bg-slate-300'"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 shrink-0">
+                    <span [ngClass]="vistaPorEstampado ? 'translate-x-6' : 'translate-x-1'"
+                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200"></span>
+                </button>
+            </label>
+            <p class="text-xs text-slate-500 mt-1.5">Mostramos un diseño de cada estampado; elegís el tamaño adentro del producto.</p>
+        </div>
     </div>
 </ng-template>
  
 <div class="min-h-screen bg-[#ebebeb] py-6 sm:py-10">
     <div class="w-full max-w-[1600px] mx-auto px-4 lg:px-8 relative z-10">
+ 
+        <!-- NUEVO: acceso rápido y destacado al producto más vendido (Manteles) -->
+        <div *ngIf="!cargando && categoriaManteles" class="w-full mb-5 sm:mb-6">
+            <button (click)="irACatalogoDeManteles()"
+                class="w-full flex items-center justify-between gap-3 sm:gap-4 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white rounded-xl px-4 py-3.5 sm:px-6 sm:py-5 shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.99] text-left">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl sm:text-3xl shrink-0">🔥</span>
+                    <div class="min-w-0">
+                        <p class="font-bold text-sm sm:text-base leading-tight">Lo más buscado: Manteles</p>
+                        <p class="text-emerald-50 text-xs sm:text-sm mt-0.5">Ver todos los estampados disponibles, uno por diseño</p>
+                    </div>
+                </div>
+                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+            </button>
+        </div>
         
         <div *ngIf="cargando" class="flex flex-col md:flex-row gap-6 items-start">
             <div class="w-full md:w-[260px] h-96 bg-white rounded-xl border border-slate-200 animate-pulse shrink-0 hidden md:block"></div>
@@ -80,7 +112,10 @@
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition-all">
                     <h1 class="text-2xl font-semibold text-slate-900 mb-6">
                         {{ categoriaSeleccionada ? categoriaSeleccionada : 'Todos los productos' }}
-                        <span class="block text-sm font-normal text-slate-500 mt-1">{{ productosFiltrados.length }} resultados</span>
+                        <span class="block text-sm font-normal text-slate-500 mt-1">
+                            {{ productosFiltrados.length }} resultados
+                            <span *ngIf="vistaPorEstampado" class="text-emerald-600 font-medium">· por estampado</span>
+                        </span>
                     </h1>
                     <ng-container *ngTemplateOutlet="filtrosTemplate"></ng-container>
                 </div>
@@ -105,6 +140,12 @@
                         </button>
  
                         <div class="h-6 w-px bg-slate-300 mx-1 flex-shrink-0"></div>
+ 
+                        <button *ngIf="tieneProductosConEstampados" (click)="toggleVistaPorEstampado()"
+                                class="whitespace-nowrap flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 active:scale-95 flex-shrink-0"
+                                [ngClass]="vistaPorEstampado ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shadow-sm'">
+                            🎨 Un estampado c/u
+                        </button>
  
                         <button (click)="toggleOrdenPrecio()"
                                 class="whitespace-nowrap flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 active:scale-95 flex-shrink-0"
@@ -143,6 +184,9 @@
                         </div>
  
                         <div class="p-4 flex flex-col flex-1 bg-white">
+                            <span *ngIf="contarVariantes(p) > 1" class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full w-fit mb-1.5">
+                                {{ contarVariantes(p) }} tamaños disponibles
+                            </span>
                             <p class="text-xs font-bold text-slate-900 line-clamp-2 leading-snug mb-3">
                                 {{ p.nombre }}
                             </p>

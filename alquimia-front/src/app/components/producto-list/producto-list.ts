@@ -8,6 +8,7 @@ import { NotificationService } from '../../services/notification.service';
 import { finalize } from 'rxjs/operators';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-producto-list',
@@ -535,6 +536,54 @@ export class ProductoList implements OnInit, OnDestroy {
         });
     }
   }
+  
+  descargarCatalogoExcel() {
+  this.loading = true;
+  this.notificationService.show('Generando Excel...', 'info');
+
+  this.productoService.getAll('', true, 1, 10000).subscribe({
+    next: (resp) => {
+      this.crearDocumentoExcel(resp.data);
+      this.loading = false;
+      this.notificationService.show('Excel descargado con éxito', 'success');
+      this.cd.detectChanges();
+    },
+    error: (err) => {
+      console.error(err);
+      this.loading = false;
+      this.notificationService.show('Error al generar el Excel', 'error');
+      this.cd.detectChanges();
+    }
+  });
+}
+
+crearDocumentoExcel(productos: Producto[]) {
+  const filas = productos.map(p => ({
+    ID: p.id,
+    'Código de barra': p.codigo_barra,
+    Nombre: p.nombre,
+    Proveedor: p.proveedor,
+    Categoría: p.categoria,
+    'Precio compra': p.precio_compra,
+    'Precio costo': p.precio_costo,
+    'Ganancia %': p.ganancia,
+    'Precio venta base': p.precio_venta_base,
+    'Precio efectivo': p.precio_efectivo,
+    'Precio tarjeta': p.precio_tarjeta,
+    'Precio tarjeta local': p.precio_tarjeta_local,
+    Stock: p.stock,
+    'Stock mínimo': p.stock_minimo,
+    'Stock camión': p.stock_camion,
+    'Código proveedor': p.codigo_proveedor,
+  }));
+
+  const hoja = XLSX.utils.json_to_sheet(filas);
+  const libro = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(libro, hoja, 'Productos');
+
+  const fecha = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(libro, `Productos_Alquimia-${fecha}.xlsx`);
+}
 
   trackByProductoId(index: number, producto: Producto): number {
     return producto.id!;

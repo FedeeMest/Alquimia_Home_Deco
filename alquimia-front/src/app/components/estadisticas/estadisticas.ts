@@ -5,6 +5,8 @@ import { VentaService } from '../../services/venta.service';
 import { EventoService, TipoEvento } from '../../services/evento.service';
 import Chart from 'chart.js/auto';
 
+type Tab = 'top10' | 'ferias' | 'catalogo' | 'cobranzas';
+
 interface ProductoTop {
   nombre: string;
   cantidad: number;
@@ -38,6 +40,14 @@ interface ProductoVisto {
   cantidad: number;
 }
 
+interface GananciaFeria {
+  clienteId: number;
+  nombre: string;
+  facturado: number;
+  ganancia: number;
+  cantidadVentas: number;
+}
+
 @Component({
   selector: 'app-estadisticas',
   standalone: true,
@@ -49,12 +59,17 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
   private eventoService = inject(EventoService);
   private cd = inject(ChangeDetectorRef);
 
+  activeTab: Tab = 'top10';
+
   loadingTop = true;
   loadingMensual = true;
   loadingCobranzas = true;
   loadingVistos = true;
+  loadingFerias = true;
+  loadingProductosFeria = false;
 
   // '' = histórico completo (general). 'YYYY-MM' = un mes puntual.
+  // Este filtro es GLOBAL: afecta el Top 10, las Ganancias por Feria y el resumen del tab Catálogo.
   mesSeleccionado: string = '';
   mesesDisponibles: OpcionMes[] = [];
 
@@ -76,11 +91,19 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
   tipoRankingVistos: TipoEvento = 'vista';
   productosVistos: ProductoVisto[] = [];
 
+  // Ganancias por feria
+  gananciasFerias: GananciaFeria[] = [];
+  feriaSeleccionada: GananciaFeria | null = null;
+  productosFeria: ProductoTop[] = [];
+  gananciaTotalFerias = 0;
+
   @ViewChild('chartTopProductos') chartTopProductosRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('chartVentasMes') chartVentasMesRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartFerias') chartFeriasRef!: ElementRef<HTMLCanvasElement>;
 
   private chartTop?: Chart;
   private chartMes?: Chart;
+  private chartFerias?: Chart;
   private vistaLista = false;
 
   ngOnInit() {
@@ -88,24 +111,35 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cargarVentasPorMes();
     this.cargarCobranzas();
     this.cargarProductosVistos();
+    this.cargarGananciasFerias();
   }
 
   ngAfterViewInit() {
     this.vistaLista = true;
     if (this.topProductos.length) this.dibujarTopProductos();
     if (this.ventasPorMes.length) this.dibujarVentasPorMes();
+    if (this.gananciasFerias.length) this.dibujarGananciasFerias();
   }
 
   ngOnDestroy() {
     this.chartTop?.destroy();
     this.chartMes?.destroy();
+    this.chartFerias?.destroy();
   }
 
-  // --- Selección de mes (dropdown o click en el gráfico) ---
+  cambiarTab(tab: Tab) {
+    this.activeTab = tab;
+  }
+
+  // --- Selección de mes (dropdown o click en el gráfico) — afecta varios tabs ---
 
   onCambiarMes() {
     this.aplicarRangoDesdeMes();
     this.cargarTopProductos();
+    this.cargarGananciasFerias();
+    this.feriaSeleccionada = null;
+    this.productosFeria = [];
+
     if (this.vistaLista) {
       try { this.dibujarVentasPorMes(); } catch (e) { console.error(e); } // redibuja para resaltar el punto elegido
     }
@@ -143,7 +177,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     return `${y}-${m}-${d}`;
   }
 
-  // --- Carga de datos ---
+  // --- Carga de datos: Top 10 ---
 
   private cargarTopProductos() {
     this.loadingTop = true;
@@ -192,6 +226,8 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // --- Carga de datos: Cobranzas ---
+
   private cargarCobranzas() {
     this.loadingCobranzas = true;
     this.ventaService.getCobranzas().subscribe({
@@ -216,7 +252,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     return 'text-slate-600';
   }
 
-  // --- Interés en el catálogo público ---
+  // --- Carga de datos: Interés en el catálogo público ---
 
   cambiarTipoRanking() {
     this.cargarProductosVistos();
@@ -233,6 +269,56 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (err) => {
         console.error('Error cargando productos más vistos', err);
         this.loadingVistos = false;
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  // --- Carga de datos: Ganancias por Feria ---
+
+  private cargarGananciasFerias() {
+    this.loadingFerias = true;
+    this.ventaService.getGananciasPorFeria(this.fechaDesde, this.fechaHasta).subscribe({
+      next: (res: any) => {
+        this.gananciasFerias = res.data || [];
+        this.gananciaTotalFerias = this.gananciasFerias.reduce((sum, f) => sum + f.ganancia, 0);
+        this.loadingFerias = false;
+        this.cd.detectChanges();
+
+        if (this.vistaLista) {
+          try { this.dibujarGananciasFerias(); } catch (e) { console.error('Error dibujando el gráfico de ferias', e); }
+        }
+      },
+      error: (err) => {
+        console.error('Error cargando ganancias por feria', err);
+        this.loadingFerias = false;
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  seleccionarFeria(feria: GananciaFeria) {
+    // Clickear la misma feria ya seleccionada deselecciona
+    if (this.feriaSeleccionada?.clienteId === feria.clienteId) {
+      this.feriaSeleccionada = null;
+      this.productosFeria = [];
+      if (this.vistaLista) { try { this.dibujarGananciasFerias(); } catch (e) { console.error(e); } }
+      return;
+    }
+
+    this.feriaSeleccionada = feria;
+    if (this.vistaLista) { try { this.dibujarGananciasFerias(); } catch (e) { console.error(e); } }
+
+    this.loadingProductosFeria = true;
+    this.ventaService.getEstadisticas(10, this.fechaDesde, this.fechaHasta, feria.clienteId).subscribe({
+      next: (res: any) => {
+        this.productosFeria = res.data || [];
+        this.loadingProductosFeria = false;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando productos de la feria', err);
+        this.loadingProductosFeria = false;
         this.cd.detectChanges();
       }
     });
@@ -307,9 +393,51 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
         },
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { footer: () => 'Click para filtrar el Top 10 por este mes' } }
+          tooltip: { callbacks: { footer: () => 'Click para filtrar por este mes en todo el panel' } }
         },
         scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  private dibujarGananciasFerias() {
+    if (!this.chartFeriasRef) return;
+    this.chartFerias?.destroy();
+
+    const colores = this.gananciasFerias.map(f =>
+      this.feriaSeleccionada?.clienteId === f.clienteId ? '#dc2626' : '#0f172a'
+    );
+
+    this.chartFerias = new Chart(this.chartFeriasRef.nativeElement, {
+      type: 'bar',
+      data: {
+        labels: this.gananciasFerias.map(f => f.nombre),
+        datasets: [{
+          label: 'Ganancia',
+          data: this.gananciasFerias.map(f => f.ganancia),
+          backgroundColor: colores,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (_evt, elementos) => {
+          if (!elementos.length) return;
+          const idx = elementos[0].index;
+          const feria = this.gananciasFerias[idx];
+          if (feria) this.seleccionarFeria(feria);
+        },
+        onHover: (evt, elementos) => {
+          const target = evt.native?.target as HTMLElement | undefined;
+          if (target) target.style.cursor = elementos.length ? 'pointer' : 'default';
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { footer: () => 'Click para ver qué productos vendió esta feria' } }
+        },
+        scales: { x: { beginAtZero: true } }
       }
     });
   }

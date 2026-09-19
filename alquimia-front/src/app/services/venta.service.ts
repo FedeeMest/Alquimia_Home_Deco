@@ -85,10 +85,11 @@ export class VentaService {
   }
 
   // 3. Para Estadísticas Generales (Top productos y ventas por mes)
-  getEstadisticas(limit: number = 10, desde?: string, hasta?: string): Observable<any> {
+  getEstadisticas(limit: number = 10, desde?: string, hasta?: string, clienteId?: number): Observable<any> {
     let params = new HttpParams().set('limit', limit.toString());
     if (desde) params = params.set('fechaDesde', desde);
     if (hasta) params = params.set('fechaHasta', hasta);
+    if (clienteId) params = params.set('clienteId', clienteId.toString());
 
     return this.http.get<any>(`${this.apiUrl}/estadisticas`, { params });
   }
@@ -100,5 +101,13 @@ export class VentaService {
 
   getCobranzas(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/cobranzas`);
+  }
+
+  getGananciasPorFeria(desde?: string, hasta?: string): Observable<any> {
+    let params = new HttpParams();
+    if (desde) params = params.set('fechaDesde', desde);
+    if (hasta) params = params.set('fechaHasta', hasta);
+
+    return this.http.get<any>(`${this.apiUrl}/ganancias-feria`, { params });
   }
 }

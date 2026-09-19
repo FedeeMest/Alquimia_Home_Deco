@@ -458,7 +458,7 @@ async function update(req: Request, res: Response) {
 
 const getEstadisticas = async (req: Request, res: Response) => {
   try {
-    const { fechaDesde, fechaHasta } = req.query;
+    const { fechaDesde, fechaHasta, clienteId } = req.query;
     const limit = parseInt(req.query.limit as string) || 10;
     const em = orm.em.fork();
 
@@ -470,6 +470,11 @@ const getEstadisticas = async (req: Request, res: Response) => {
         $gte: new Date(`${fechaDesde}T00:00:00.000Z`),
         $lte: new Date(`${fechaHasta}T23:59:59.999Z`)
       };
+    }
+
+    // NUEVO: si se pide un cliente puntual (ej. una feria), filtramos solo sus ventas
+    if (clienteId) {
+      where.venta.cliente = { id: Number(clienteId) };
     }
 
     const detalles = await em.find(DetalleVenta, where, {
@@ -608,4 +613,64 @@ const getCobranzas = async (req: Request, res: Response) => {
   }
 };
 
-export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes, getCobranzas };
+// NUEVO: Ganancia real (facturado - costo) por cada cliente de tipo "Feria"
+const getGananciasPorFeria = async (req: Request, res: Response) => {
+  try {
+    const { fechaDesde, fechaHasta } = req.query;
+    const em = orm.em.fork();
+
+    const where: any = { estado: 'COBRADA', cliente: { tipo: 'Feria' } };
+
+    if (fechaDesde && fechaHasta) {
+      where.fecha = {
+        $gte: new Date(`${fechaDesde}T00:00:00.000Z`),
+        $lte: new Date(`${fechaHasta}T23:59:59.999Z`)
+      };
+    }
+
+    const ventas = await em.find(Venta, where, {
+      populate: ['cliente', 'detalles', 'detalles.producto']
+    });
+
+    const acumulado = new Map<number, {
+      clienteId: number;
+      nombre: string;
+      facturado: number;
+      ganancia: number;
+      cantidadVentas: number;
+    }>();
+
+    for (const venta of ventas) {
+      if (!venta.cliente) continue;
+
+      const id = venta.cliente.id;
+      const actual = acumulado.get(id) || {
+        clienteId: id,
+        nombre: venta.cliente.nombre,
+        facturado: 0,
+        ganancia: 0,
+        cantidadVentas: 0
+      };
+
+      actual.facturado += Number(venta.total);
+      actual.cantidadVentas += 1;
+
+      for (const detalle of venta.detalles) {
+        if (!detalle.producto) continue;
+        const costo = Number(detalle.producto.precio_costo) * detalle.cantidad;
+        actual.ganancia += Number(detalle.subtotal) - costo;
+      }
+
+      acumulado.set(id, actual);
+    }
+
+    const data = Array.from(acumulado.values()).sort((a, b) => b.ganancia - a.ganancia);
+
+    return res.status(200).json({ data });
+  } catch (error: any) {
+    console.error('Error calculando ganancias por feria:', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes, getCobranzas, getGananciasPorFeria };

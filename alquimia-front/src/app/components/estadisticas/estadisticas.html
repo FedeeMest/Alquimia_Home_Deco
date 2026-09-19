@@ -1,14 +1,14 @@
 <div class="container mx-auto p-4 max-w-7xl animate-fade-in-up">
 
-    <div class="mb-8">
+    <div class="mb-6">
         <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Estadísticas Generales</h1>
-        <p class="text-slate-500 font-medium mt-1">Productos más vendidos y evolución de ventas</p>
+        <p class="text-slate-500 font-medium mt-1">Productos, ferias y cobranzas de un vistazo</p>
     </div>
 
-    <!-- Selector de período -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-8 flex flex-col sm:flex-row items-center gap-3">
+    <!-- Selector de período (GLOBAL: afecta Top 10, Ferias y el resumen de Catálogo) -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col sm:flex-row items-center gap-3">
         <div class="w-full sm:w-72">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Top 10 de:</label>
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Período:</label>
             <select [(ngModel)]="mesSeleccionado" (ngModelChange)="onCambiarMes()"
                     class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 focus:outline-none bg-white">
                 <option value="">Histórico completo (general)</option>
@@ -22,105 +22,268 @@
                 × Ver histórico completo
             </button>
         </div>
-
-        <div *ngIf="!mesSeleccionado" class="text-xs text-slate-400 italic">
-            💡 Tip: también podés hacer click directo en un punto del gráfico de la derecha para filtrar por ese mes.
-        </div>
     </div>
 
-    <!-- KPIs rápidos del período seleccionado -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Facturado — {{ labelMesSeleccionado() }}</p>
-            <p class="text-2xl font-extrabold text-emerald-600 mt-1">
-                $ {{ totalFacturadoPeriodo | number:'1.0-0' }}
-            </p>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Unidades vendidas — {{ labelMesSeleccionado() }}</p>
-            <p class="text-2xl font-extrabold text-slate-800 mt-1">
-                {{ totalVentasPeriodo | number:'1.0-0' }}
-            </p>
-        </div>
+    <!-- Barra de tabs -->
+    <div class="flex gap-1 mb-6 border-b border-slate-200 overflow-x-auto">
+        <button (click)="cambiarTab('top10')"
+                class="px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-all"
+                [class.border-slate-800]="activeTab === 'top10'"
+                [class.text-slate-800]="activeTab === 'top10'"
+                [class.border-transparent]="activeTab !== 'top10'"
+                [class.text-slate-400]="activeTab !== 'top10'">
+            Top 10 Productos
+        </button>
+        <button (click)="cambiarTab('ferias')"
+                class="px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-all"
+                [class.border-slate-800]="activeTab === 'ferias'"
+                [class.text-slate-800]="activeTab === 'ferias'"
+                [class.border-transparent]="activeTab !== 'ferias'"
+                [class.text-slate-400]="activeTab !== 'ferias'">
+            Ganancias por Feria
+        </button>
+        <button (click)="cambiarTab('catalogo')"
+                class="px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-all"
+                [class.border-slate-800]="activeTab === 'catalogo'"
+                [class.text-slate-800]="activeTab === 'catalogo'"
+                [class.border-transparent]="activeTab !== 'catalogo'"
+                [class.text-slate-400]="activeTab !== 'catalogo'">
+            Catálogo
+        </button>
+        <button (click)="cambiarTab('cobranzas')"
+                class="px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-all"
+                [class.border-slate-800]="activeTab === 'cobranzas'"
+                [class.text-slate-800]="activeTab === 'cobranzas'"
+                [class.border-transparent]="activeTab !== 'cobranzas'"
+                [class.text-slate-400]="activeTab !== 'cobranzas'">
+            Cobranzas
+            <span *ngIf="cantidadDeudores > 0" class="ml-1 bg-red-100 text-red-700 text-xs font-bold px-1.5 py-0.5 rounded-full">{{ cantidadDeudores }}</span>
+        </button>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- ======================= TAB: TOP 10 PRODUCTOS ======================= -->
+    <div [class.hidden]="activeTab !== 'top10'">
 
-        <!-- Top 10 productos más vendidos -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-            <h2 class="text-lg font-bold text-slate-800 mb-4">Top {{ limiteTop }} productos más vendidos</h2>
-
-            <div *ngIf="loadingTop" class="h-64 flex items-center justify-center text-slate-400 text-sm">
-                Cargando...
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Facturado — {{ labelMesSeleccionado() }}</p>
+                <p class="text-2xl font-extrabold text-emerald-600 mt-1">$ {{ totalFacturadoPeriodo | number:'1.0-0' }}</p>
             </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Unidades vendidas — {{ labelMesSeleccionado() }}</p>
+                <p class="text-2xl font-extrabold text-slate-800 mt-1">{{ totalVentasPeriodo | number:'1.0-0' }}</p>
+            </div>
+        </div>
 
-            <div [class.hidden]="loadingTop">
-                <div class="relative h-64">
-                    <canvas #chartTopProductos></canvas>
-                </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                <div *ngIf="!loadingTop && topProductos.length === 0" class="text-center text-slate-400 text-sm py-6">
-                    No hay ventas cobradas en el período seleccionado.
-                </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <h2 class="text-lg font-bold text-slate-800 mb-4">Top {{ limiteTop }} productos más vendidos</h2>
 
-                <div *ngIf="topProductos.length > 0" class="mt-4 divide-y divide-slate-100">
-                    <div *ngFor="let p of topProductos" class="flex items-center justify-between py-2 text-sm">
-                        <span class="text-slate-700 font-medium truncate pr-3">{{ p.nombre }}</span>
-                        <div class="flex items-center gap-4 flex-shrink-0">
-                            <span class="text-slate-500">{{ p.cantidad }} un.</span>
-                            <span class="text-emerald-600 font-bold">$ {{ p.recaudado | number:'1.0-0' }}</span>
+                <div *ngIf="loadingTop" class="h-64 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>
+
+                <div [class.hidden]="loadingTop">
+                    <div class="relative h-64">
+                        <canvas #chartTopProductos></canvas>
+                    </div>
+
+                    <div *ngIf="!loadingTop && topProductos.length === 0" class="text-center text-slate-400 text-sm py-6">
+                        No hay ventas cobradas en el período seleccionado.
+                    </div>
+
+                    <div *ngIf="topProductos.length > 0" class="mt-4 divide-y divide-slate-100">
+                        <div *ngFor="let p of topProductos" class="flex items-center justify-between py-2 text-sm">
+                            <span class="text-slate-700 font-medium truncate pr-3">{{ p.nombre }}</span>
+                            <div class="flex items-center gap-4 flex-shrink-0">
+                                <span class="text-slate-500">{{ p.cantidad }} un.</span>
+                                <span class="text-emerald-600 font-bold">$ {{ p.recaudado | number:'1.0-0' }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Ventas por mes (clickeable) -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-            <h2 class="text-lg font-bold text-slate-800 mb-1">Ventas de los últimos 12 meses</h2>
-            <p class="text-xs text-slate-400 mb-4">Click en un punto para filtrar el Top 10 por ese mes</p>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <h2 class="text-lg font-bold text-slate-800 mb-1">Ventas de los últimos 12 meses</h2>
+                <p class="text-xs text-slate-400 mb-4">Click en un punto para filtrar todo el panel por ese mes</p>
 
-            <div *ngIf="loadingMensual" class="h-64 flex items-center justify-center text-slate-400 text-sm">
-                Cargando...
-            </div>
+                <div *ngIf="loadingMensual" class="h-64 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>
 
-            <div [class.hidden]="loadingMensual">
-                <div class="relative h-64">
-                    <canvas #chartVentasMes></canvas>
-                </div>
+                <div [class.hidden]="loadingMensual">
+                    <div class="relative h-64">
+                        <canvas #chartVentasMes></canvas>
+                    </div>
 
-                <div *ngIf="!loadingMensual && ventasPorMes.length === 0" class="text-center text-slate-400 text-sm py-6">
-                    Todavía no hay ventas cobradas registradas.
+                    <div *ngIf="!loadingMensual && ventasPorMes.length === 0" class="text-center text-slate-400 text-sm py-6">
+                        Todavía no hay ventas cobradas registradas.
+                    </div>
                 </div>
             </div>
-        </div>
 
+        </div>
     </div>
 
-    <!-- Cuentas por cobrar (Cobranzas) -->
-    <div class="mt-8">
-        <h2 class="text-xl font-extrabold text-slate-800 mb-1">Cuentas por cobrar</h2>
-        <p class="text-slate-500 text-sm mb-4">Ventas fiadas (estado "Pendiente") agrupadas por cliente</p>
+    <!-- ======================= TAB: GANANCIAS POR FERIA ======================= -->
+    <div [class.hidden]="activeTab !== 'ferias'">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Ganancia total — {{ labelMesSeleccionado() }}</p>
+                <p class="text-2xl font-extrabold text-emerald-600 mt-1">$ {{ gananciaTotalFerias | number:'1.0-0' }}</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Feria más rentable</p>
+                <p class="text-2xl font-extrabold text-slate-800 mt-1 truncate">
+                    {{ gananciasFerias.length > 0 ? gananciasFerias[0].nombre : '-' }}
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
+            <h2 class="text-lg font-bold text-slate-800 mb-1">Ganancia por feria</h2>
+            <p class="text-xs text-slate-400 mb-4">Ganancia real (facturado - costo). Click en una barra para ver qué productos vendió esa feria.</p>
+
+            <div *ngIf="loadingFerias" class="h-64 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>
+
+            <div [class.hidden]="loadingFerias">
+                <div class="relative h-64">
+                    <canvas #chartFerias></canvas>
+                </div>
+
+                <div *ngIf="!loadingFerias && gananciasFerias.length === 0" class="text-center text-slate-400 text-sm py-6">
+                    No hay ventas a clientes de tipo "Feria" en el período seleccionado.
+                </div>
+
+                <div *ngIf="gananciasFerias.length > 0" class="mt-4 divide-y divide-slate-100">
+                    <button *ngFor="let f of gananciasFerias" (click)="seleccionarFeria(f)"
+                            class="w-full flex items-center justify-between py-2 text-sm text-left hover:bg-slate-50 rounded-lg px-2 -mx-2 transition-colors"
+                            [class.bg-red-50]="feriaSeleccionada?.clienteId === f.clienteId">
+                        <span class="text-slate-700 font-medium truncate pr-3">{{ f.nombre }}</span>
+                        <div class="flex items-center gap-4 flex-shrink-0">
+                            <span class="text-slate-500">{{ f.cantidadVentas }} ventas</span>
+                            <span class="text-slate-500">Fact: $ {{ f.facturado | number:'1.0-0' }}</span>
+                            <span class="text-emerald-600 font-bold">Gan: $ {{ f.ganancia | number:'1.0-0' }}</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos de la feria seleccionada -->
+        <div *ngIf="feriaSeleccionada" class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-slate-800">Productos más vendidos en "{{ feriaSeleccionada.nombre }}"</h2>
+                <button (click)="seleccionarFeria(feriaSeleccionada)" class="text-sm text-blue-600 hover:underline font-medium">
+                    × Cerrar
+                </button>
+            </div>
+
+            <div *ngIf="loadingProductosFeria" class="h-24 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>
+
+            <div *ngIf="!loadingProductosFeria && productosFeria.length === 0" class="text-center text-slate-400 text-sm py-6">
+                No hay ventas registradas para esta feria en el período seleccionado.
+            </div>
+
+            <div *ngIf="!loadingProductosFeria && productosFeria.length > 0" class="divide-y divide-slate-100">
+                <div *ngFor="let p of productosFeria; let i = index" class="flex items-center justify-between py-2 text-sm">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="text-xs font-bold text-slate-300 w-5 flex-shrink-0">{{ i + 1 }}</span>
+                        <span class="text-slate-700 font-medium truncate">{{ p.nombre }}</span>
+                    </div>
+                    <div class="flex items-center gap-4 flex-shrink-0">
+                        <span class="text-slate-500">{{ p.cantidad }} un.</span>
+                        <span class="text-emerald-600 font-bold">$ {{ p.recaudado | number:'1.0-0' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= TAB: CATÁLOGO ======================= -->
+    <div [class.hidden]="activeTab !== 'catalogo'">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Interés en el catálogo público -->
+            <div>
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <h2 class="text-lg font-bold text-slate-800">Interés en el catálogo público</h2>
+                    <select [(ngModel)]="tipoRankingVistos" (ngModelChange)="cambiarTipoRanking()"
+                            class="border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-slate-800 focus:outline-none bg-white">
+                        <option value="vista">Más vistos</option>
+                        <option value="carrito">Más agregados al carrito</option>
+                        <option value="whatsapp">Más consultados</option>
+                    </select>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                    <div *ngIf="loadingVistos" class="h-32 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>
+
+                    <div *ngIf="!loadingVistos && productosVistos.length === 0" class="text-center text-slate-400 text-sm py-6">
+                        Todavía no hay datos suficientes. Van a empezar a aparecer a medida que la gente navegue el catálogo.
+                    </div>
+
+                    <div *ngIf="!loadingVistos && productosVistos.length > 0" class="divide-y divide-slate-100">
+                        <div *ngFor="let p of productosVistos; let i = index" class="flex items-center justify-between py-2.5 text-sm">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="text-xs font-bold text-slate-300 w-5 flex-shrink-0">{{ i + 1 }}</span>
+                                <div class="min-w-0">
+                                    <p class="text-slate-700 font-medium truncate">{{ p.nombre }}</p>
+                                    <p *ngIf="p.categoria" class="text-xs text-slate-400">{{ p.categoria }}</p>
+                                </div>
+                            </div>
+                            <span class="text-slate-800 font-bold flex-shrink-0">{{ p.cantidad }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos más vendidos (real), para comparar contra lo que se mira -->
+            <div>
+                <div class="mb-4">
+                    <h2 class="text-lg font-bold text-slate-800">Más vendidos — {{ labelMesSeleccionado() }}</h2>
+                    <p class="text-xs text-slate-400">Mismo período elegido arriba. Compará con lo que la gente mira.</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                    <div *ngIf="loadingTop" class="h-32 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>
+
+                    <div *ngIf="!loadingTop && topProductos.length === 0" class="text-center text-slate-400 text-sm py-6">
+                        No hay ventas cobradas en el período seleccionado.
+                    </div>
+
+                    <div *ngIf="!loadingTop && topProductos.length > 0" class="divide-y divide-slate-100">
+                        <div *ngFor="let p of topProductos; let i = index" class="flex items-center justify-between py-2.5 text-sm">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="text-xs font-bold text-slate-300 w-5 flex-shrink-0">{{ i + 1 }}</span>
+                                <span class="text-slate-700 font-medium truncate">{{ p.nombre }}</span>
+                            </div>
+                            <span class="text-slate-800 font-bold flex-shrink-0">{{ p.cantidad }} un.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ======================= TAB: COBRANZAS ======================= -->
+    <div [class.hidden]="activeTab !== 'cobranzas'">
+        <p class="text-slate-500 text-sm mb-4">Ventas fiadas (estado "Pendiente") agrupadas por cliente — no depende del período elegido arriba.</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Total adeudado</p>
-                <p class="text-2xl font-extrabold text-red-600 mt-1">
-                    $ {{ totalAdeudado | number:'1.0-0' }}
-                </p>
+                <p class="text-2xl font-extrabold text-red-600 mt-1">$ {{ totalAdeudado | number:'1.0-0' }}</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Clientes con deuda</p>
-                <p class="text-2xl font-extrabold text-slate-800 mt-1">
-                    {{ cantidadDeudores }}
-                </p>
+                <p class="text-2xl font-extrabold text-slate-800 mt-1">{{ cantidadDeudores }}</p>
             </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-            <div *ngIf="loadingCobranzas" class="h-32 flex items-center justify-center text-slate-400 text-sm">
-                Cargando...
-            </div>
+            <div *ngIf="loadingCobranzas" class="h-32 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>
 
             <div *ngIf="!loadingCobranzas && deudores.length === 0" class="text-center text-slate-400 text-sm py-6">
                 No hay ventas pendientes de cobro. 🎉
@@ -154,43 +317,4 @@
         </div>
     </div>
 
-    <!-- Interés en el catálogo público -->
-    <div class="mt-8">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <div>
-                <h2 class="text-xl font-extrabold text-slate-800 mb-1">Interés en el catálogo público</h2>
-                <p class="text-slate-500 text-sm">Qué miran, agregan al carrito o consultan tus visitantes</p>
-            </div>
-
-            <select [(ngModel)]="tipoRankingVistos" (ngModelChange)="cambiarTipoRanking()"
-                    class="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 focus:outline-none bg-white">
-                <option value="vista">Más vistos</option>
-                <option value="carrito">Más agregados al carrito</option>
-                <option value="whatsapp">Más consultados por WhatsApp</option>
-            </select>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-            <div *ngIf="loadingVistos" class="h-32 flex items-center justify-center text-slate-400 text-sm">
-                Cargando...
-            </div>
-
-            <div *ngIf="!loadingVistos && productosVistos.length === 0" class="text-center text-slate-400 text-sm py-6">
-                Todavía no hay datos suficientes. Van a empezar a aparecer a medida que la gente navegue el catálogo.
-            </div>
-
-            <div *ngIf="!loadingVistos && productosVistos.length > 0" class="divide-y divide-slate-100">
-                <div *ngFor="let p of productosVistos; let i = index" class="flex items-center justify-between py-2.5 text-sm">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <span class="text-xs font-bold text-slate-300 w-5 flex-shrink-0">{{ i + 1 }}</span>
-                        <div class="min-w-0">
-                            <p class="text-slate-700 font-medium truncate">{{ p.nombre }}</p>
-                            <p *ngIf="p.categoria" class="text-xs text-slate-400">{{ p.categoria }}</p>
-                        </div>
-                    </div>
-                    <span class="text-slate-800 font-bold flex-shrink-0">{{ p.cantidad }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>

@@ -83,4 +83,18 @@ export class VentaService {
   update(id: number, data: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, data);
   }
+
+  // 3. Para Estadísticas Generales (Top productos y ventas por mes)
+  getEstadisticas(limit: number = 10, desde?: string, hasta?: string): Observable<any> {
+    let params = new HttpParams().set('limit', limit.toString());
+    if (desde) params = params.set('fechaDesde', desde);
+    if (hasta) params = params.set('fechaHasta', hasta);
+
+    return this.http.get<any>(`${this.apiUrl}/estadisticas`, { params });
+  }
+
+  getVentasPorMes(meses: number = 12): Observable<any> {
+    const params = new HttpParams().set('meses', meses.toString());
+    return this.http.get<any>(`${this.apiUrl}/estadisticas/mensual`, { params });
+  }
 }

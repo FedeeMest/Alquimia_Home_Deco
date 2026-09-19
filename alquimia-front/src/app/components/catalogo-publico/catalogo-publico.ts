@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ProductoService } from '../../services/producto.service';
 import { NotificationService } from '../../services/notification.service';
+import { EventoService } from '../../services/evento.service';
 import { Title, Meta } from '@angular/platform-browser';
  
 @Component({
@@ -16,6 +17,7 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
   private productoService = inject(ProductoService);
   private cd = inject(ChangeDetectorRef);
   private notificationService = inject(NotificationService);
+  private eventoService = inject(EventoService);
   
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -438,6 +440,7 @@ export class CatalogoPublicoComponent implements OnInit, OnDestroy {
       this.agregadoExito = false; 
       this.calcularVariantes(producto);
       this.actualizarBodyOverflow();
+      this.eventoService.registrar(producto.id, 'vista'); // NUEVO: tracking de vista de producto
       this.cd.detectChanges();
     }
   }
@@ -531,6 +534,7 @@ seleccionarVariante(producto: any) {
     }
  
     this.guardarCarrito(); // NUEVO
+    this.eventoService.registrar(producto.id, 'carrito'); // NUEVO: tracking de agregado al carrito
     this.notificationService.success(`Agregaste ${cantidadSeleccionada}x ${producto.nombre} al carrito.`);
  
     if (this.productoSeleccionado) {
@@ -598,6 +602,9 @@ seleccionarVariante(producto: any) {
     mensaje += `💳 *Tarjeta:* $${this.totalCarritoTarjeta}\n`;
     mensaje += `💵 *Efectivo/Transferencia:* $${this.totalCarritoEfectivo}\n\n`;
  
+    // NUEVO: tracking de intención de compra (uno por cada producto del carrito)
+    this.carrito.forEach(item => this.eventoService.registrar(item.producto.id, 'whatsapp'));
+ 
     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, '_blank');
   }
@@ -605,6 +612,7 @@ seleccionarVariante(producto: any) {
   consultarPorWhatsApp(producto: any) {
     const numeroWa = '5493401408588'; 
     const mensaje = `¡Hola Alquimia! Quería hacer una consulta sobre el producto: *${producto.nombre}*`;
+    this.eventoService.registrar(producto.id, 'whatsapp'); // NUEVO: tracking de consulta
     const url = `https://wa.me/${numeroWa}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, '_blank');
   }

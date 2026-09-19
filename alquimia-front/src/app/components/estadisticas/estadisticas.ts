@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit, AfterViewInit, OnDestroy, ViewChild, inj
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VentaService } from '../../services/venta.service';
+import { EventoService, TipoEvento } from '../../services/evento.service';
 import Chart from 'chart.js/auto';
 
 interface ProductoTop {
@@ -31,6 +32,12 @@ interface Deudor {
   diasSinCobrar: number;
 }
 
+interface ProductoVisto {
+  nombre: string;
+  categoria: string | null;
+  cantidad: number;
+}
+
 @Component({
   selector: 'app-estadisticas',
   standalone: true,
@@ -39,11 +46,13 @@ interface Deudor {
 })
 export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
   private ventaService = inject(VentaService);
+  private eventoService = inject(EventoService);
   private cd = inject(ChangeDetectorRef);
 
   loadingTop = true;
   loadingMensual = true;
   loadingCobranzas = true;
+  loadingVistos = true;
 
   // '' = histórico completo (general). 'YYYY-MM' = un mes puntual.
   mesSeleccionado: string = '';
@@ -63,6 +72,10 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
   totalAdeudado = 0;
   cantidadDeudores = 0;
 
+  // Interés en el catálogo público (vistas / agregados al carrito / consultas WhatsApp)
+  tipoRankingVistos: TipoEvento = 'vista';
+  productosVistos: ProductoVisto[] = [];
+
   @ViewChild('chartTopProductos') chartTopProductosRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('chartVentasMes') chartVentasMesRef!: ElementRef<HTMLCanvasElement>;
 
@@ -74,6 +87,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cargarTopProductos();
     this.cargarVentasPorMes();
     this.cargarCobranzas();
+    this.cargarProductosVistos();
   }
 
   ngAfterViewInit() {
@@ -200,6 +214,28 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     if (dias >= 30) return 'text-red-600 font-bold';
     if (dias >= 15) return 'text-amber-600 font-bold';
     return 'text-slate-600';
+  }
+
+  // --- Interés en el catálogo público ---
+
+  cambiarTipoRanking() {
+    this.cargarProductosVistos();
+  }
+
+  private cargarProductosVistos() {
+    this.loadingVistos = true;
+    this.eventoService.getTopProductos(this.tipoRankingVistos, 10).subscribe({
+      next: (res: any) => {
+        this.productosVistos = res.data || [];
+        this.loadingVistos = false;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando productos más vistos', err);
+        this.loadingVistos = false;
+        this.cd.detectChanges();
+      }
+    });
   }
 
   // --- Gráficos ---

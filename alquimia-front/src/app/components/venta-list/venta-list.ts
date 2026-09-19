@@ -47,7 +47,7 @@ export class VentaListComponent implements OnInit {
   }
 
   cargarClientes() {
-    this.clienteService.getClientes().subscribe({
+    this.clienteService.getClientes(1, 1000).subscribe({
       next: (res: any) => {
         this.clientes = res.data;
       },

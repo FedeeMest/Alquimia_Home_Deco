@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { crearVenta, obtenerVentas, getMetricasDelDia, findOne, anularVenta, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes } from './venta.controller.js';
+import { crearVenta, obtenerVentas, getMetricasDelDia, findOne, anularVenta, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes, getCobranzas } from './venta.controller.js';
 import { authMiddleware } from '../shared/middleware/auth.middleware.js';
 
 export const ventaRouter = Router();
@@ -8,6 +8,7 @@ ventaRouter.use(authMiddleware);
 
 ventaRouter.get('/estadisticas', getEstadisticas);
 ventaRouter.get('/estadisticas/mensual', getVentasPorMes);
+ventaRouter.get('/cobranzas', getCobranzas);
 ventaRouter.post('/', inputS, crearVenta);                 // Nueva venta
 ventaRouter.get('/', obtenerVentas);               // Historial completo paginado
 ventaRouter.get('/dashboard', getMetricasDelDia);

@@ -5,40 +5,39 @@
         <p class="text-slate-500 font-medium mt-1">Productos más vendidos y evolución de ventas</p>
     </div>
 
-    <!-- Filtro de fechas (afecta el Top de Productos) -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-8 flex flex-col sm:flex-row items-end gap-3">
-        <div class="flex-1 w-full">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Desde</label>
-            <input type="date" [(ngModel)]="fechaDesde"
-                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 focus:outline-none">
+    <!-- Selector de período -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-8 flex flex-col sm:flex-row items-center gap-3">
+        <div class="w-full sm:w-72">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Top 10 de:</label>
+            <select [(ngModel)]="mesSeleccionado" (ngModelChange)="onCambiarMes()"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 focus:outline-none bg-white">
+                <option value="">Histórico completo (general)</option>
+                <option *ngFor="let m of mesesDisponibles" [value]="m.value">{{ m.label }}</option>
+            </select>
         </div>
-        <div class="flex-1 w-full">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Hasta</label>
-            <input type="date" [(ngModel)]="fechaHasta"
-                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 focus:outline-none">
+
+        <div *ngIf="mesSeleccionado" class="text-sm text-slate-500 flex items-center gap-2">
+            <span>Mostrando <span class="font-bold text-slate-700">{{ labelMesSeleccionado() }}</span></span>
+            <button (click)="volverAGeneral()" class="text-blue-600 hover:underline font-medium">
+                × Ver histórico completo
+            </button>
         </div>
-        <div class="flex gap-2 w-full sm:w-auto">
-            <button (click)="filtrar()"
-                class="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-5 rounded-lg text-sm transition-all">
-                Filtrar
-            </button>
-            <button (click)="limpiarFiltro()"
-                class="flex-1 sm:flex-none bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold py-2 px-5 rounded-lg text-sm transition-all">
-                Ver todo
-            </button>
+
+        <div *ngIf="!mesSeleccionado" class="text-xs text-slate-400 italic">
+            💡 Tip: también podés hacer click directo en un punto del gráfico de la derecha para filtrar por ese mes.
         </div>
     </div>
 
-    <!-- KPIs rápidos del período filtrado -->
+    <!-- KPIs rápidos del período seleccionado -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Facturado (Top {{ limiteTop }} productos)</p>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Facturado — {{ labelMesSeleccionado() }}</p>
             <p class="text-2xl font-extrabold text-emerald-600 mt-1">
                 $ {{ totalFacturadoPeriodo | number:'1.0-0' }}
             </p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Unidades vendidas (Top {{ limiteTop }})</p>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Unidades vendidas — {{ labelMesSeleccionado() }}</p>
             <p class="text-2xl font-extrabold text-slate-800 mt-1">
                 {{ totalVentasPeriodo | number:'1.0-0' }}
             </p>
@@ -76,9 +75,10 @@
             </div>
         </div>
 
-        <!-- Ventas por mes -->
+        <!-- Ventas por mes (clickeable) -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-            <h2 class="text-lg font-bold text-slate-800 mb-4">Ventas de los últimos 12 meses</h2>
+            <h2 class="text-lg font-bold text-slate-800 mb-1">Ventas de los últimos 12 meses</h2>
+            <p class="text-xs text-slate-400 mb-4">Click en un punto para filtrar el Top 10 por ese mes</p>
 
             <div *ngIf="loadingMensual" class="h-64 flex items-center justify-center text-slate-400 text-sm">
                 Cargando...
@@ -95,5 +95,62 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- Cuentas por cobrar (Cobranzas) -->
+    <div class="mt-8">
+        <h2 class="text-xl font-extrabold text-slate-800 mb-1">Cuentas por cobrar</h2>
+        <p class="text-slate-500 text-sm mb-4">Ventas fiadas (estado "Pendiente") agrupadas por cliente</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Total adeudado</p>
+                <p class="text-2xl font-extrabold text-red-600 mt-1">
+                    $ {{ totalAdeudado | number:'1.0-0' }}
+                </p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Clientes con deuda</p>
+                <p class="text-2xl font-extrabold text-slate-800 mt-1">
+                    {{ cantidadDeudores }}
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+            <div *ngIf="loadingCobranzas" class="h-32 flex items-center justify-center text-slate-400 text-sm">
+                Cargando...
+            </div>
+
+            <div *ngIf="!loadingCobranzas && deudores.length === 0" class="text-center text-slate-400 text-sm py-6">
+                No hay ventas pendientes de cobro. 🎉
+            </div>
+
+            <div *ngIf="!loadingCobranzas && deudores.length > 0" class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-xs font-bold text-slate-400 uppercase tracking-wide border-b border-slate-100">
+                            <th class="py-2 pr-3">Cliente</th>
+                            <th class="py-2 pr-3">Teléfono</th>
+                            <th class="py-2 pr-3 text-right">Deuda</th>
+                            <th class="py-2 pr-3 text-right">Ventas</th>
+                            <th class="py-2 pr-3 text-right">Días sin cobrar</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <tr *ngFor="let d of deudores">
+                            <td class="py-2.5 pr-3 font-medium text-slate-800">{{ d.nombre }}</td>
+                            <td class="py-2.5 pr-3 text-slate-500">
+                                <a *ngIf="d.telefono" [href]="'tel:' + d.telefono" class="text-blue-600 hover:underline">{{ d.telefono }}</a>
+                                <span *ngIf="!d.telefono">-</span>
+                            </td>
+                            <td class="py-2.5 pr-3 text-right font-bold text-red-600">$ {{ d.totalAdeudado | number:'1.0-0' }}</td>
+                            <td class="py-2.5 pr-3 text-right text-slate-500">{{ d.cantidadVentas }}</td>
+                            <td class="py-2.5 pr-3 text-right" [ngClass]="claseDiasSinCobrar(d.diasSinCobrar)">{{ d.diasSinCobrar }} días</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>

@@ -97,4 +97,8 @@ export class VentaService {
     const params = new HttpParams().set('meses', meses.toString());
     return this.http.get<any>(`${this.apiUrl}/estadisticas/mensual`, { params });
   }
+
+  getCobranzas(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/cobranzas`);
+  }
 }

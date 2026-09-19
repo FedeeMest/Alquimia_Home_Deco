@@ -544,4 +544,68 @@ const getVentasPorMes = async (req: Request, res: Response) => {
   }
 };
 
-export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes };
+// NUEVO: Estado de cuentas por cobrar (ventas PENDIENTE agrupadas por cliente)
+const getCobranzas = async (req: Request, res: Response) => {
+  try {
+    const em = orm.em.fork();
+
+    const ventasPendientes = await em.find(Venta, { estado: 'PENDIENTE' }, {
+      populate: ['cliente'],
+      orderBy: { fecha: 'ASC' }
+    });
+
+    const acumulado = new Map<number, {
+      clienteId: number;
+      nombre: string;
+      telefono: string | null;
+      totalAdeudado: number;
+      cantidadVentas: number;
+      fechaMasAntigua: Date;
+    }>();
+
+    for (const venta of ventasPendientes) {
+      const clienteId = venta.cliente?.id ?? 0;
+      const nombre = venta.cliente?.nombre ?? 'Consumidor Final (sin datos)';
+      const telefono = venta.cliente?.telefono ?? null;
+
+      const actual = acumulado.get(clienteId) || {
+        clienteId,
+        nombre,
+        telefono,
+        totalAdeudado: 0,
+        cantidadVentas: 0,
+        fechaMasAntigua: venta.fecha
+      };
+
+      actual.totalAdeudado += Number(venta.total);
+      actual.cantidadVentas += 1;
+      if (new Date(venta.fecha) < new Date(actual.fechaMasAntigua)) {
+        actual.fechaMasAntigua = venta.fecha;
+      }
+
+      acumulado.set(clienteId, actual);
+    }
+
+    const hoy = new Date();
+    const deudores = Array.from(acumulado.values())
+      .map(d => ({
+        ...d,
+        diasSinCobrar: Math.max(0, Math.floor((hoy.getTime() - new Date(d.fechaMasAntigua).getTime()) / (1000 * 60 * 60 * 24)))
+      }))
+      .sort((a, b) => b.totalAdeudado - a.totalAdeudado);
+
+    const totalAdeudado = deudores.reduce((sum, d) => sum + d.totalAdeudado, 0);
+
+    return res.status(200).json({
+      totalAdeudado,
+      cantidadDeudores: deudores.length,
+      deudores
+    });
+
+  } catch (error: any) {
+    console.error('Error calculando cobranzas:', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes, getCobranzas };

@@ -8,8 +8,6 @@ async function login(req: Request, res: Response) {
     const em = orm.em.fork();
     try {
         const { username, password } = req.body;
-        
-        // --- LOG 1: Ver qué llega del frontend --- 
 
         // 🔒 SEGURIDAD: Validación estricta
         // Si no existe la variable en el servidor, detenemos todo.
@@ -22,17 +20,13 @@ async function login(req: Request, res: Response) {
         const usuario = await em.findOne(Usuario, { username });
         
         if (!usuario) {
-            console.log('❌ Error: Usuario NO encontrado en la BD');
             return res.status(401).json({ message: 'Usuario o contraseña incorrectos' });
         }
-
-        console.log('✅ Usuario encontrado:', usuario.username);
 
         // 2. Verificar contraseña
         const isMatch = await bcrypt.compare(password, usuario.password);
         
         if (!isMatch) {
-            console.log('❌ Error: La contraseña no coincide');
             return res.status(401).json({ message: 'Usuario o contraseña incorrectos' });
         }
 

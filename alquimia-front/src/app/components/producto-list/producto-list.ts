@@ -8,7 +8,7 @@ import { NotificationService } from '../../services/notification.service';
 import { finalize } from 'rxjs/operators';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs/dist/exceljs.min.js';
 
 @Component({
   selector: 'app-producto-list',
@@ -124,6 +124,26 @@ export class ProductoList implements OnInit, OnDestroy {
       }
     });
   }
+
+  async descargarCatalogoExcel() {
+  this.loading = true;
+  this.notificationService.show('Generando Excel...', 'info');
+
+  this.productoService.getAll('', true, 1, 10000).subscribe({
+    next: async (resp) => {
+      await this.crearDocumentoExcel(resp.data);
+      this.loading = false;
+      this.notificationService.show('Excel descargado con éxito', 'success');
+      this.cd.detectChanges();
+    },
+    error: (err) => {
+      console.error(err);
+      this.loading = false;
+      this.notificationService.show('Error al generar el Excel', 'error');
+      this.cd.detectChanges();
+    }
+  });
+}
 
   crearDocumentoPdf(productos: Producto[]) {
     const productosPorCategoria: { [categoria: string]: Producto[] } = {};
@@ -536,54 +556,92 @@ export class ProductoList implements OnInit, OnDestroy {
         });
     }
   }
-  
-  descargarCatalogoExcel() {
-  this.loading = true;
-  this.notificationService.show('Generando Excel...', 'info');
 
-  this.productoService.getAll('', true, 1, 10000).subscribe({
-    next: (resp) => {
-      this.crearDocumentoExcel(resp.data);
-      this.loading = false;
-      this.notificationService.show('Excel descargado con éxito', 'success');
-      this.cd.detectChanges();
-    },
-    error: (err) => {
-      console.error(err);
-      this.loading = false;
-      this.notificationService.show('Error al generar el Excel', 'error');
-      this.cd.detectChanges();
-    }
+async crearDocumentoExcel(productos: Producto[]) {
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'Alquimia Home Deco';
+  workbook.created = new Date();
+
+  const sheet = workbook.addWorksheet('Productos', {
+    views: [{ state: 'frozen', ySplit: 1 }] // congela la fila de encabezado
   });
-}
 
-crearDocumentoExcel(productos: Producto[]) {
-  const filas = productos.map(p => ({
-    ID: p.id,
-    'Código de barra': p.codigo_barra,
-    Nombre: p.nombre,
-    Proveedor: p.proveedor,
-    Categoría: p.categoria,
-    'Precio compra': p.precio_compra,
-    'Precio costo': p.precio_costo,
-    'Ganancia %': p.ganancia,
-    'Precio venta base': p.precio_venta_base,
-    'Precio efectivo': p.precio_efectivo,
-    'Precio tarjeta': p.precio_tarjeta,
-    'Precio tarjeta local': p.precio_tarjeta_local,
-    Stock: p.stock,
-    'Stock mínimo': p.stock_minimo,
-    'Stock camión': p.stock_camion,
-    'Código proveedor': p.codigo_proveedor,
-  }));
+  // Definimos las columnas: clave (para mapear el dato), título y ancho
+  const columnas = [
+    { key: 'id', header: 'ID', width: 8 },
+    { key: 'codigo_barra', header: 'Código de barra', width: 16 },
+    { key: 'nombre', header: 'Nombre', width: 35 },
+    { key: 'proveedor', header: 'Proveedor', width: 18 },
+    { key: 'categoria', header: 'Categoría', width: 20 },
+    { key: 'precio_compra', header: 'Precio compra', width: 14 },
+    { key: 'precio_costo', header: 'Precio costo', width: 14 },
+    { key: 'ganancia', header: 'Ganancia %', width: 12 },
+    { key: 'precio_venta_base', header: 'Precio venta base', width: 16 },
+    { key: 'precio_efectivo', header: 'Precio efectivo', width: 15 },
+    { key: 'precio_tarjeta', header: 'Precio tarjeta', width: 15 },
+    { key: 'precio_tarjeta_local', header: 'Precio tarjeta local', width: 17 },
+    { key: 'stock', header: 'Stock', width: 9 },
+    { key: 'stock_minimo', header: 'Stock mínimo', width: 12 },
+    { key: 'stock_camion', header: 'Stock camión', width: 12 },
+  ];
+  sheet.columns = columnas.map(c => ({ key: c.key, width: c.width }));
 
-  const hoja = XLSX.utils.json_to_sheet(filas);
-  const libro = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(libro, hoja, 'Productos');
+  // Filas de datos (mismo orden que "columnas")
+  const filas = productos.map(p => [
+    p.id, p.codigo_barra, p.nombre, p.proveedor, p.categoria,
+    p.precio_compra, p.precio_costo, p.ganancia,
+    p.precio_venta_base, p.precio_efectivo, p.precio_tarjeta, p.precio_tarjeta_local,
+    p.stock, p.stock_minimo, p.stock_camion,
+  ]);
 
+  // ---- TABLA NATIVA con autofiltro y bandas de color ----
+  sheet.addTable({
+    name: 'TablaProductos',
+    ref: 'A1',
+    headerRow: true,
+    totalsRow: false,
+    style: {
+      theme: 'TableStyleMedium9', // azul con bandas; cambiá el número para otro estilo
+      showRowStripes: true,
+    },
+    columns: columnas.map(c => ({ name: c.header, filterButton: true })),
+    rows: filas,
+  });
+
+  // ---- FORMATO POR COLUMNA ----
+  const moneda = '"$" #,##0';
+  const entero = '#,##0';
+  const porcentaje = '0"%"';
+
+  sheet.getColumn('precio_compra').numFmt = moneda;
+  sheet.getColumn('precio_costo').numFmt = moneda;
+  sheet.getColumn('precio_venta_base').numFmt = moneda;
+  sheet.getColumn('precio_efectivo').numFmt = moneda;
+  sheet.getColumn('precio_tarjeta').numFmt = moneda;
+  sheet.getColumn('precio_tarjeta_local').numFmt = moneda;
+  sheet.getColumn('ganancia').numFmt = porcentaje;
+  sheet.getColumn('stock').numFmt = entero;
+  sheet.getColumn('stock_minimo').numFmt = entero;
+  sheet.getColumn('stock_camion').numFmt = entero;
+
+  // Encabezado en negrita (además del estilo de tabla)
+  sheet.getRow(1).font = { bold: true };
+
+  // ---- Descargar el archivo ----
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
   const fecha = new Date().toISOString().slice(0, 10);
-  XLSX.writeFile(libro, `Productos_Alquimia-${fecha}.xlsx`);
+  a.href = url;
+  a.download = `Productos_Alquimia-${fecha}.xlsx`;
+  a.click();
+  window.URL.revokeObjectURL(url);
 }
+
+
 
   trackByProductoId(index: number, producto: Producto): number {
     return producto.id!;

@@ -13,6 +13,7 @@ import { initSemillas } from './shared/db/seeds.js';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { clienteRouter } from './cliente/cliente.routes.js';
+import { eventoRouter } from './evento/evento.routes.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -63,6 +64,7 @@ app.use('/api/ventas', ventaRouter); // Rutas de ventas protegidas por authMiddl
 app.use('/api/configuracion',configuracionRouter); // Rutas de configuración protegidas por authMiddleware dentro de configuracion.routes.ts
 app.use('/api/cierre_caja',cierreRouter); // Rutas de cierre de caja protegidas por authMiddleware dentro de cierre.routes.ts
 app.use('/api/clientes', clienteRouter);
+app.use('/api/eventos', eventoRouter);
 
 // Ruta Base (Health Check)
 app.get('/', (req, res) => {

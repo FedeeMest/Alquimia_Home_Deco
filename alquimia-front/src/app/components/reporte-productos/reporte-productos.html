@@ -133,13 +133,13 @@
                 <thead>
                     <tr class="text-left text-xs font-bold text-slate-400 uppercase tracking-wide border-b border-slate-100">
                         <th class="py-2 pr-3">Producto</th>
-                        <th class="py-2 pr-3 text-right">Unidades</th>
-                        <th class="py-2 pr-3 text-right">Facturado</th>
-                        <th class="py-2 pr-3 text-right">Costo</th>
-                        <th class="py-2 pr-3 text-right">Ganancia</th>
-                        <th class="py-2 pr-3 text-right">Margen</th>
-                        <th class="py-2 pr-3 text-right">Venta c/u</th>
-                        <th class="py-2 text-right">Ganancia c/u</th>
+                        <th class="py-2 pr-3 text-right whitespace-nowrap">Unidades</th>
+                        <th class="py-2 pr-3 text-right whitespace-nowrap">Facturado</th>
+                        <th class="py-2 pr-3 text-right whitespace-nowrap">Costo</th>
+                        <th class="py-2 pr-3 text-right whitespace-nowrap">Ganancia</th>
+                        <th class="py-2 pr-3 text-right whitespace-nowrap">Margen</th>
+                        <th class="py-2 pr-3 text-right whitespace-nowrap">Venta c/u</th>
+                        <th class="py-2 text-right whitespace-nowrap">Ganancia c/u</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -150,13 +150,13 @@
                             <p class="font-medium text-slate-800">{{ p.nombre }}</p>
                             <p *ngIf="p.categoria" class="text-xs text-slate-400">{{ p.categoria }}</p>
                         </td>
-                        <td class="py-2.5 pr-3 text-right text-slate-600">{{ p.cantidad | number:'1.0-0' }}</td>
-                        <td class="py-2.5 pr-3 text-right text-slate-600">$ {{ p.recaudado | number:'1.0-0' }}</td>
-                        <td class="py-2.5 pr-3 text-right text-slate-400">$ {{ p.costo | number:'1.0-0' }}</td>
-                        <td class="py-2.5 pr-3 text-right font-bold" [class.text-emerald-600]="p.ganancia >= 0" [class.text-red-600]="p.ganancia < 0">$ {{ p.ganancia | number:'1.0-0' }}</td>
-                        <td class="py-2.5 pr-3 text-right text-slate-500">{{ p.margen | number:'1.0-1' }}%</td>
-                        <td class="py-2.5 pr-3 text-right text-slate-600">$ {{ precioPromedio(p) | number:'1.0-0' }}</td>
-                        <td class="py-2.5 text-right text-slate-600">$ {{ gananciaUnitaria(p) | number:'1.0-0' }}</td>
+                        <td class="py-2.5 pr-3 text-right text-slate-600 whitespace-nowrap">{{ p.cantidad | number:'1.0-0' }}</td>
+                        <td class="py-2.5 pr-3 text-right text-slate-600 whitespace-nowrap">$ {{ p.recaudado | number:'1.0-0' }}</td>
+                        <td class="py-2.5 pr-3 text-right text-slate-400 whitespace-nowrap">$ {{ p.costo | number:'1.0-0' }}</td>
+                        <td class="py-2.5 pr-3 text-right font-bold whitespace-nowrap" [class.text-emerald-600]="p.ganancia >= 0" [class.text-red-600]="p.ganancia < 0">$ {{ p.ganancia | number:'1.0-0' }}</td>
+                        <td class="py-2.5 pr-3 text-right text-slate-500 whitespace-nowrap">{{ p.margen | number:'1.0-1' }}%</td>
+                        <td class="py-2.5 pr-3 text-right text-slate-600 whitespace-nowrap">$ {{ precioPromedio(p) | number:'1.0-0' }}</td>
+                        <td class="py-2.5 text-right text-slate-600 whitespace-nowrap">$ {{ gananciaUnitaria(p) | number:'1.0-0' }}</td>
                     </tr>
                 </tbody>
             </table>

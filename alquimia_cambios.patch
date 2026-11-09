@@ -1,0 +1,631 @@
+diff --git a/BackEnd/src/evento/evento.controller.ts b/BackEnd/src/evento/evento.controller.ts
+index b9d01e7..92107ac 100644
+--- a/BackEnd/src/evento/evento.controller.ts
++++ b/BackEnd/src/evento/evento.controller.ts
+@@ -1,7 +1,7 @@
+ import { Request, Response } from 'express';
+ import { orm } from '../shared/db/orm.js';
+ import { Producto } from '../productos/producto.entity.js';
+-import { EventoProducto } from './Evento.entity.js';
++import { EventoProducto } from './evento.entity.js';
+ 
+ const TIPOS_VALIDOS = ['vista', 'carrito', 'whatsapp'];
+ 
+diff --git a/BackEnd/src/ventas/venta.controller.ts b/BackEnd/src/ventas/venta.controller.ts
+index d1eec35..d049c4e 100644
+--- a/BackEnd/src/ventas/venta.controller.ts
++++ b/BackEnd/src/ventas/venta.controller.ts
+@@ -456,49 +456,133 @@ async function update(req: Request, res: Response) {
+     }
+ }
+ 
+-const getEstadisticas = async (req: Request, res: Response) => {
+-  try {
+-    const { fechaDesde, fechaHasta, clienteId } = req.query;
+-    const limit = parseInt(req.query.limit as string) || 10;
+-    const em = orm.em.fork();
++// ============================================================================
++// ESTADÍSTICAS: todas se calculan a partir del DETALLE de cada venta COBRADA
++// (cada renglón = producto, cantidad, precio al que se vendió).
++// Ganancia de un renglón = subtotal vendido - (precio_costo actual del producto * cantidad)
++// ============================================================================
++
++interface FiltrosDetalle {
++  fechaDesde?: string;
++  fechaHasta?: string;
++  clienteId?: number;
++}
+ 
+-    // Solo contamos ventas efectivamente cobradas (no anuladas ni pendientes)
+-    const where: any = { venta: { estado: 'COBRADA' } };
++async function cargarDetallesCobrados(em: any, filtros: FiltrosDetalle = {}) {
++  // Solo contamos ventas efectivamente cobradas (no anuladas ni pendientes)
++  const where: any = { venta: { estado: 'COBRADA' } };
+ 
+-    if (fechaDesde && fechaHasta) {
+-      where.venta.fecha = {
+-        $gte: new Date(`${fechaDesde}T00:00:00.000Z`),
+-        $lte: new Date(`${fechaHasta}T23:59:59.999Z`)
+-      };
+-    }
++  if (filtros.fechaDesde && filtros.fechaHasta) {
++    where.venta.fecha = {
++      $gte: new Date(`${filtros.fechaDesde}T00:00:00.000Z`),
++      $lte: new Date(`${filtros.fechaHasta}T23:59:59.999Z`)
++    };
++  }
+ 
+-    // NUEVO: si se pide un cliente puntual (ej. una feria), filtramos solo sus ventas
+-    if (clienteId) {
+-      where.venta.cliente = { id: Number(clienteId) };
+-    }
++  // Si se pide un cliente puntual (ej. una feria), filtramos solo sus ventas
++  if (filtros.clienteId) {
++    where.venta.cliente = { id: filtros.clienteId };
++  }
+ 
+-    const detalles = await em.find(DetalleVenta, where, {
+-      populate: ['producto']
+-    });
++  return em.find(DetalleVenta, where, { populate: ['producto', 'venta'] }) as Promise<DetalleVenta[]>;
++}
+ 
+-    // Agrupamos por producto en memoria (simple y liviano para el volumen actual)
+-    const acumulado = new Map<number, { nombre: string; cantidad: number; recaudado: number }>();
++function gananciaDeDetalle(d: DetalleVenta): number {
++  const costo = Number(d.producto?.precio_costo ?? 0) * Number(d.cantidad);
++  return Number(d.subtotal) - costo;
++}
+ 
+-    for (const d of detalles) {
+-      const id = d.producto.id;
+-      const actual = acumulado.get(id) || { nombre: d.producto.nombre, cantidad: 0, recaudado: 0 };
+-      actual.cantidad += Number(d.cantidad);
+-      actual.recaudado += Number(d.subtotal);
+-      acumulado.set(id, actual);
+-    }
++interface AcumuladoProducto {
++  productoId: number;
++  nombre: string;
++  categoria: string | null;
++  cantidad: number;
++  recaudado: number;
++  costo: number;
++  ganancia: number;
++  margen: number; // % de ganancia sobre lo recaudado
++  cantidadVentas: number;
++}
++
++// Agrupa los renglones por producto (todos los productos vendidos, sin límite)
++function agruparPorProducto(detalles: DetalleVenta[]): AcumuladoProducto[] {
++  const acumulado = new Map<number, AcumuladoProducto & { _ventas: Set<number> }>();
++
++  for (const d of detalles) {
++    if (!d.producto) continue;
++    const id = d.producto.id;
++    const actual = acumulado.get(id) || {
++      productoId: id,
++      nombre: d.producto.nombre,
++      categoria: d.producto.categoria || null,
++      cantidad: 0,
++      recaudado: 0,
++      costo: 0,
++      ganancia: 0,
++      margen: 0,
++      cantidadVentas: 0,
++      _ventas: new Set<number>()
++    };
++
++    const subtotal = Number(d.subtotal);
++    const costo = Number(d.producto.precio_costo) * Number(d.cantidad);
++
++    actual.cantidad += Number(d.cantidad);
++    actual.recaudado += subtotal;
++    actual.costo += costo;
++    actual.ganancia += subtotal - costo;
++    actual._ventas.add(d.venta.id);
++    acumulado.set(id, actual);
++  }
+ 
+-    const estadisticas = Array.from(acumulado.values())
++  return Array.from(acumulado.values()).map(({ _ventas, ...p }) => ({
++    ...p,
++    cantidadVentas: _ventas.size,
++    margen: p.recaudado > 0 ? (p.ganancia / p.recaudado) * 100 : 0
++  }));
++}
++
++function resumenDeDetalles(detalles: DetalleVenta[]) {
++  const ventas = new Set<number>();
++  let unidades = 0;
++  let facturado = 0;
++  let ganancia = 0;
++
++  for (const d of detalles) {
++    ventas.add(d.venta.id);
++    unidades += Number(d.cantidad);
++    facturado += Number(d.subtotal);
++    ganancia += gananciaDeDetalle(d);
++  }
++
++  return { unidades, facturado, ganancia, cantidadVentas: ventas.size };
++}
++
++function leerFiltros(req: Request): FiltrosDetalle {
++  const { fechaDesde, fechaHasta, clienteId } = req.query;
++  return {
++    fechaDesde: fechaDesde as string | undefined,
++    fechaHasta: fechaHasta as string | undefined,
++    clienteId: clienteId ? Number(clienteId) : undefined
++  };
++}
++
++// Top de productos más vendidos + resumen del período (calculado sobre TODAS las ventas, no solo el top)
++const getEstadisticas = async (req: Request, res: Response) => {
++  try {
++    const limit = parseInt(req.query.limit as string) || 10;
++    const em = orm.em.fork();
++
++    const detalles = await cargarDetallesCobrados(em, leerFiltros(req));
++
++    const estadisticas = agruparPorProducto(detalles)
+       .sort((a, b) => b.cantidad - a.cantidad)
+       .slice(0, limit);
+ 
+     return res.status(200).json({
+       message: 'Estadísticas calculadas con éxito',
+-      data: estadisticas
++      data: estadisticas,
++      resumen: resumenDeDetalles(detalles)
+     });
+ 
+   } catch (error: any) {
+@@ -507,7 +591,27 @@ const getEstadisticas = async (req: Request, res: Response) => {
+   }
+ };
+ 
+-// NUEVO: Total facturado y cantidad de ventas agrupado por mes (para el gráfico de tendencia)
++// NUEVO: Reporte completo por producto: cuánto se vendió (unidades y $) y cuánto se ganó
++const getReporteProductos = async (req: Request, res: Response) => {
++  try {
++    const em = orm.em.fork();
++
++    const detalles = await cargarDetallesCobrados(em, leerFiltros(req));
++
++    const data = agruparPorProducto(detalles).sort((a, b) => b.ganancia - a.ganancia);
++
++    return res.status(200).json({
++      data,
++      resumen: resumenDeDetalles(detalles)
++    });
++
++  } catch (error: any) {
++    console.error('Error calculando reporte de productos:', error);
++    return res.status(500).json({ message: error.message });
++  }
++};
++
++// Evolución mensual (para el gráfico de tendencia), también basada en el detalle de las ventas
+ const getVentasPorMes = async (req: Request, res: Response) => {
+   try {
+     const meses = parseInt(req.query.meses as string) || 12;
+@@ -519,26 +623,33 @@ const getVentasPorMes = async (req: Request, res: Response) => {
+     fechaLimite.setHours(0, 0, 0, 0);
+     fechaLimite.setMonth(fechaLimite.getMonth() - (meses - 1));
+ 
+-    const ventas = await em.find(Venta, {
+-      estado: 'COBRADA',
+-      fecha: { $gte: fechaLimite }
+-    });
++    const detalles = await em.find(DetalleVenta, {
++      venta: { estado: 'COBRADA', fecha: { $gte: fechaLimite } }
++    }, { populate: ['producto', 'venta'] });
+ 
+     // Agrupamos por año-mes en memoria
+-    const acumulado = new Map<string, { total: number; cantidad_ventas: number }>();
++    const acumulado = new Map<string, { total: number; ganancia: number; unidades: number; ventas: Set<number> }>();
+ 
+-    for (const venta of ventas) {
+-      const fecha = new Date(venta.fecha);
++    for (const d of detalles) {
++      const fecha = new Date(d.venta.fecha);
+       const clave = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+ 
+-      const actual = acumulado.get(clave) || { total: 0, cantidad_ventas: 0 };
+-      actual.total += Number(venta.total);
+-      actual.cantidad_ventas += 1;
++      const actual = acumulado.get(clave) || { total: 0, ganancia: 0, unidades: 0, ventas: new Set<number>() };
++      actual.total += Number(d.subtotal);
++      actual.ganancia += gananciaDeDetalle(d);
++      actual.unidades += Number(d.cantidad);
++      actual.ventas.add(d.venta.id);
+       acumulado.set(clave, actual);
+     }
+ 
+     const data = Array.from(acumulado.entries())
+-      .map(([mes, valores]) => ({ mes, ...valores }))
++      .map(([mes, v]) => ({
++        mes,
++        total: v.total,
++        ganancia: v.ganancia,
++        unidades: v.unidades,
++        cantidad_ventas: v.ventas.size
++      }))
+       .sort((a, b) => a.mes.localeCompare(b.mes));
+ 
+     return res.status(200).json({ data });
+@@ -652,13 +763,13 @@ const getGananciasPorFeria = async (req: Request, res: Response) => {
+         cantidadVentas: 0
+       };
+ 
+-      actual.facturado += Number(venta.total);
+       actual.cantidadVentas += 1;
+ 
++      // Facturado y ganancia salen del detalle de productos de cada venta
+       for (const detalle of venta.detalles) {
+         if (!detalle.producto) continue;
+-        const costo = Number(detalle.producto.precio_costo) * detalle.cantidad;
+-        actual.ganancia += Number(detalle.subtotal) - costo;
++        actual.facturado += Number(detalle.subtotal);
++        actual.ganancia += gananciaDeDetalle(detalle);
+       }
+ 
+       acumulado.set(id, actual);
+@@ -673,4 +784,4 @@ const getGananciasPorFeria = async (req: Request, res: Response) => {
+   }
+ };
+ 
+-export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes, getCobranzas, getGananciasPorFeria };
+\ No newline at end of file
++export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes, getCobranzas, getGananciasPorFeria, getReporteProductos };
+\ No newline at end of file
+diff --git a/BackEnd/src/ventas/venta.routes.ts b/BackEnd/src/ventas/venta.routes.ts
+index a6a9bc6..ff91acf 100644
+--- a/BackEnd/src/ventas/venta.routes.ts
++++ b/BackEnd/src/ventas/venta.routes.ts
+@@ -1,5 +1,5 @@
+ import { Router } from 'express';
+-import { crearVenta, obtenerVentas, getMetricasDelDia, findOne, anularVenta, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes, getCobranzas, getGananciasPorFeria } from './venta.controller.js';
++import { crearVenta, obtenerVentas, getMetricasDelDia, findOne, anularVenta, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes, getCobranzas, getGananciasPorFeria, getReporteProductos } from './venta.controller.js';
+ import { authMiddleware } from '../shared/middleware/auth.middleware.js';
+ 
+ export const ventaRouter = Router();
+@@ -7,6 +7,7 @@ export const ventaRouter = Router();
+ ventaRouter.use(authMiddleware);
+ 
+ ventaRouter.get('/estadisticas', getEstadisticas);
++ventaRouter.get('/estadisticas/productos', getReporteProductos);
+ ventaRouter.get('/estadisticas/mensual', getVentasPorMes);
+ ventaRouter.get('/cobranzas', getCobranzas);
+ ventaRouter.get('/ganancias-feria', getGananciasPorFeria);
+diff --git a/alquimia-front/src/app/components/estadisticas/estadisticas.html b/alquimia-front/src/app/components/estadisticas/estadisticas.html
+index 2800fc7..83c4934 100644
+--- a/alquimia-front/src/app/components/estadisticas/estadisticas.html
++++ b/alquimia-front/src/app/components/estadisticas/estadisticas.html
+@@ -5,7 +5,7 @@
+         <p class="text-slate-500 font-medium mt-1">Productos, ferias y cobranzas de un vistazo</p>
+     </div>
+ 
+-    <!-- Selector de período (GLOBAL: afecta Top 10, Ferias y el resumen de Catálogo) -->
++    <!-- Selector de período (GLOBAL: afecta Top 10, Reporte por Producto, Ferias y el resumen de Catálogo) -->
+     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col sm:flex-row items-center gap-3">
+         <div class="w-full sm:w-72">
+             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Período:</label>
+@@ -34,6 +34,14 @@
+                 [class.text-slate-400]="activeTab !== 'top10'">
+             Top 10 Productos
+         </button>
++        <button (click)="cambiarTab('productos')"
++                class="px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-all"
++                [class.border-slate-800]="activeTab === 'productos'"
++                [class.text-slate-800]="activeTab === 'productos'"
++                [class.border-transparent]="activeTab !== 'productos'"
++                [class.text-slate-400]="activeTab !== 'productos'">
++            Reporte por Producto
++        </button>
+         <button (click)="cambiarTab('ferias')"
+                 class="px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-all"
+                 [class.border-slate-800]="activeTab === 'ferias'"
+@@ -64,15 +72,23 @@
+     <!-- ======================= TAB: TOP 10 PRODUCTOS ======================= -->
+     <div [class.hidden]="activeTab !== 'top10'">
+ 
+-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
++        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                 <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Facturado — {{ labelMesSeleccionado() }}</p>
+                 <p class="text-2xl font-extrabold text-emerald-600 mt-1">$ {{ totalFacturadoPeriodo | number:'1.0-0' }}</p>
+             </div>
+             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Unidades vendidas — {{ labelMesSeleccionado() }}</p>
++                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Ganancia — {{ labelMesSeleccionado() }}</p>
++                <p class="text-2xl font-extrabold text-emerald-700 mt-1">$ {{ totalGananciaPeriodo | number:'1.0-0' }}</p>
++            </div>
++            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
++                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Unidades vendidas</p>
+                 <p class="text-2xl font-extrabold text-slate-800 mt-1">{{ totalVentasPeriodo | number:'1.0-0' }}</p>
+             </div>
++            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
++                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Ventas cobradas</p>
++                <p class="text-2xl font-extrabold text-slate-800 mt-1">{{ cantidadVentasPeriodo | number:'1.0-0' }}</p>
++            </div>
+         </div>
+ 
+         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+@@ -97,6 +113,7 @@
+                             <div class="flex items-center gap-4 flex-shrink-0">
+                                 <span class="text-slate-500">{{ p.cantidad }} un.</span>
+                                 <span class="text-emerald-600 font-bold">$ {{ p.recaudado | number:'1.0-0' }}</span>
++                                <span class="text-emerald-800 text-xs">Gan: $ {{ p.ganancia | number:'1.0-0' }}</span>
+                             </div>
+                         </div>
+                     </div>
+@@ -123,6 +140,99 @@
+         </div>
+     </div>
+ 
++    <!-- ======================= TAB: REPORTE POR PRODUCTO ======================= -->
++    <div [class.hidden]="activeTab !== 'productos'">
++
++        <p class="text-slate-500 text-sm mb-4">
++            Cuánto vendiste de cada producto y cuánto ganaste, sumando el detalle de todas las ventas cobradas del período.
++        </p>
++
++        <div class="flex flex-col sm:flex-row gap-3 mb-4">
++            <input type="text" [(ngModel)]="busquedaProducto" placeholder="Buscar producto o categoría..."
++                   class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 focus:outline-none bg-white">
++            <select [(ngModel)]="ordenReporte"
++                    class="sm:w-56 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 focus:outline-none bg-white">
++                <option value="ganancia">Ordenar por ganancia</option>
++                <option value="cantidad">Ordenar por unidades</option>
++                <option value="recaudado">Ordenar por facturado</option>
++                <option value="nombre">Ordenar por nombre</option>
++            </select>
++        </div>
++
++        <!-- Detalle del producto elegido -->
++        <div *ngIf="productoReporteSeleccionado" class="bg-white rounded-xl shadow-sm border-2 border-slate-800 p-5 mb-6">
++            <div class="flex items-start justify-between gap-3 mb-4">
++                <div class="min-w-0">
++                    <h2 class="text-lg font-bold text-slate-800 truncate">{{ productoReporteSeleccionado.nombre }}</h2>
++                    <p class="text-xs text-slate-400">{{ productoReporteSeleccionado.categoria || 'Sin categoría' }} — {{ labelMesSeleccionado() }}</p>
++                </div>
++                <button (click)="productoReporteSeleccionado = null" class="text-sm text-blue-600 hover:underline font-medium flex-shrink-0">× Cerrar</button>
++            </div>
++            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
++                <div>
++                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Unidades vendidas</p>
++                    <p class="text-2xl font-extrabold text-slate-800">{{ productoReporteSeleccionado.cantidad | number:'1.0-0' }}</p>
++                </div>
++                <div>
++                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Facturado</p>
++                    <p class="text-2xl font-extrabold text-emerald-600">$ {{ productoReporteSeleccionado.recaudado | number:'1.0-0' }}</p>
++                </div>
++                <div>
++                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Costo</p>
++                    <p class="text-2xl font-extrabold text-slate-600">$ {{ productoReporteSeleccionado.costo | number:'1.0-0' }}</p>
++                </div>
++                <div>
++                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Ganancia</p>
++                    <p class="text-2xl font-extrabold" [class.text-emerald-700]="productoReporteSeleccionado.ganancia >= 0" [class.text-red-600]="productoReporteSeleccionado.ganancia < 0">
++                        $ {{ productoReporteSeleccionado.ganancia | number:'1.0-0' }}
++                    </p>
++                </div>
++                <div>
++                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Margen</p>
++                    <p class="text-2xl font-extrabold text-slate-800">{{ productoReporteSeleccionado.margen | number:'1.0-1' }}%</p>
++                </div>
++            </div>
++        </div>
++
++        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
++            <div *ngIf="loadingReporte" class="h-32 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>
++
++            <div *ngIf="!loadingReporte && reporteFiltrado.length === 0" class="text-center text-slate-400 text-sm py-6">
++                No hay productos vendidos que coincidan en el período seleccionado.
++            </div>
++
++            <div *ngIf="!loadingReporte && reporteFiltrado.length > 0" class="overflow-x-auto">
++                <table class="w-full text-sm">
++                    <thead>
++                        <tr class="text-left text-xs font-bold text-slate-400 uppercase tracking-wide border-b border-slate-100">
++                            <th class="py-2 pr-3">Producto</th>
++                            <th class="py-2 pr-3 text-right">Unidades</th>
++                            <th class="py-2 pr-3 text-right">Facturado</th>
++                            <th class="py-2 pr-3 text-right">Costo</th>
++                            <th class="py-2 pr-3 text-right">Ganancia</th>
++                            <th class="py-2 text-right">Margen</th>
++                        </tr>
++                    </thead>
++                    <tbody class="divide-y divide-slate-100">
++                        <tr *ngFor="let p of reporteFiltrado" (click)="seleccionarProductoReporte(p)"
++                            class="cursor-pointer hover:bg-slate-50"
++                            [class.bg-slate-100]="productoReporteSeleccionado?.productoId === p.productoId">
++                            <td class="py-2.5 pr-3">
++                                <p class="font-medium text-slate-800">{{ p.nombre }}</p>
++                                <p *ngIf="p.categoria" class="text-xs text-slate-400">{{ p.categoria }}</p>
++                            </td>
++                            <td class="py-2.5 pr-3 text-right text-slate-600">{{ p.cantidad | number:'1.0-0' }}</td>
++                            <td class="py-2.5 pr-3 text-right text-slate-600">$ {{ p.recaudado | number:'1.0-0' }}</td>
++                            <td class="py-2.5 pr-3 text-right text-slate-400">$ {{ p.costo | number:'1.0-0' }}</td>
++                            <td class="py-2.5 pr-3 text-right font-bold" [class.text-emerald-600]="p.ganancia >= 0" [class.text-red-600]="p.ganancia < 0">$ {{ p.ganancia | number:'1.0-0' }}</td>
++                            <td class="py-2.5 text-right text-slate-500">{{ p.margen | number:'1.0-1' }}%</td>
++                        </tr>
++                    </tbody>
++                </table>
++            </div>
++        </div>
++    </div>
++
+     <!-- ======================= TAB: GANANCIAS POR FERIA ======================= -->
+     <div [class.hidden]="activeTab !== 'ferias'">
+ 
+diff --git a/alquimia-front/src/app/components/estadisticas/estadisticas.ts b/alquimia-front/src/app/components/estadisticas/estadisticas.ts
+index 56357fa..c2a9913 100644
+--- a/alquimia-front/src/app/components/estadisticas/estadisticas.ts
++++ b/alquimia-front/src/app/components/estadisticas/estadisticas.ts
+@@ -5,17 +5,41 @@ import { VentaService } from '../../services/venta.service';
+ import { EventoService, TipoEvento } from '../../services/evento.service';
+ import Chart from 'chart.js/auto';
+ 
+-type Tab = 'top10' | 'ferias' | 'catalogo' | 'cobranzas';
++type Tab = 'top10' | 'productos' | 'ferias' | 'catalogo' | 'cobranzas';
+ 
+ interface ProductoTop {
+   nombre: string;
+   cantidad: number;
+   recaudado: number;
++  ganancia?: number;
+ }
+ 
++interface ProductoReporte {
++  productoId: number;
++  nombre: string;
++  categoria: string | null;
++  cantidad: number;
++  recaudado: number;
++  costo: number;
++  ganancia: number;
++  margen: number;
++  cantidadVentas: number;
++}
++
++interface ResumenVentas {
++  unidades: number;
++  facturado: number;
++  ganancia: number;
++  cantidadVentas: number;
++}
++
++type OrdenReporte = 'ganancia' | 'cantidad' | 'recaudado' | 'nombre';
++
+ interface VentaMes {
+   mes: string; // formato "YYYY-MM"
+   total: number;
++  ganancia: number;
++  unidades: number;
+   cantidad_ventas: number;
+ }
+ 
+@@ -66,6 +90,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
+   loadingCobranzas = true;
+   loadingVistos = true;
+   loadingFerias = true;
++  loadingReporte = true;
+   loadingProductosFeria = false;
+ 
+   // '' = histórico completo (general). 'YYYY-MM' = un mes puntual.
+@@ -81,8 +106,17 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
+   ventasPorMes: VentaMes[] = [];
+   deudores: Deudor[] = [];
+ 
++  // Resumen del período (calculado sobre TODAS las ventas cobradas, no solo el top 10)
+   totalFacturadoPeriodo = 0;
+-  totalVentasPeriodo = 0;
++  totalVentasPeriodo = 0; // unidades vendidas
++  totalGananciaPeriodo = 0;
++  cantidadVentasPeriodo = 0;
++
++  // Reporte por producto
++  reporteProductos: ProductoReporte[] = [];
++  productoReporteSeleccionado: ProductoReporte | null = null;
++  busquedaProducto = '';
++  ordenReporte: OrdenReporte = 'ganancia';
+ 
+   totalAdeudado = 0;
+   cantidadDeudores = 0;
+@@ -112,6 +146,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
+     this.cargarCobranzas();
+     this.cargarProductosVistos();
+     this.cargarGananciasFerias();
++    this.cargarReporteProductos();
+   }
+ 
+   ngAfterViewInit() {
+@@ -137,6 +172,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
+     this.aplicarRangoDesdeMes();
+     this.cargarTopProductos();
+     this.cargarGananciasFerias();
++    this.cargarReporteProductos();
+     this.feriaSeleccionada = null;
+     this.productosFeria = [];
+ 
+@@ -184,8 +220,11 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
+     this.ventaService.getEstadisticas(this.limiteTop, this.fechaDesde, this.fechaHasta).subscribe({
+       next: (res: any) => {
+         this.topProductos = res.data || [];
+-        this.totalFacturadoPeriodo = this.topProductos.reduce((sum, p) => sum + p.recaudado, 0);
+-        this.totalVentasPeriodo = this.topProductos.reduce((sum, p) => sum + p.cantidad, 0);
++        const r: ResumenVentas = res.resumen || { unidades: 0, facturado: 0, ganancia: 0, cantidadVentas: 0 };
++        this.totalFacturadoPeriodo = r.facturado;
++        this.totalVentasPeriodo = r.unidades;
++        this.totalGananciaPeriodo = r.ganancia;
++        this.cantidadVentasPeriodo = r.cantidadVentas;
+         this.loadingTop = false;
+         this.cd.detectChanges();
+ 
+@@ -201,6 +240,44 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
+     });
+   }
+ 
++  // --- Carga de datos: Reporte por producto ---
++
++  private cargarReporteProductos() {
++    this.loadingReporte = true;
++    this.ventaService.getReporteProductos(this.fechaDesde, this.fechaHasta).subscribe({
++      next: (res: any) => {
++        this.reporteProductos = res.data || [];
++        // Si el producto elegido ya no tiene ventas en este período, lo volvemos a buscar o lo limpiamos
++        if (this.productoReporteSeleccionado) {
++          this.productoReporteSeleccionado =
++            this.reporteProductos.find(p => p.productoId === this.productoReporteSeleccionado!.productoId) || null;
++        }
++        this.loadingReporte = false;
++        this.cd.detectChanges();
++      },
++      error: (err) => {
++        console.error('Error cargando reporte de productos', err);
++        this.loadingReporte = false;
++        this.cd.detectChanges();
++      }
++    });
++  }
++
++  get reporteFiltrado(): ProductoReporte[] {
++    const q = this.busquedaProducto.trim().toLowerCase();
++    const lista = q
++      ? this.reporteProductos.filter(p =>
++          p.nombre.toLowerCase().includes(q) || (p.categoria || '').toLowerCase().includes(q))
++      : this.reporteProductos.slice();
++
++    return lista.sort((a, b) =>
++      this.ordenReporte === 'nombre' ? a.nombre.localeCompare(b.nombre) : b[this.ordenReporte] - a[this.ordenReporte]);
++  }
++
++  seleccionarProductoReporte(p: ProductoReporte) {
++    this.productoReporteSeleccionado = this.productoReporteSeleccionado?.productoId === p.productoId ? null : p;
++  }
++
+   private cargarVentasPorMes() {
+     this.loadingMensual = true;
+     this.ventaService.getVentasPorMes(12).subscribe({
+diff --git a/alquimia-front/src/app/services/venta.service.ts b/alquimia-front/src/app/services/venta.service.ts
+index 8159e5a..b0cc696 100644
+--- a/alquimia-front/src/app/services/venta.service.ts
++++ b/alquimia-front/src/app/services/venta.service.ts
+@@ -94,6 +94,15 @@ export class VentaService {
+     return this.http.get<any>(`${this.apiUrl}/estadisticas`, { params });
+   }
+ 
++  // Reporte por producto: unidades vendidas, facturado y ganancia de cada uno
++  getReporteProductos(desde?: string, hasta?: string): Observable<any> {
++    let params = new HttpParams();
++    if (desde) params = params.set('fechaDesde', desde);
++    if (hasta) params = params.set('fechaHasta', hasta);
++
++    return this.http.get<any>(`${this.apiUrl}/estadisticas/productos`, { params });
++  }
++
+   getVentasPorMes(meses: number = 12): Observable<any> {
+     const params = new HttpParams().set('meses', meses.toString());
+     return this.http.get<any>(`${this.apiUrl}/estadisticas/mensual`, { params });

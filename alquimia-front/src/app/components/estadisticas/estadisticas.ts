@@ -5,17 +5,41 @@ import { VentaService } from '../../services/venta.service';
 import { EventoService, TipoEvento } from '../../services/evento.service';
 import Chart from 'chart.js/auto';
 
-type Tab = 'top10' | 'ferias' | 'catalogo' | 'cobranzas';
+type Tab = 'top10' | 'productos' | 'ferias' | 'catalogo' | 'cobranzas';
 
 interface ProductoTop {
   nombre: string;
   cantidad: number;
   recaudado: number;
+  ganancia?: number;
 }
+
+interface ProductoReporte {
+  productoId: number;
+  nombre: string;
+  categoria: string | null;
+  cantidad: number;
+  recaudado: number;
+  costo: number;
+  ganancia: number;
+  margen: number;
+  cantidadVentas: number;
+}
+
+interface ResumenVentas {
+  unidades: number;
+  facturado: number;
+  ganancia: number;
+  cantidadVentas: number;
+}
+
+type OrdenReporte = 'ganancia' | 'cantidad' | 'recaudado' | 'nombre';
 
 interface VentaMes {
   mes: string; // formato "YYYY-MM"
   total: number;
+  ganancia: number;
+  unidades: number;
   cantidad_ventas: number;
 }
 
@@ -66,6 +90,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
   loadingCobranzas = true;
   loadingVistos = true;
   loadingFerias = true;
+  loadingReporte = true;
   loadingProductosFeria = false;
 
   // '' = histórico completo (general). 'YYYY-MM' = un mes puntual.
@@ -81,8 +106,17 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
   ventasPorMes: VentaMes[] = [];
   deudores: Deudor[] = [];
 
+  // Resumen del período (calculado sobre TODAS las ventas cobradas, no solo el top 10)
   totalFacturadoPeriodo = 0;
-  totalVentasPeriodo = 0;
+  totalVentasPeriodo = 0; // unidades vendidas
+  totalGananciaPeriodo = 0;
+  cantidadVentasPeriodo = 0;
+
+  // Reporte por producto
+  reporteProductos: ProductoReporte[] = [];
+  productoReporteSeleccionado: ProductoReporte | null = null;
+  busquedaProducto = '';
+  ordenReporte: OrdenReporte = 'ganancia';
 
   totalAdeudado = 0;
   cantidadDeudores = 0;
@@ -112,6 +146,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cargarCobranzas();
     this.cargarProductosVistos();
     this.cargarGananciasFerias();
+    this.cargarReporteProductos();
   }
 
   ngAfterViewInit() {
@@ -137,6 +172,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.aplicarRangoDesdeMes();
     this.cargarTopProductos();
     this.cargarGananciasFerias();
+    this.cargarReporteProductos();
     this.feriaSeleccionada = null;
     this.productosFeria = [];
 
@@ -184,8 +220,11 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.ventaService.getEstadisticas(this.limiteTop, this.fechaDesde, this.fechaHasta).subscribe({
       next: (res: any) => {
         this.topProductos = res.data || [];
-        this.totalFacturadoPeriodo = this.topProductos.reduce((sum, p) => sum + p.recaudado, 0);
-        this.totalVentasPeriodo = this.topProductos.reduce((sum, p) => sum + p.cantidad, 0);
+        const r: ResumenVentas = res.resumen || { unidades: 0, facturado: 0, ganancia: 0, cantidadVentas: 0 };
+        this.totalFacturadoPeriodo = r.facturado;
+        this.totalVentasPeriodo = r.unidades;
+        this.totalGananciaPeriodo = r.ganancia;
+        this.cantidadVentasPeriodo = r.cantidadVentas;
         this.loadingTop = false;
         this.cd.detectChanges();
 
@@ -199,6 +238,44 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cd.detectChanges();
       }
     });
+  }
+
+  // --- Carga de datos: Reporte por producto ---
+
+  private cargarReporteProductos() {
+    this.loadingReporte = true;
+    this.ventaService.getReporteProductos(this.fechaDesde, this.fechaHasta).subscribe({
+      next: (res: any) => {
+        this.reporteProductos = res.data || [];
+        // Si el producto elegido ya no tiene ventas en este período, lo volvemos a buscar o lo limpiamos
+        if (this.productoReporteSeleccionado) {
+          this.productoReporteSeleccionado =
+            this.reporteProductos.find(p => p.productoId === this.productoReporteSeleccionado!.productoId) || null;
+        }
+        this.loadingReporte = false;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando reporte de productos', err);
+        this.loadingReporte = false;
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  get reporteFiltrado(): ProductoReporte[] {
+    const q = this.busquedaProducto.trim().toLowerCase();
+    const lista = q
+      ? this.reporteProductos.filter(p =>
+          p.nombre.toLowerCase().includes(q) || (p.categoria || '').toLowerCase().includes(q))
+      : this.reporteProductos.slice();
+
+    return lista.sort((a, b) =>
+      this.ordenReporte === 'nombre' ? a.nombre.localeCompare(b.nombre) : b[this.ordenReporte] - a[this.ordenReporte]);
+  }
+
+  seleccionarProductoReporte(p: ProductoReporte) {
+    this.productoReporteSeleccionado = this.productoReporteSeleccionado?.productoId === p.productoId ? null : p;
   }
 
   private cargarVentasPorMes() {

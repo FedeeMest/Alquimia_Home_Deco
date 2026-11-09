@@ -456,49 +456,133 @@ async function update(req: Request, res: Response) {
     }
 }
 
+// ============================================================================
+// ESTADÍSTICAS: todas se calculan a partir del DETALLE de cada venta COBRADA
+// (cada renglón = producto, cantidad, precio al que se vendió).
+// Ganancia de un renglón = subtotal vendido - (precio_costo actual del producto * cantidad)
+// ============================================================================
+
+interface FiltrosDetalle {
+  fechaDesde?: string;
+  fechaHasta?: string;
+  clienteId?: number;
+}
+
+async function cargarDetallesCobrados(em: any, filtros: FiltrosDetalle = {}) {
+  // Solo contamos ventas efectivamente cobradas (no anuladas ni pendientes)
+  const where: any = { venta: { estado: 'COBRADA' } };
+
+  if (filtros.fechaDesde && filtros.fechaHasta) {
+    where.venta.fecha = {
+      $gte: new Date(`${filtros.fechaDesde}T00:00:00.000Z`),
+      $lte: new Date(`${filtros.fechaHasta}T23:59:59.999Z`)
+    };
+  }
+
+  // Si se pide un cliente puntual (ej. una feria), filtramos solo sus ventas
+  if (filtros.clienteId) {
+    where.venta.cliente = { id: filtros.clienteId };
+  }
+
+  return em.find(DetalleVenta, where, { populate: ['producto', 'venta'] }) as Promise<DetalleVenta[]>;
+}
+
+function gananciaDeDetalle(d: DetalleVenta): number {
+  const costo = Number(d.producto?.precio_costo ?? 0) * Number(d.cantidad);
+  return Number(d.subtotal) - costo;
+}
+
+interface AcumuladoProducto {
+  productoId: number;
+  nombre: string;
+  categoria: string | null;
+  cantidad: number;
+  recaudado: number;
+  costo: number;
+  ganancia: number;
+  margen: number; // % de ganancia sobre lo recaudado
+  cantidadVentas: number;
+}
+
+// Agrupa los renglones por producto (todos los productos vendidos, sin límite)
+function agruparPorProducto(detalles: DetalleVenta[]): AcumuladoProducto[] {
+  const acumulado = new Map<number, AcumuladoProducto & { _ventas: Set<number> }>();
+
+  for (const d of detalles) {
+    if (!d.producto) continue;
+    const id = d.producto.id;
+    const actual = acumulado.get(id) || {
+      productoId: id,
+      nombre: d.producto.nombre,
+      categoria: d.producto.categoria || null,
+      cantidad: 0,
+      recaudado: 0,
+      costo: 0,
+      ganancia: 0,
+      margen: 0,
+      cantidadVentas: 0,
+      _ventas: new Set<number>()
+    };
+
+    const subtotal = Number(d.subtotal);
+    const costo = Number(d.producto.precio_costo) * Number(d.cantidad);
+
+    actual.cantidad += Number(d.cantidad);
+    actual.recaudado += subtotal;
+    actual.costo += costo;
+    actual.ganancia += subtotal - costo;
+    actual._ventas.add(d.venta.id);
+    acumulado.set(id, actual);
+  }
+
+  return Array.from(acumulado.values()).map(({ _ventas, ...p }) => ({
+    ...p,
+    cantidadVentas: _ventas.size,
+    margen: p.recaudado > 0 ? (p.ganancia / p.recaudado) * 100 : 0
+  }));
+}
+
+function resumenDeDetalles(detalles: DetalleVenta[]) {
+  const ventas = new Set<number>();
+  let unidades = 0;
+  let facturado = 0;
+  let ganancia = 0;
+
+  for (const d of detalles) {
+    ventas.add(d.venta.id);
+    unidades += Number(d.cantidad);
+    facturado += Number(d.subtotal);
+    ganancia += gananciaDeDetalle(d);
+  }
+
+  return { unidades, facturado, ganancia, cantidadVentas: ventas.size };
+}
+
+function leerFiltros(req: Request): FiltrosDetalle {
+  const { fechaDesde, fechaHasta, clienteId } = req.query;
+  return {
+    fechaDesde: fechaDesde as string | undefined,
+    fechaHasta: fechaHasta as string | undefined,
+    clienteId: clienteId ? Number(clienteId) : undefined
+  };
+}
+
+// Top de productos más vendidos + resumen del período (calculado sobre TODAS las ventas, no solo el top)
 const getEstadisticas = async (req: Request, res: Response) => {
   try {
-    const { fechaDesde, fechaHasta, clienteId } = req.query;
     const limit = parseInt(req.query.limit as string) || 10;
     const em = orm.em.fork();
 
-    // Solo contamos ventas efectivamente cobradas (no anuladas ni pendientes)
-    const where: any = { venta: { estado: 'COBRADA' } };
+    const detalles = await cargarDetallesCobrados(em, leerFiltros(req));
 
-    if (fechaDesde && fechaHasta) {
-      where.venta.fecha = {
-        $gte: new Date(`${fechaDesde}T00:00:00.000Z`),
-        $lte: new Date(`${fechaHasta}T23:59:59.999Z`)
-      };
-    }
-
-    // NUEVO: si se pide un cliente puntual (ej. una feria), filtramos solo sus ventas
-    if (clienteId) {
-      where.venta.cliente = { id: Number(clienteId) };
-    }
-
-    const detalles = await em.find(DetalleVenta, where, {
-      populate: ['producto']
-    });
-
-    // Agrupamos por producto en memoria (simple y liviano para el volumen actual)
-    const acumulado = new Map<number, { nombre: string; cantidad: number; recaudado: number }>();
-
-    for (const d of detalles) {
-      const id = d.producto.id;
-      const actual = acumulado.get(id) || { nombre: d.producto.nombre, cantidad: 0, recaudado: 0 };
-      actual.cantidad += Number(d.cantidad);
-      actual.recaudado += Number(d.subtotal);
-      acumulado.set(id, actual);
-    }
-
-    const estadisticas = Array.from(acumulado.values())
+    const estadisticas = agruparPorProducto(detalles)
       .sort((a, b) => b.cantidad - a.cantidad)
       .slice(0, limit);
 
     return res.status(200).json({
       message: 'Estadísticas calculadas con éxito',
-      data: estadisticas
+      data: estadisticas,
+      resumen: resumenDeDetalles(detalles)
     });
 
   } catch (error: any) {
@@ -507,7 +591,27 @@ const getEstadisticas = async (req: Request, res: Response) => {
   }
 };
 
-// NUEVO: Total facturado y cantidad de ventas agrupado por mes (para el gráfico de tendencia)
+// NUEVO: Reporte completo por producto: cuánto se vendió (unidades y $) y cuánto se ganó
+const getReporteProductos = async (req: Request, res: Response) => {
+  try {
+    const em = orm.em.fork();
+
+    const detalles = await cargarDetallesCobrados(em, leerFiltros(req));
+
+    const data = agruparPorProducto(detalles).sort((a, b) => b.ganancia - a.ganancia);
+
+    return res.status(200).json({
+      data,
+      resumen: resumenDeDetalles(detalles)
+    });
+
+  } catch (error: any) {
+    console.error('Error calculando reporte de productos:', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// Evolución mensual (para el gráfico de tendencia), también basada en el detalle de las ventas
 const getVentasPorMes = async (req: Request, res: Response) => {
   try {
     const meses = parseInt(req.query.meses as string) || 12;
@@ -519,26 +623,33 @@ const getVentasPorMes = async (req: Request, res: Response) => {
     fechaLimite.setHours(0, 0, 0, 0);
     fechaLimite.setMonth(fechaLimite.getMonth() - (meses - 1));
 
-    const ventas = await em.find(Venta, {
-      estado: 'COBRADA',
-      fecha: { $gte: fechaLimite }
-    });
+    const detalles = await em.find(DetalleVenta, {
+      venta: { estado: 'COBRADA', fecha: { $gte: fechaLimite } }
+    }, { populate: ['producto', 'venta'] });
 
     // Agrupamos por año-mes en memoria
-    const acumulado = new Map<string, { total: number; cantidad_ventas: number }>();
+    const acumulado = new Map<string, { total: number; ganancia: number; unidades: number; ventas: Set<number> }>();
 
-    for (const venta of ventas) {
-      const fecha = new Date(venta.fecha);
+    for (const d of detalles) {
+      const fecha = new Date(d.venta.fecha);
       const clave = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
 
-      const actual = acumulado.get(clave) || { total: 0, cantidad_ventas: 0 };
-      actual.total += Number(venta.total);
-      actual.cantidad_ventas += 1;
+      const actual = acumulado.get(clave) || { total: 0, ganancia: 0, unidades: 0, ventas: new Set<number>() };
+      actual.total += Number(d.subtotal);
+      actual.ganancia += gananciaDeDetalle(d);
+      actual.unidades += Number(d.cantidad);
+      actual.ventas.add(d.venta.id);
       acumulado.set(clave, actual);
     }
 
     const data = Array.from(acumulado.entries())
-      .map(([mes, valores]) => ({ mes, ...valores }))
+      .map(([mes, v]) => ({
+        mes,
+        total: v.total,
+        ganancia: v.ganancia,
+        unidades: v.unidades,
+        cantidad_ventas: v.ventas.size
+      }))
       .sort((a, b) => a.mes.localeCompare(b.mes));
 
     return res.status(200).json({ data });
@@ -652,13 +763,13 @@ const getGananciasPorFeria = async (req: Request, res: Response) => {
         cantidadVentas: 0
       };
 
-      actual.facturado += Number(venta.total);
       actual.cantidadVentas += 1;
 
+      // Facturado y ganancia salen del detalle de productos de cada venta
       for (const detalle of venta.detalles) {
         if (!detalle.producto) continue;
-        const costo = Number(detalle.producto.precio_costo) * detalle.cantidad;
-        actual.ganancia += Number(detalle.subtotal) - costo;
+        actual.facturado += Number(detalle.subtotal);
+        actual.ganancia += gananciaDeDetalle(detalle);
       }
 
       acumulado.set(id, actual);
@@ -673,4 +784,4 @@ const getGananciasPorFeria = async (req: Request, res: Response) => {
   }
 };
 
-export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes, getCobranzas, getGananciasPorFeria };
+export { crearVenta, obtenerVentas, anularVenta, findOne, getMetricasDelDia, inputS, marcarPagada, update, getEstadisticas, getVentasPorMes, getCobranzas, getGananciasPorFeria, getReporteProductos };

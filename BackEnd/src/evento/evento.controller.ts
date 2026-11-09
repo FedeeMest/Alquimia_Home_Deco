@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { orm } from '../shared/db/orm.js';
 import { Producto } from '../productos/producto.entity.js';
-import { EventoProducto } from './Evento.entity.js';
+import { EventoProducto } from './evento.entity.js';
 
 const TIPOS_VALIDOS = ['vista', 'carrito', 'whatsapp'];
 

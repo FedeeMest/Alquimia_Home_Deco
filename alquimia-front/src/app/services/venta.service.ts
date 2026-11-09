@@ -94,6 +94,15 @@ export class VentaService {
     return this.http.get<any>(`${this.apiUrl}/estadisticas`, { params });
   }
 
+  // Reporte por producto: unidades vendidas, facturado y ganancia de cada uno
+  getReporteProductos(desde?: string, hasta?: string): Observable<any> {
+    let params = new HttpParams();
+    if (desde) params = params.set('fechaDesde', desde);
+    if (hasta) params = params.set('fechaHasta', hasta);
+
+    return this.http.get<any>(`${this.apiUrl}/estadisticas/productos`, { params });
+  }
+
   getVentasPorMes(meses: number = 12): Observable<any> {
     const params = new HttpParams().set('meses', meses.toString());
     return this.http.get<any>(`${this.apiUrl}/estadisticas/mensual`, { params });

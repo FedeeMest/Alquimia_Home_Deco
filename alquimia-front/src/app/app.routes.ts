@@ -53,7 +53,8 @@ export const routes: Routes = [
             { path: 'control-stock', loadComponent: () => import('./components/control-stock/control-stock').then(m => m.ControlStockComponent) },
             { path: 'configuracion', loadComponent: () => import('./components/configuracion/configuracion').then(m => m.ConfiguracionComponent) },
             { path: 'metricas', loadComponent: () => import('./components/dashboard/dashboard').then(m => m.DashboardComponent) },
-            { path: 'estadisticas', loadComponent: () => import('./components/estadisticas/estadisticas').then(m => m.EstadisticasComponent) }
+            { path: 'estadisticas', loadComponent: () => import('./components/estadisticas/estadisticas').then(m => m.EstadisticasComponent) },
+            { path: 'reporte-productos', loadComponent: () => import('./components/reporte-productos/reporte-productos').then(m => m.ReporteProductosComponent) }
 
             
         ]

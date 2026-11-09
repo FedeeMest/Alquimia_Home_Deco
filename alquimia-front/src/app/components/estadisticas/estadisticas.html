@@ -5,7 +5,7 @@
         <p class="text-slate-500 font-medium mt-1">Productos, ferias y cobranzas de un vistazo</p>
     </div>
 
-    <!-- Selector de período (GLOBAL: afecta Top 10, Reporte por Producto, Ferias y el resumen de Catálogo) -->
+    <!-- Selector de período (GLOBAL: afecta Top 10, Ferias y el resumen de Catálogo) -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col sm:flex-row items-center gap-3">
         <div class="w-full sm:w-72">
             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Período:</label>
@@ -33,14 +33,6 @@
                 [class.border-transparent]="activeTab !== 'top10'"
                 [class.text-slate-400]="activeTab !== 'top10'">
             Top 10 Productos
-        </button>
-        <button (click)="cambiarTab('productos')"
-                class="px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-all"
-                [class.border-slate-800]="activeTab === 'productos'"
-                [class.text-slate-800]="activeTab === 'productos'"
-                [class.border-transparent]="activeTab !== 'productos'"
-                [class.text-slate-400]="activeTab !== 'productos'">
-            Reporte por Producto
         </button>
         <button (click)="cambiarTab('ferias')"
                 class="px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-all"
@@ -137,99 +129,6 @@
                 </div>
             </div>
 
-        </div>
-    </div>
-
-    <!-- ======================= TAB: REPORTE POR PRODUCTO ======================= -->
-    <div [class.hidden]="activeTab !== 'productos'">
-
-        <p class="text-slate-500 text-sm mb-4">
-            Cuánto vendiste de cada producto y cuánto ganaste, sumando el detalle de todas las ventas cobradas del período.
-        </p>
-
-        <div class="flex flex-col sm:flex-row gap-3 mb-4">
-            <input type="text" [(ngModel)]="busquedaProducto" placeholder="Buscar producto o categoría..."
-                   class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 focus:outline-none bg-white">
-            <select [(ngModel)]="ordenReporte"
-                    class="sm:w-56 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 focus:outline-none bg-white">
-                <option value="ganancia">Ordenar por ganancia</option>
-                <option value="cantidad">Ordenar por unidades</option>
-                <option value="recaudado">Ordenar por facturado</option>
-                <option value="nombre">Ordenar por nombre</option>
-            </select>
-        </div>
-
-        <!-- Detalle del producto elegido -->
-        <div *ngIf="productoReporteSeleccionado" class="bg-white rounded-xl shadow-sm border-2 border-slate-800 p-5 mb-6">
-            <div class="flex items-start justify-between gap-3 mb-4">
-                <div class="min-w-0">
-                    <h2 class="text-lg font-bold text-slate-800 truncate">{{ productoReporteSeleccionado.nombre }}</h2>
-                    <p class="text-xs text-slate-400">{{ productoReporteSeleccionado.categoria || 'Sin categoría' }} — {{ labelMesSeleccionado() }}</p>
-                </div>
-                <button (click)="productoReporteSeleccionado = null" class="text-sm text-blue-600 hover:underline font-medium flex-shrink-0">× Cerrar</button>
-            </div>
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Unidades vendidas</p>
-                    <p class="text-2xl font-extrabold text-slate-800">{{ productoReporteSeleccionado.cantidad | number:'1.0-0' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Facturado</p>
-                    <p class="text-2xl font-extrabold text-emerald-600">$ {{ productoReporteSeleccionado.recaudado | number:'1.0-0' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Costo</p>
-                    <p class="text-2xl font-extrabold text-slate-600">$ {{ productoReporteSeleccionado.costo | number:'1.0-0' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Ganancia</p>
-                    <p class="text-2xl font-extrabold" [class.text-emerald-700]="productoReporteSeleccionado.ganancia >= 0" [class.text-red-600]="productoReporteSeleccionado.ganancia < 0">
-                        $ {{ productoReporteSeleccionado.ganancia | number:'1.0-0' }}
-                    </p>
-                </div>
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Margen</p>
-                    <p class="text-2xl font-extrabold text-slate-800">{{ productoReporteSeleccionado.margen | number:'1.0-1' }}%</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-            <div *ngIf="loadingReporte" class="h-32 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>
-
-            <div *ngIf="!loadingReporte && reporteFiltrado.length === 0" class="text-center text-slate-400 text-sm py-6">
-                No hay productos vendidos que coincidan en el período seleccionado.
-            </div>
-
-            <div *ngIf="!loadingReporte && reporteFiltrado.length > 0" class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="text-left text-xs font-bold text-slate-400 uppercase tracking-wide border-b border-slate-100">
-                            <th class="py-2 pr-3">Producto</th>
-                            <th class="py-2 pr-3 text-right">Unidades</th>
-                            <th class="py-2 pr-3 text-right">Facturado</th>
-                            <th class="py-2 pr-3 text-right">Costo</th>
-                            <th class="py-2 pr-3 text-right">Ganancia</th>
-                            <th class="py-2 text-right">Margen</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        <tr *ngFor="let p of reporteFiltrado" (click)="seleccionarProductoReporte(p)"
-                            class="cursor-pointer hover:bg-slate-50"
-                            [class.bg-slate-100]="productoReporteSeleccionado?.productoId === p.productoId">
-                            <td class="py-2.5 pr-3">
-                                <p class="font-medium text-slate-800">{{ p.nombre }}</p>
-                                <p *ngIf="p.categoria" class="text-xs text-slate-400">{{ p.categoria }}</p>
-                            </td>
-                            <td class="py-2.5 pr-3 text-right text-slate-600">{{ p.cantidad | number:'1.0-0' }}</td>
-                            <td class="py-2.5 pr-3 text-right text-slate-600">$ {{ p.recaudado | number:'1.0-0' }}</td>
-                            <td class="py-2.5 pr-3 text-right text-slate-400">$ {{ p.costo | number:'1.0-0' }}</td>
-                            <td class="py-2.5 pr-3 text-right font-bold" [class.text-emerald-600]="p.ganancia >= 0" [class.text-red-600]="p.ganancia < 0">$ {{ p.ganancia | number:'1.0-0' }}</td>
-                            <td class="py-2.5 text-right text-slate-500">{{ p.margen | number:'1.0-1' }}%</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
         </div>
     </div>
 
